@@ -107,7 +107,7 @@ class PacienteController extends ResourceController
         $this->redirect('/pacientes');
     }
 
-    private function renderForm(array $paciente, array $errors, string $title, ?int $id = null): void
+    protected function renderForm(array $paciente, array $errors, string $title, ?int $id = null): void
     {
         $model = $this->pacienteModel();
 
