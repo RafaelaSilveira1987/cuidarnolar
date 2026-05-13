@@ -27,4 +27,13 @@ class AgendamentoController extends ResourceController
         'descricao' => 'Descricao',
         'status' => 'Status',
     ];
+    protected array $requiredFields = ['paciente_id', 'titulo', 'data_evento'];
+    protected array $formFields = [
+        'paciente_id' => ['label' => 'Paciente', 'type' => 'select', 'empty' => 'Selecione'],
+        'cuidador_id' => ['label' => 'Cuidador', 'type' => 'select', 'empty' => 'Sem cuidador'],
+        'titulo' => ['label' => 'Titulo', 'span' => true, 'maxlength' => 255],
+        'data_evento' => ['label' => 'Data e hora', 'type' => 'datetime-local'],
+        'status' => ['label' => 'Status', 'type' => 'select', 'empty' => 'Selecione', 'options' => ['Pendente' => 'Pendente', 'Concluído' => 'Concluido']],
+        'descricao' => ['label' => 'Descricao', 'type' => 'textarea', 'span' => true],
+    ];
 }

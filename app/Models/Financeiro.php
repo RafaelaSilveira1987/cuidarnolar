@@ -8,10 +8,35 @@ class Financeiro extends BaseModuleModel
     protected string $searchColumn = 'p.nome_completo';
     protected string $orderBy = 'f.data';
     protected string $orderDirection = 'DESC';
+    protected array $fillable = [
+        'responsavel_id',
+        'cuidador_id',
+        'paciente_id',
+        'plano_id',
+        'data',
+        'tipo_transacao',
+        'moeda',
+        'valor',
+        'status',
+        'observacoes',
+    ];
+    protected array $nullable = [
+        'responsavel_id',
+        'cuidador_id',
+        'paciente_id',
+        'plano_id',
+        'moeda',
+        'valor',
+    ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {
-        return $this->listWithJoins($page, $perPage, $search);
+        return $this->listByType($page, $perPage, $search);
+    }
+
+    public function listByType(int $page = 1, int $perPage = 15, string $search = '', string $tipo = ''): array
+    {
+        return $this->listWithJoins($page, $perPage, $search, $tipo);
     }
 
     public function findForShow(int $id): array|false
@@ -25,22 +50,42 @@ class Financeiro extends BaseModuleModel
         return $this->rawFirst(
             "SELECT
                 SUM(CASE WHEN tipo_transacao = 'Entrada' THEN valor ELSE 0 END) AS entradas,
-                SUM(CASE WHEN tipo_transacao = 'Saida' OR tipo_transacao = 'Sa¡da' THEN valor ELSE 0 END) AS saidas,
+                SUM(CASE WHEN tipo_transacao <> 'Entrada' THEN valor ELSE 0 END) AS saidas,
                 SUM(CASE WHEN status = 'Pendente' THEN 1 ELSE 0 END) AS pendentes
              FROM tb_financeiro"
         ) ?: ['entradas' => 0, 'saidas' => 0, 'pendentes' => 0];
     }
 
-    private function listWithJoins(int $page, int $perPage, string $search): array
+    public function formOptions(): array
+    {
+        return [
+            'paciente_id' => $this->activePatients(),
+            'responsavel_id' => $this->activeResponsibles(),
+            'cuidador_id' => $this->activeCaregivers(),
+        ];
+    }
+
+    private function listWithJoins(int $page, int $perPage, string $search, string $tipo = ''): array
     {
         $page = max(1, $page);
         $offset = ($page - 1) * $perPage;
-        $where = $search !== '' ? ' WHERE p.nome_completo LIKE :search_paciente OR r.nome_completo LIKE :search_responsavel OR c.nome_completo LIKE :search_cuidador' : '';
-        $params = $search !== '' ? [
-            ':search_paciente' => "%{$search}%",
-            ':search_responsavel' => "%{$search}%",
-            ':search_cuidador' => "%{$search}%",
-        ] : [];
+        $whereParts = [];
+        $params = [];
+
+        if ($search !== '') {
+            $whereParts[] = '(p.nome_completo LIKE :search_paciente OR r.nome_completo LIKE :search_responsavel OR c.nome_completo LIKE :search_cuidador)';
+            $params[':search_paciente'] = "%{$search}%";
+            $params[':search_responsavel'] = "%{$search}%";
+            $params[':search_cuidador'] = "%{$search}%";
+        }
+
+        if ($tipo === 'entrada') {
+            $whereParts[] = "f.tipo_transacao = 'Entrada'";
+        } elseif ($tipo === 'saida') {
+            $whereParts[] = "f.tipo_transacao <> 'Entrada'";
+        }
+
+        $where = $whereParts ? ' WHERE ' . implode(' AND ', $whereParts) : '';
         $total = (int) $this->query($this->baseCount() . $where, $params)->fetchColumn();
         $rows = $this->query(
             $this->baseSelect() . $where . ' ORDER BY f.data DESC LIMIT :limit OFFSET :offset',

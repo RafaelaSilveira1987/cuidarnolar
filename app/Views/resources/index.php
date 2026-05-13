@@ -7,7 +7,20 @@
 </section>
 
 <section class="panel">
+    <?php if (!empty($tabs)): ?>
+        <nav class="tabs" aria-label="Filtros">
+            <?php foreach ($tabs as $tabValue => $tabLabel): ?>
+                <a class="<?= ($activeTab ?? '') === (string) $tabValue ? 'active' : '' ?>" href="<?= url($routeBase . ($tabValue !== '' ? '?tipo=' . urlencode((string) $tabValue) : '')) ?>">
+                    <?= e($tabLabel) ?>
+                </a>
+            <?php endforeach; ?>
+        </nav>
+    <?php endif; ?>
+
     <form class="search-form" method="GET" action="<?= url($routeBase) ?>">
+        <?php if (isset($activeTab) && $activeTab !== ''): ?>
+            <input type="hidden" name="tipo" value="<?= e($activeTab) ?>">
+        <?php endif; ?>
         <input type="search" name="busca" value="<?= e($search ?? '') ?>" placeholder="Buscar...">
         <button class="btn btn-secondary" type="submit">Buscar</button>
     </form>
@@ -44,7 +57,7 @@
         <?php if (($pagination['last_page'] ?? 1) > 1): ?>
             <nav class="pagination" aria-label="Paginacao">
                 <?php for ($page = 1; $page <= $pagination['last_page']; $page++): ?>
-                    <a class="<?= $page === $pagination['current_page'] ? 'active' : '' ?>" href="<?= url($routeBase . '?page=' . $page . ($search ? '&busca=' . urlencode($search) : '')) ?>">
+                    <a class="<?= $page === $pagination['current_page'] ? 'active' : '' ?>" href="<?= url($routeBase . '?page=' . $page . ($search ? '&busca=' . urlencode($search) : '') . (!empty($activeTab) ? '&tipo=' . urlencode($activeTab) : '')) ?>">
                         <?= $page ?>
                     </a>
                 <?php endfor; ?>

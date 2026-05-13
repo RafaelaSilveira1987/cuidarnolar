@@ -12,6 +12,8 @@ abstract class ResourceController extends BaseController
     protected string $singularTitle;
     protected array $columns = [];
     protected array $detailFields = [];
+    protected array $formFields = [];
+    protected array $requiredFields = [];
 
     public function index(): void
     {
@@ -51,25 +53,105 @@ abstract class ResourceController extends BaseController
 
     public function create(): void
     {
-        $this->view('resources/form-placeholder', [
-            'pageTitle' => 'Novo ' . $this->singularTitle,
-            'title' => 'Novo ' . $this->singularTitle,
-            'routeBase' => $this->routeBase,
-            'message' => 'Formulario de cadastro sera migrado na proxima etapa deste modulo.',
-        ]);
+        $this->renderForm([], [], 'Novo ' . $this->singularTitle);
+    }
+
+    public function store(): void
+    {
+        $data = $this->formInput();
+        $errors = $this->validateResource($data);
+
+        if ($errors !== []) {
+            $this->renderForm($data, $errors, 'Novo ' . $this->singularTitle);
+            return;
+        }
+
+        $id = $this->model()->createRecord($data);
+
+        $this->flash('success', "{$this->singularTitle} cadastrado com sucesso.");
+        $this->redirect($this->routeBase . '/' . $id);
     }
 
     public function edit(string $id): void
     {
         $record = $this->model()->findForShow((int) $id);
 
-        $this->view('resources/form-placeholder', [
-            'pageTitle' => 'Editar ' . $this->singularTitle,
-            'title' => 'Editar ' . $this->singularTitle,
+        if (!$record) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => "{$this->singularTitle} nao encontrado."], 'layouts/blank');
+            return;
+        }
+
+        $this->renderForm($record, [], 'Editar ' . $this->singularTitle, (int) $id);
+    }
+
+    public function update(string $id): void
+    {
+        $model = $this->model();
+        $record = $model->findForShow((int) $id);
+
+        if (!$record) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => "{$this->singularTitle} nao encontrado."], 'layouts/blank');
+            return;
+        }
+
+        $data = $this->formInput();
+        $errors = $this->validateResource($data);
+
+        if ($errors !== []) {
+            $this->renderForm(array_merge($record, $data), $errors, 'Editar ' . $this->singularTitle, (int) $id);
+            return;
+        }
+
+        $model->updateRecord((int) $id, $data);
+
+        $this->flash('success', "{$this->singularTitle} atualizado com sucesso.");
+        $this->redirect($this->routeBase . '/' . $id);
+    }
+
+    public function inativar(string $id): void
+    {
+        $this->model()->inativar((int) $id, (string) $this->input('motivo_inativacao', ''));
+        $this->flash('success', "{$this->singularTitle} inativado com sucesso.");
+        $this->redirect($this->routeBase);
+    }
+
+    protected function renderForm(array $record, array $errors, string $title, ?int $id = null): void
+    {
+        $this->view('resources/form', [
+            'pageTitle' => $title,
+            'title' => $title,
             'routeBase' => $this->routeBase,
             'record' => $record,
-            'message' => 'Formulario de edicao sera migrado preservando as regras do legado.',
+            'errors' => $errors,
+            'fields' => $this->formFields,
+            'options' => $this->model()->formOptions(),
+            'action' => $id ? "{$this->routeBase}/{$id}" : $this->routeBase,
+            'isEdit' => $id !== null,
         ]);
+    }
+
+    protected function formInput(): array
+    {
+        $data = [];
+        foreach ($this->formFields as $name => $field) {
+            $data[$name] = $this->input($name, '');
+        }
+
+        return $data;
+    }
+
+    protected function validateResource(array $data): array
+    {
+        $errors = [];
+        foreach ($this->requiredFields as $field) {
+            if (trim((string) ($data[$field] ?? '')) === '') {
+                $errors[$field] = 'Campo obrigatorio.';
+            }
+        }
+
+        return $errors;
     }
 
     protected function model(): BaseModuleModel

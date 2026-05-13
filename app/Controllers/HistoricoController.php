@@ -28,4 +28,15 @@ class HistoricoController extends ResourceController
         'limitacoes' => 'Limitacoes',
         'status' => 'Status',
     ];
+    protected array $requiredFields = ['paciente_id'];
+    protected array $formFields = [
+        'paciente_id' => ['label' => 'Paciente', 'type' => 'select', 'empty' => 'Selecione'],
+        'historico_familiar' => ['label' => 'Historico familiar', 'type' => 'textarea', 'span' => true],
+        'historico_profissional' => ['label' => 'Historico profissional', 'type' => 'textarea', 'span' => true],
+        'historico_medico' => ['label' => 'Historico medico', 'type' => 'textarea', 'span' => true],
+        'internacoes' => ['label' => 'Internacoes', 'type' => 'textarea', 'span' => true],
+        'necessidades' => ['label' => 'Necessidades'],
+        'limitacoes' => ['label' => 'Limitacoes'],
+        'status' => ['label' => 'Status', 'type' => 'select', 'options' => ['Pendente' => 'Pendente', 'Finalizado' => 'Finalizado'], 'default' => 'Pendente'],
+    ];
 }

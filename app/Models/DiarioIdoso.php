@@ -8,6 +8,35 @@ class DiarioIdoso extends BaseModuleModel
     protected string $searchColumn = 'p.nome_completo';
     protected string $orderBy = 'd.visita_mensal';
     protected string $orderDirection = 'DESC';
+    protected array $fillable = [
+        'paciente_id',
+        'visita_mensal',
+        'oxigenio',
+        'frequencia_cardiaca',
+        'temperatura',
+        'pressao_arterial',
+        'frequencia_respiratoria',
+        'hgt',
+        'dor',
+        'peso',
+        'altura',
+        'historico_id',
+        'observacao',
+    ];
+    protected array $nullable = [
+        'visita_mensal',
+        'oxigenio',
+        'frequencia_cardiaca',
+        'temperatura',
+        'pressao_arterial',
+        'frequencia_respiratoria',
+        'hgt',
+        'dor',
+        'peso',
+        'altura',
+        'historico_id',
+        'observacao',
+    ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {
@@ -26,6 +55,11 @@ class DiarioIdoso extends BaseModuleModel
     public function findForShow(int $id): array|false
     {
         return $this->rawFirst($this->baseSelect() . ' WHERE d.id = :id', [':id' => $id]);
+    }
+
+    public function formOptions(): array
+    {
+        return ['paciente_id' => $this->activePatients()];
     }
 
     private function baseSelect(): string

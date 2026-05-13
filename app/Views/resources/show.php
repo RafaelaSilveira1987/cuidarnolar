@@ -9,11 +9,11 @@
     </div>
 </section>
 
-<?php if ($routeBase === '/pacientes' && (($record['status'] ?? '') !== 'Inativo')): ?>
+<?php if (in_array($routeBase, ['/pacientes', '/responsaveis', '/cuidadores'], true) && (($record['status'] ?? '') !== 'Inativo')): ?>
     <section class="panel danger-panel">
-        <h2>Inativar paciente</h2>
-        <p class="page-subtitle">Mantem o historico e remove o paciente dos fluxos ativos.</p>
-        <form class="inline-form" method="POST" action="<?= url('/pacientes/' . $record['id'] . '/inativar') ?>" onsubmit="return confirm('Confirma inativar este paciente?')">
+        <h2>Inativar registro</h2>
+        <p class="page-subtitle">Mantem o historico e remove o registro dos fluxos ativos.</p>
+        <form class="inline-form" method="POST" action="<?= url($routeBase . '/' . $record['id'] . '/inativar') ?>" onsubmit="return confirm('Confirma inativar este registro?')">
             <input type="hidden" name="_csrf" value="<?= e($_csrf) ?>">
             <input type="text" name="motivo_inativacao" placeholder="Motivo da inativacao">
             <button class="btn btn-danger" type="submit">Inativar</button>

@@ -7,6 +7,37 @@ class Cuidador extends BaseModuleModel
     protected string $table = 'tb_cuidador';
     protected string $orderBy = 'nome_completo';
     protected string $orderDirection = 'ASC';
+    protected array $fillable = [
+        'nome_completo',
+        'endereco',
+        'numero',
+        'bairro',
+        'cidade',
+        'estado',
+        'cep',
+        'cpf',
+        'email',
+        'rg',
+        'data_nascimento',
+        'telefone',
+        'pix',
+        'especialidade',
+        'status',
+        'contrato_horas',
+        'motivo_inativacao',
+    ];
+    protected array $nullable = [
+        'numero',
+        'bairro',
+        'email',
+        'rg',
+        'data_nascimento',
+        'telefone',
+        'pix',
+        'especialidade',
+        'contrato_horas',
+        'motivo_inativacao',
+    ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {

@@ -8,6 +8,60 @@ class Anamnese extends BaseModuleModel
     protected string $searchColumn = 'p.nome_completo';
     protected string $orderBy = 'a.data_anamnese';
     protected string $orderDirection = 'DESC';
+    protected array $fillable = [
+        'paciente_id',
+        'data_anamnese',
+        'patologia',
+        'sintomas',
+        'sequelas',
+        'historia_medica',
+        'cirurgia',
+        'protese',
+        'acamado',
+        'hipertensao',
+        'diabetes',
+        'alergia',
+        'estilo_de_vida',
+        'dieta',
+        'medicacao_continua',
+        'sono',
+        'visao',
+        'audicao',
+        'incontinencia',
+        'demencia',
+        'cognicao',
+        'coordenacao_motora',
+        'humor',
+        'problemas_locomocao',
+        'medico',
+        'status',
+    ];
+    protected array $nullable = [
+        'patologia',
+        'sintomas',
+        'sequelas',
+        'historia_medica',
+        'cirurgia',
+        'protese',
+        'acamado',
+        'hipertensao',
+        'diabetes',
+        'alergia',
+        'estilo_de_vida',
+        'dieta',
+        'medicacao_continua',
+        'sono',
+        'visao',
+        'audicao',
+        'incontinencia',
+        'demencia',
+        'cognicao',
+        'coordenacao_motora',
+        'humor',
+        'problemas_locomocao',
+        'medico',
+        'status',
+    ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {
@@ -17,6 +71,11 @@ class Anamnese extends BaseModuleModel
     public function findForShow(int $id): array|false
     {
         return $this->rawFirst($this->baseSelect() . ' WHERE a.id = :id', [':id' => $id]);
+    }
+
+    public function formOptions(): array
+    {
+        return ['paciente_id' => $this->activePatients()];
     }
 
     private function listWithPatient(int $page, int $perPage, string $search): array

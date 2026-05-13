@@ -7,6 +7,32 @@ class Responsavel extends BaseModuleModel
     protected string $table = 'tb_responsavel';
     protected string $orderBy = 'nome_completo';
     protected string $orderDirection = 'ASC';
+    protected array $fillable = [
+        'nome_completo',
+        'endereco',
+        'numero',
+        'bairro',
+        'cidade',
+        'estado',
+        'cep',
+        'cpf',
+        'email',
+        'data_nascimento',
+        'telefone',
+        'grau_parentesco',
+        'status',
+        'motivo_inativacao',
+    ];
+    protected array $nullable = [
+        'numero',
+        'bairro',
+        'cep',
+        'email',
+        'data_nascimento',
+        'telefone',
+        'grau_parentesco',
+        'motivo_inativacao',
+    ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {

@@ -8,6 +8,25 @@ class Historico extends BaseModuleModel
     protected string $searchColumn = 'p.nome_completo';
     protected string $orderBy = 'h.id';
     protected string $orderDirection = 'DESC';
+    protected array $fillable = [
+        'paciente_id',
+        'historico_familiar',
+        'historico_profissional',
+        'historico_medico',
+        'internacoes',
+        'necessidades',
+        'limitacoes',
+        'status',
+    ];
+    protected array $nullable = [
+        'historico_familiar',
+        'historico_profissional',
+        'historico_medico',
+        'internacoes',
+        'necessidades',
+        'limitacoes',
+        'status',
+    ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {
@@ -27,6 +46,11 @@ class Historico extends BaseModuleModel
     public function findForShow(int $id): array|false
     {
         return $this->rawFirst($this->baseSelect() . ' WHERE h.id = :id', [':id' => $id]);
+    }
+
+    public function formOptions(): array
+    {
+        return ['paciente_id' => $this->activePatients()];
     }
 
     private function baseSelect(): string

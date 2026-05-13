@@ -8,6 +8,8 @@ class Evento extends BaseModuleModel
     protected string $searchColumn = 'e.titulo';
     protected string $orderBy = 'e.data_evento';
     protected string $orderDirection = 'DESC';
+    protected array $fillable = ['paciente_id', 'titulo', 'descricao', 'data_evento', 'cuidador_id', 'status'];
+    protected array $nullable = ['descricao', 'cuidador_id', 'status'];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {
@@ -33,6 +35,14 @@ class Evento extends BaseModuleModel
     public function proximos(int $limit = 5): array
     {
         return $this->rawAll($this->baseSelect() . " WHERE e.data_evento >= NOW() ORDER BY e.data_evento ASC LIMIT {$limit}");
+    }
+
+    public function formOptions(): array
+    {
+        return [
+            'paciente_id' => $this->activePatients(),
+            'cuidador_id' => $this->activeCaregivers(),
+        ];
     }
 
     private function baseSelect(): string
