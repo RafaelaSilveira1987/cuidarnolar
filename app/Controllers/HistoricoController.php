@@ -39,4 +39,14 @@ class HistoricoController extends ResourceController
         'limitacoes' => ['label' => 'Limitacoes'],
         'status' => ['label' => 'Status', 'type' => 'select', 'options' => ['Pendente' => 'Pendente', 'Finalizado' => 'Finalizado'], 'default' => 'Pendente'],
     ];
+
+    public function create(): void
+    {
+        $prefill = [];
+        $pid = (int) $this->input('paciente_id', 0);
+        if ($pid > 0) {
+            $prefill['paciente_id'] = (string) $pid;
+        }
+        $this->renderForm($prefill, [], 'Novo ' . $this->singularTitle);
+    }
 }

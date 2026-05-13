@@ -5,7 +5,7 @@ return [
         'label' => 'Relatório de Plantão',
         'icon' => '📝',
         'route' => '/relatorio-plantao',
-        'description' => 'Relatórios de plantão agrupados por paciente e turno (manhã, tarde e noite)',
+        'description' => 'Registros por paciente e data; acesso rápido para quem está nos cuidados (vários relatórios no mesmo dia em evolução).',
         'roles' => ['enfermeiro', 'supervisor', 'admin'],
     ],
 ];

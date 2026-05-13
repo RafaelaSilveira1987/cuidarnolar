@@ -26,13 +26,13 @@
         <h2>Notificacoes administrativas</h2>
         <div class="notification-list">
             <?php foreach ($notificacoes as $item): ?>
-                <div class="notification-item">
-                    <strong><?= (int) $item['valor'] ?></strong>
-                    <div>
-                        <span><?= e($item['titulo']) ?></span>
-                        <small><?= e($item['descricao']) ?></small>
-                    </div>
+            <div class="notification-item">
+                <strong><?= (int) $item['valor'] ?></strong>
+                <div>
+                    <span><?= e($item['titulo']) ?></span>
+                    <small><?= e($item['descricao']) ?></small>
                 </div>
+            </div>
             <?php endforeach; ?>
         </div>
     </article>
@@ -63,27 +63,43 @@
     </div>
 
     <?php if (empty($proximosEventos)): ?>
-        <p class="empty-state">Nenhum agendamento futuro encontrado.</p>
+    <p class="empty-state">Nenhum agendamento futuro encontrado.</p>
     <?php else: ?>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Titulo</th>
-                    <th>Paciente</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($proximosEventos as $evento): ?>
-                    <tr>
-                        <td><?= e(formatDate($evento['data_evento'] ?? '')) ?></td>
-                        <td><?= e($evento['titulo'] ?? '') ?></td>
-                        <td><?= e($evento['paciente_nome'] ?? '-') ?></td>
-                        <td><?= e($evento['status'] ?? 'Pendente') ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Titulo</th>
+                <th>Paciente</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($proximosEventos as $evento): ?>
+            <tr>
+                <td><?= e(formatDate($evento['data_evento'] ?? '')) ?></td>
+                <td><?= e($evento['titulo'] ?? '') ?></td>
+                <td><?= e($evento['paciente_nome'] ?? '-') ?></td>
+                <td><?= e($evento['status'] ?? 'Pendente') ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
     <?php endif; ?>
+</section>
+
+<section class="panel">
+    <h2 class="section-header" style="margin-top:0;">Acesso rápido</h2>
+    <p class="page-subtitle" style="margin-top:-8px;">Atalhos operacionais (o layout principal já inclui o CSS em todas as páginas).</p>
+    <div class="metric-grid">
+        <?php $menuRel = include BASE_PATH . '/app/Config/MenuRelatorios.php'; ?>
+        <?php foreach ($menuRel as $key => $m): ?>
+        <div class="metric-card">
+            <div style="font-size:20px;"><?= htmlspecialchars($m['icon'] ?? '') ?></div>
+            <strong><?= htmlspecialchars($m['label'] ?? $key) ?></strong>
+            <p style="color:var(--muted);font-size:14px;"><?= htmlspecialchars($m['description'] ?? '') ?></p>
+            <a href="<?= url($m['route'] ?? '#') ?>" class="btn btn-link">Abrir</a>
+        </div>
+        <?php endforeach; ?>
+    </div>
 </section>

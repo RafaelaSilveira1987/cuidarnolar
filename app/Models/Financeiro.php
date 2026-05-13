@@ -15,9 +15,12 @@ class Financeiro extends BaseModuleModel
         'plano_id',
         'data',
         'tipo_transacao',
+        'categoria_id',
         'moeda',
         'valor',
         'status',
+        'data_vencimento',
+        'data_pagamento',
         'observacoes',
     ];
     protected array $nullable = [
@@ -25,8 +28,11 @@ class Financeiro extends BaseModuleModel
         'cuidador_id',
         'paciente_id',
         'plano_id',
+        'categoria_id',
         'moeda',
         'valor',
+        'data_vencimento',
+        'data_pagamento',
     ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
@@ -36,7 +42,76 @@ class Financeiro extends BaseModuleModel
 
     public function listByType(int $page = 1, int $perPage = 15, string $search = '', string $tipo = ''): array
     {
-        return $this->listWithJoins($page, $perPage, $search, $tipo);
+        return $this->listWithJoins($page, $perPage, $search, $tipo, false, '');
+    }
+
+    /** Contas a receber: entradas pendentes (camada 3). */
+    public function listContasReceber(int $page = 1, int $perPage = 20): array
+    {
+        return $this->listWithJoins($page, $perPage, '', 'entrada', true, 'receber');
+    }
+
+    /** Contas a pagar: saídas pendentes. */
+    public function listContasPagar(int $page = 1, int $perPage = 20): array
+    {
+        return $this->listWithJoins($page, $perPage, '', 'saida', true, 'pagar');
+    }
+
+    /** Extrato por paciente e período (camada 4). */
+    public function extratoPorPaciente(int $pacienteId, string $dataInicio, string $dataFim): array
+    {
+        $sql = $this->baseSelect() . ' WHERE f.paciente_id = :pid AND DATE(f.data) BETWEEN :i AND :f ORDER BY f.data ASC, f.id ASC';
+
+        return $this->query($sql, [':pid' => $pacienteId, ':i' => $dataInicio, ':f' => $dataFim])->fetchAll();
+    }
+
+    /** Fluxo de caixa agregado por mês. */
+    public function fluxoCaixaPorMes(string $dataInicio, string $dataFim): array
+    {
+        $sql = "SELECT DATE_FORMAT(f.data, '%Y-%m') AS mes,
+                       SUM(CASE WHEN f.tipo_transacao = 'Entrada' THEN f.valor ELSE 0 END) AS entradas,
+                       SUM(CASE WHEN f.tipo_transacao <> 'Entrada' THEN f.valor ELSE 0 END) AS saidas
+                FROM {$this->table} f
+                WHERE DATE(f.data) BETWEEN :i AND :f
+                GROUP BY DATE_FORMAT(f.data, '%Y-%m')
+                ORDER BY mes ASC";
+
+        return $this->query($sql, [':i' => $dataInicio, ':f' => $dataFim])->fetchAll();
+    }
+
+    /** Inadimplência: receitas pendentes com vencimento anterior a hoje. */
+    public function listInadimplencia(): array
+    {
+        $sql = $this->baseSelect() . " WHERE f.tipo_transacao = 'Entrada'
+                AND f.status = 'Pendente'
+                AND COALESCE(f.data_vencimento, DATE(f.data)) < CURDATE()
+                ORDER BY COALESCE(f.data_vencimento, DATE(f.data)) ASC";
+
+        return $this->query($sql)->fetchAll();
+    }
+
+    /** DRE simplificado (somente pagos no período). */
+    public function dreSimplificado(string $dataInicio, string $dataFim): array
+    {
+        $sql = "SELECT
+                    SUM(CASE WHEN tipo_transacao = 'Entrada' AND status = 'Pago' THEN valor ELSE 0 END) AS receita_bruta,
+                    SUM(CASE WHEN tipo_transacao <> 'Entrada' AND status = 'Pago' AND cuidador_id IS NOT NULL THEN valor ELSE 0 END) AS custos_cuidadores,
+                    SUM(CASE WHEN tipo_transacao <> 'Entrada' AND status = 'Pago' AND cuidador_id IS NULL THEN valor ELSE 0 END) AS despesas_operacionais
+                FROM {$this->table}
+                WHERE DATE(data) BETWEEN :i AND :f";
+
+        $row = $this->query($sql, [':i' => $dataInicio, ':f' => $dataFim])->fetch() ?: [];
+
+        $receita = (float) ($row['receita_bruta'] ?? 0);
+        $custos = (float) ($row['custos_cuidadores'] ?? 0);
+        $desp = (float) ($row['despesas_operacionais'] ?? 0);
+
+        return [
+            'receita_bruta' => $receita,
+            'custos_cuidadores' => $custos,
+            'despesas_operacionais' => $desp,
+            'resultado' => $receita - $custos - $desp,
+        ];
     }
 
     public function findForShow(int $id): array|false
@@ -58,30 +133,54 @@ class Financeiro extends BaseModuleModel
 
     public function formOptions(): array
     {
+        $cats = [];
+        try {
+            $cats = (new CategoriaFinanceira())->listForSelect();
+        } catch (\Throwable) {
+        }
+
         return [
             'paciente_id' => $this->activePatients(),
             'responsavel_id' => $this->activeResponsibles(),
             'cuidador_id' => $this->activeCaregivers(),
+            'categoria_id' => $cats,
         ];
     }
 
-    private function listWithJoins(int $page, int $perPage, string $search, string $tipo = ''): array
-    {
+    private function listWithJoins(
+        int $page,
+        int $perPage,
+        string $search,
+        string $tipo = '',
+        bool $onlyPending = false,
+        string $contaModo = ''
+    ): array {
         $page = max(1, $page);
         $offset = ($page - 1) * $perPage;
         $whereParts = [];
         $params = [];
 
         if ($search !== '') {
-            $whereParts[] = '(p.nome_completo LIKE :search_paciente OR r.nome_completo LIKE :search_responsavel OR c.nome_completo LIKE :search_cuidador)';
+            $whereParts[] = '(p.nome_completo LIKE :search_paciente OR r.nome_completo LIKE :search_responsavel OR c.nome_completo LIKE :search_cuidador OR cat.nome LIKE :search_cat)';
             $params[':search_paciente'] = "%{$search}%";
             $params[':search_responsavel'] = "%{$search}%";
             $params[':search_cuidador'] = "%{$search}%";
+            $params[':search_cat'] = "%{$search}%";
         }
 
         if ($tipo === 'entrada') {
             $whereParts[] = "f.tipo_transacao = 'Entrada'";
         } elseif ($tipo === 'saida') {
+            $whereParts[] = "f.tipo_transacao <> 'Entrada'";
+        }
+
+        if ($onlyPending) {
+            $whereParts[] = "f.status = 'Pendente'";
+        }
+
+        if ($contaModo === 'receber') {
+            $whereParts[] = "f.tipo_transacao = 'Entrada'";
+        } elseif ($contaModo === 'pagar') {
             $whereParts[] = "f.tipo_transacao <> 'Entrada'";
         }
 
@@ -103,11 +202,13 @@ class Financeiro extends BaseModuleModel
 
     private function baseSelect(): string
     {
-        return "SELECT f.*, p.nome_completo AS paciente_nome, r.nome_completo AS responsavel_nome, c.nome_completo AS cuidador_nome
+        return "SELECT f.*, p.nome_completo AS paciente_nome, r.nome_completo AS responsavel_nome, c.nome_completo AS cuidador_nome,
+                       cat.nome AS categoria_nome
                 FROM tb_financeiro f
                 LEFT JOIN tb_pacientes p ON p.id = f.paciente_id
                 LEFT JOIN tb_responsavel r ON r.id = f.responsavel_id
-                LEFT JOIN tb_cuidador c ON c.id = f.cuidador_id";
+                LEFT JOIN tb_cuidador c ON c.id = f.cuidador_id
+                LEFT JOIN tb_categorias_financeiro cat ON cat.id = f.categoria_id";
     }
 
     private function baseCount(): string
@@ -116,12 +217,15 @@ class Financeiro extends BaseModuleModel
                 FROM tb_financeiro f
                 LEFT JOIN tb_pacientes p ON p.id = f.paciente_id
                 LEFT JOIN tb_responsavel r ON r.id = f.responsavel_id
-                LEFT JOIN tb_cuidador c ON c.id = f.cuidador_id";
+                LEFT JOIN tb_cuidador c ON c.id = f.cuidador_id
+                LEFT JOIN tb_categorias_financeiro cat ON cat.id = f.categoria_id";
     }
 
     private function formatRecord(array $row): array
     {
         $row['valor_formatado'] = formatMoney((float) ($row['valor'] ?? 0));
+        $row['vencimento_exibicao'] = $row['data_vencimento'] ?? (isset($row['data']) ? substr((string) $row['data'], 0, 10) : '');
+
         return $row;
     }
 }

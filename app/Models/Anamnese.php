@@ -73,6 +73,17 @@ class Anamnese extends BaseModuleModel
         return $this->rawFirst($this->baseSelect() . ' WHERE a.id = :id', [':id' => $id]);
     }
 
+    /** Listagem para aba na ficha do paciente */
+    public function listByPacienteId(int $pacienteId, int $limit = 50): array
+    {
+        $limit = max(1, min(100, $limit));
+
+        return $this->rawAll(
+            $this->baseSelect() . ' WHERE a.paciente_id = :pid ORDER BY a.data_anamnese DESC LIMIT ' . $limit,
+            [':pid' => $pacienteId]
+        );
+    }
+
     public function formOptions(): array
     {
         return ['paciente_id' => $this->activePatients()];

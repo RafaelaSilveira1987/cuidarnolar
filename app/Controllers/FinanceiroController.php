@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\ContratoPaciente;
 use App\Models\Financeiro;
 
 class FinanceiroController extends ResourceController
@@ -9,11 +10,12 @@ class FinanceiroController extends ResourceController
     protected string $modelClass = Financeiro::class;
     protected string $routeBase = '/financeiro';
     protected string $viewTitle = 'Financeiro';
-    protected string $singularTitle = 'Lancamento financeiro';
+    protected string $singularTitle = 'Lançamento financeiro';
     protected array $columns = [
         'id' => '#',
         'data' => 'Data',
         'tipo_transacao' => 'Tipo',
+        'categoria_nome' => 'Categoria',
         'valor_formatado' => 'Valor',
         'paciente_nome' => 'Paciente',
         'status' => 'Status',
@@ -22,9 +24,12 @@ class FinanceiroController extends ResourceController
         'id' => '#',
         'data' => 'Data',
         'tipo_transacao' => 'Tipo',
+        'categoria_nome' => 'Categoria',
         'moeda' => 'Forma',
         'valor_formatado' => 'Valor',
         'status' => 'Status',
+        'data_vencimento' => 'Vencimento',
+        'data_pagamento' => 'Pagamento',
         'paciente_nome' => 'Paciente',
         'responsavel_nome' => 'Responsavel',
         'cuidador_nome' => 'Cuidador',
@@ -33,18 +38,32 @@ class FinanceiroController extends ResourceController
     protected array $requiredFields = ['data', 'tipo_transacao', 'status', 'observacoes'];
     protected array $formFields = [
         'tipo_transacao' => ['label' => 'Tipo', 'type' => 'select', 'options' => ['Entrada' => 'Entrada', 'Saída' => 'Saida']],
-        'data' => ['label' => 'Data', 'type' => 'datetime-local'],
+        'categoria_id' => ['label' => 'Categoria', 'type' => 'select', 'empty' => 'Sem categoria'],
+        'data' => ['label' => 'Data do lançamento', 'type' => 'datetime-local'],
+        'data_vencimento' => ['label' => 'Data de vencimento (contas a pagar/receber)', 'type' => 'date'],
+        'data_pagamento' => ['label' => 'Data de pagamento (quando liquidado)', 'type' => 'date'],
         'valor' => ['label' => 'Valor', 'type' => 'number'],
         'moeda' => ['label' => 'Forma de pagamento', 'type' => 'select', 'empty' => 'Selecione', 'options' => ['Pix' => 'Pix', 'Depósito' => 'Deposito', 'Boleto' => 'Boleto', 'Dinheiro' => 'Dinheiro']],
-        'status' => ['label' => 'Status', 'type' => 'select', 'options' => ['Pendente' => 'Pendente', 'Pago' => 'Pago', 'Transporte' => 'Transporte']],
-        'paciente_id' => ['label' => 'Paciente', 'type' => 'select', 'empty' => 'Sem paciente'],
+        'status' => ['label' => 'Status', 'type' => 'select', 'options' => ['Pendente' => 'Pendente', 'Pago' => 'Pago', 'Cancelado' => 'Cancelado']],
+        'paciente_id' => ['label' => 'Paciente (centro de custo — receitas)', 'type' => 'select', 'empty' => 'Sem paciente'],
         'responsavel_id' => ['label' => 'Responsavel', 'type' => 'select', 'empty' => 'Sem responsavel'],
-        'cuidador_id' => ['label' => 'Cuidador', 'type' => 'select', 'empty' => 'Sem cuidador'],
+        'cuidador_id' => ['label' => 'Cuidador (despesas ligadas a quem cuida)', 'type' => 'select', 'empty' => 'Sem cuidador'],
         'plano_id' => ['label' => 'Plano'],
         'observacoes' => ['label' => 'Observacoes', 'type' => 'textarea', 'span' => true],
     ];
 
-    public function index(): void
+    /** Camada 4 — hub com acesso às demais telas. */
+    public function hub(): void
+    {
+        $this->view('financeiro/hub', [
+            'pageTitle' => 'Financeiro — Homecare',
+            'title' => 'Financeiro',
+            'finSubnav' => 'hub',
+        ]);
+    }
+
+    /** Camada 2 — lançamentos (caixa) com filtros existentes. */
+    public function lancamentos(): void
     {
         $page = (int) $this->input('page', 1);
         $search = trim((string) $this->input('busca', ''));
@@ -52,9 +71,9 @@ class FinanceiroController extends ResourceController
         $tipo = in_array($tipo, ['entrada', 'saida'], true) ? $tipo : '';
         $result = (new Financeiro())->listByType($page, 15, $search, $tipo);
 
-        $this->view('resources/index', [
-            'pageTitle' => $this->viewTitle,
-            'title' => $this->viewTitle,
+        $this->view('financeiro/lancamentos', [
+            'pageTitle' => 'Lançamentos',
+            'title' => 'Lançamentos (caixa)',
             'routeBase' => $this->routeBase,
             'columns' => $this->columns,
             'rows' => $result['data'],
@@ -66,6 +85,216 @@ class FinanceiroController extends ResourceController
                 'saida' => 'Saidas',
             ],
             'activeTab' => $tipo,
+            'finSubnav' => 'lancamentos',
+        ]);
+    }
+
+    public function contasReceber(): void
+    {
+        $page = (int) $this->input('page', 1);
+        $result = (new Financeiro())->listContasReceber($page, 20);
+
+        $this->view('financeiro/contas_receber', [
+            'pageTitle' => 'Contas a receber',
+            'title' => 'Contas a receber',
+            'routeBase' => $this->routeBase,
+            'columns' => $this->columns,
+            'rows' => $result['data'],
+            'pagination' => $result,
+            'finSubnav' => 'receber',
+        ]);
+    }
+
+    public function contasPagar(): void
+    {
+        $page = (int) $this->input('page', 1);
+        $result = (new Financeiro())->listContasPagar($page, 20);
+
+        $this->view('financeiro/contas_pagar', [
+            'pageTitle' => 'Contas a pagar',
+            'title' => 'Contas a pagar',
+            'routeBase' => $this->routeBase,
+            'columns' => $this->columns,
+            'rows' => $result['data'],
+            'pagination' => $result,
+            'finSubnav' => 'pagar',
+        ]);
+    }
+
+    public function contratos(): void
+    {
+        $page = (int) $this->input('page', 1);
+        $search = trim((string) $this->input('busca', ''));
+        $result = (new ContratoPaciente())->listForIndex($page, 15, $search);
+
+        $this->view('financeiro/contratos_index', [
+            'pageTitle' => 'Contratos por paciente',
+            'title' => 'Contratos (plano de atendimento)',
+            'rows' => $result['data'],
+            'pagination' => $result,
+            'search' => $search,
+            'finSubnav' => 'contratos',
+        ]);
+    }
+
+    public function contratoNovo(): void
+    {
+        $this->view('financeiro/contrato_form', [
+            'pageTitle' => 'Novo contrato',
+            'title' => 'Novo contrato',
+            'record' => [],
+            'errors' => [],
+            'options' => (new ContratoPaciente())->formOptions(),
+            'finSubnav' => 'contratos',
+        ]);
+    }
+
+    public function contratoStore(): void
+    {
+        $data = [
+            'paciente_id' => (int) $this->input('paciente_id', 0),
+            'tipo_servico' => trim((string) $this->input('tipo_servico', '')),
+            'valor_mensal' => (float) str_replace(',', '.', (string) $this->input('valor_mensal', '0')),
+            'dia_vencimento' => (int) $this->input('dia_vencimento', 10),
+            'forma_pagamento' => trim((string) $this->input('forma_pagamento', '')),
+            'vigencia_inicio' => trim((string) $this->input('vigencia_inicio', '')),
+            'vigencia_fim' => trim((string) $this->input('vigencia_fim', '')),
+            'status' => trim((string) $this->input('status', 'Ativo')),
+            'observacoes' => trim((string) $this->input('observacoes', '')),
+        ];
+
+        $errors = [];
+        if ($data['paciente_id'] <= 0) {
+            $errors['paciente_id'] = 'Selecione o paciente.';
+        }
+        if ($data['tipo_servico'] === '') {
+            $errors['tipo_servico'] = 'Informe o tipo de serviço.';
+        }
+        if ($data['valor_mensal'] <= 0) {
+            $errors['valor_mensal'] = 'Informe o valor mensal.';
+        }
+        if ($data['vigencia_inicio'] === '') {
+            $errors['vigencia_inicio'] = 'Informe o início da vigência.';
+        }
+
+        if ($errors !== []) {
+            $this->view('financeiro/contrato_form', [
+                'pageTitle' => 'Novo contrato',
+                'title' => 'Novo contrato',
+                'record' => $data,
+                'errors' => $errors,
+                'options' => (new ContratoPaciente())->formOptions(),
+                'finSubnav' => 'contratos',
+            ]);
+            return;
+        }
+
+        if ($data['vigencia_fim'] === '') {
+            $data['vigencia_fim'] = null;
+        }
+
+        $model = new ContratoPaciente();
+        $model->createRecord($data);
+
+        $this->flash('success', 'Contrato cadastrado. Geração automática de parcelas em contas a receber virá na próxima etapa.');
+        $this->redirect('/financeiro/contratos');
+    }
+
+    public function relatorioExtrato(): void
+    {
+        $model = new Financeiro();
+        $opts = $model->formOptions();
+        $pacientes = $opts['paciente_id'] ?? [];
+
+        $pacienteId = (int) $this->input('paciente_id', 0);
+        $di = (string) $this->input('di', date('Y-m-01'));
+        $df = (string) $this->input('df', date('Y-m-t'));
+
+        $linhas = [];
+        $totE = 0.0;
+        $totS = 0.0;
+        $nomePac = '';
+
+        if ($pacienteId > 0 && preg_match('/^\d{4}-\d{2}-\d{2}$/', $di) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $df)) {
+            $raw = $model->extratoPorPaciente($pacienteId, $di, $df);
+            foreach ($raw as $r) {
+                $v = (float) ($r['valor'] ?? 0);
+                if (($r['tipo_transacao'] ?? '') === 'Entrada') {
+                    $totE += $v;
+                } else {
+                    $totS += $v;
+                }
+                $linhas[] = $r;
+                if ($nomePac === '' && !empty($r['paciente_nome'])) {
+                    $nomePac = (string) $r['paciente_nome'];
+                }
+            }
+        }
+
+        $this->view('financeiro/relatorio_extrato', [
+            'pageTitle' => 'Extrato por paciente',
+            'title' => 'Extrato por paciente',
+            'pacientes' => $pacientes,
+            'paciente_id' => $pacienteId,
+            'di' => $di,
+            'df' => $df,
+            'linhas' => $linhas,
+            'totEntradas' => $totE,
+            'totSaidas' => $totS,
+            'resultado' => $totE - $totS,
+            'nomePaciente' => $nomePac,
+            'finSubnav' => 'rextrato',
+        ]);
+    }
+
+    public function relatorioFluxoCaixa(): void
+    {
+        $di = (string) $this->input('di', date('Y-m-01', strtotime('-5 months')));
+        $df = (string) $this->input('df', date('Y-m-t'));
+
+        $meses = [];
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $di) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $df)) {
+            $meses = (new Financeiro())->fluxoCaixaPorMes($di, $df);
+        }
+
+        $this->view('financeiro/relatorio_fluxo', [
+            'pageTitle' => 'Fluxo de caixa',
+            'title' => 'Fluxo de caixa por período',
+            'di' => $di,
+            'df' => $df,
+            'meses' => $meses,
+            'finSubnav' => 'rfluxo',
+        ]);
+    }
+
+    public function relatorioInadimplencia(): void
+    {
+        $linhas = (new Financeiro())->listInadimplencia();
+        $this->view('financeiro/relatorio_inadimplencia', [
+            'pageTitle' => 'Inadimplência',
+            'title' => 'Inadimplência (contas a receber vencidas)',
+            'linhas' => $linhas,
+            'finSubnav' => 'rinad',
+        ]);
+    }
+
+    public function relatorioDre(): void
+    {
+        $di = (string) $this->input('di', date('Y-m-01'));
+        $df = (string) $this->input('df', date('Y-m-t'));
+        $dre = ['receita_bruta' => 0.0, 'custos_cuidadores' => 0.0, 'despesas_operacionais' => 0.0, 'resultado' => 0.0];
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $di) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $df)) {
+            $dre = (new Financeiro())->dreSimplificado($di, $df);
+        }
+
+        $this->view('financeiro/relatorio_dre', [
+            'pageTitle' => 'DRE simplificado',
+            'title' => 'DRE simplificado (pagos no período)',
+            'di' => $di,
+            'df' => $df,
+            'dre' => $dre,
+            'finSubnav' => 'rdre',
         ]);
     }
 }

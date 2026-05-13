@@ -1,9 +1,11 @@
+<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
+
 <section class="page-header">
     <div>
         <h1><?= e($title) ?></h1>
-        <p class="page-subtitle"><?= (int) ($pagination['total'] ?? 0) ?> registros encontrados</p>
+        <p class="page-subtitle"><?= (int) ($pagination['total'] ?? 0) ?> registros</p>
     </div>
-    <a class="btn btn-primary" href="<?= url($routeBase . '/novo') ?>">Novo</a>
+    <a class="btn btn-primary" href="<?= url('/financeiro/novo') ?>">Novo lançamento</a>
 </section>
 
 <section class="panel">
@@ -11,18 +13,18 @@
     <nav class="tabs" aria-label="Filtros">
         <?php foreach ($tabs as $tabValue => $tabLabel): ?>
         <a class="<?= ($activeTab ?? '') === (string) $tabValue ? 'active' : '' ?>"
-            href="<?= url($routeBase . ($tabValue !== '' ? '?tipo=' . urlencode((string) $tabValue) : '')) ?>">
+            href="<?= url('/financeiro/lancamentos' . ($tabValue !== '' ? '?tipo=' . urlencode((string) $tabValue) : '')) ?>">
             <?= e($tabLabel) ?>
         </a>
         <?php endforeach; ?>
     </nav>
     <?php endif; ?>
 
-    <form class="search-form" method="GET" action="<?= url($routeBase) ?>">
+    <form class="search-form" method="GET" action="<?= url('/financeiro/lancamentos') ?>">
         <?php if (isset($activeTab) && $activeTab !== ''): ?>
         <input type="hidden" name="tipo" value="<?= e($activeTab) ?>">
         <?php endif; ?>
-        <input type="search" name="busca" value="<?= e($search ?? '') ?>" placeholder="Buscar...">
+        <input type="search" name="busca" value="<?= e($search ?? '') ?>" placeholder="Paciente, responsável ou cuidador...">
         <button class="btn btn-secondary" type="submit">Buscar</button>
     </form>
 
@@ -46,8 +48,8 @@
                     <td><?= e($row[$field] ?? '-') ?></td>
                     <?php endforeach; ?>
                     <td class="actions">
-                        <a href="<?= url($routeBase . '/' . $row['id']) ?>">Ver</a>
-                        <a href="<?= url($routeBase . '/' . $row['id'] . '/editar') ?>">Editar</a>
+                        <a href="<?= url('/financeiro/' . (int) $row['id']) ?>">Ver</a>
+                        <a href="<?= url('/financeiro/' . (int) $row['id'] . '/editar') ?>">Editar</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -59,7 +61,7 @@
     <nav class="pagination" aria-label="Paginacao">
         <?php for ($page = 1; $page <= $pagination['last_page']; $page++): ?>
         <a class="<?= $page === $pagination['current_page'] ? 'active' : '' ?>"
-            href="<?= url($routeBase . '?page=' . $page . ($search ? '&busca=' . urlencode($search) : '') . (!empty($activeTab) ? '&tipo=' . urlencode($activeTab) : '')) ?>">
+            href="<?= url('/financeiro/lancamentos?page=' . $page . ($search ? '&busca=' . urlencode($search) : '') . (!empty($activeTab) ? '&tipo=' . urlencode($activeTab) : '')) ?>">
             <?= $page ?>
         </a>
         <?php endfor; ?>

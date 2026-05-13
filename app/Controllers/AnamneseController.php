@@ -57,4 +57,14 @@ class AnamneseController extends ResourceController
         'medico' => ['label' => 'Medico'],
         'status' => ['label' => 'Status', 'type' => 'select', 'empty' => 'Selecione', 'options' => ['completa' => 'Completa', 'pendente' => 'Pendente', 'em revisão' => 'Em revisao']],
     ];
+
+    public function create(): void
+    {
+        $prefill = [];
+        $pid = (int) $this->input('paciente_id', 0);
+        if ($pid > 0) {
+            $prefill['paciente_id'] = (string) $pid;
+        }
+        $this->renderForm($prefill, [], 'Novo ' . $this->singularTitle);
+    }
 }

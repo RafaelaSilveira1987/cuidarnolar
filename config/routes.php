@@ -63,7 +63,17 @@ $router->get('/historicos/{id}', 'HistoricoController@show', ['auth']);
 $router->get('/historicos/{id}/editar', 'HistoricoController@edit', ['auth']);
 $router->post('/historicos/{id}', 'HistoricoController@update', ['auth', 'csrf']);
 
-$router->get('/financeiro', 'FinanceiroController@index', ['auth']);
+$router->get('/financeiro', 'FinanceiroController@hub', ['auth']);
+$router->get('/financeiro/lancamentos', 'FinanceiroController@lancamentos', ['auth']);
+$router->get('/financeiro/contas-receber', 'FinanceiroController@contasReceber', ['auth']);
+$router->get('/financeiro/contas-pagar', 'FinanceiroController@contasPagar', ['auth']);
+$router->get('/financeiro/contratos', 'FinanceiroController@contratos', ['auth']);
+$router->get('/financeiro/contratos/novo', 'FinanceiroController@contratoNovo', ['auth']);
+$router->post('/financeiro/contratos', 'FinanceiroController@contratoStore', ['auth', 'csrf']);
+$router->get('/financeiro/relatorios/extrato', 'FinanceiroController@relatorioExtrato', ['auth']);
+$router->get('/financeiro/relatorios/fluxo-caixa', 'FinanceiroController@relatorioFluxoCaixa', ['auth']);
+$router->get('/financeiro/relatorios/inadimplencia', 'FinanceiroController@relatorioInadimplencia', ['auth']);
+$router->get('/financeiro/relatorios/dre', 'FinanceiroController@relatorioDre', ['auth']);
 $router->get('/financeiro/novo', 'FinanceiroController@create', ['auth']);
 $router->post('/financeiro', 'FinanceiroController@store', ['auth', 'csrf']);
 $router->get('/financeiro/{id}', 'FinanceiroController@show', ['auth']);

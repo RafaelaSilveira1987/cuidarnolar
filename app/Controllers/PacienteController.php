@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\Anamnese;
+use App\Models\Historico;
 use App\Models\Paciente;
 
 class PacienteController extends ResourceController
@@ -30,6 +32,38 @@ class PacienteController extends ResourceController
         'cuidador_nome' => 'Cuidador',
         'status' => 'Status',
     ];
+
+    public function show(string $id): void
+    {
+        $model = $this->pacienteModel();
+        $record = $model->findForShow((int) $id);
+
+        if (!$record) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente nao encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        $aba = (string) $this->input('aba', 'cadastro');
+        $abasValidas = ['cadastro', 'anamnese', 'historico', 'plano', 'plantao'];
+        if (!in_array($aba, $abasValidas, true)) {
+            $aba = 'cadastro';
+        }
+
+        $anamneses = (new Anamnese())->listByPacienteId((int) $id);
+        $historicos = (new Historico())->listByPacienteId((int) $id);
+
+        $this->view('pacientes/show', [
+            'pageTitle' => $this->singularTitle,
+            'title' => $this->singularTitle,
+            'routeBase' => $this->routeBase,
+            'record' => $record,
+            'fields' => $this->detailFields,
+            'aba' => $aba,
+            'anamneses' => $anamneses,
+            'historicos' => $historicos,
+        ]);
+    }
 
     public function create(): void
     {

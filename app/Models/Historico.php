@@ -48,6 +48,17 @@ class Historico extends BaseModuleModel
         return $this->rawFirst($this->baseSelect() . ' WHERE h.id = :id', [':id' => $id]);
     }
 
+    /** Listagem para aba na ficha do paciente */
+    public function listByPacienteId(int $pacienteId, int $limit = 50): array
+    {
+        $limit = max(1, min(100, $limit));
+
+        return $this->rawAll(
+            $this->baseSelect() . ' WHERE h.paciente_id = :pid ORDER BY h.id DESC LIMIT ' . $limit,
+            [':pid' => $pacienteId]
+        );
+    }
+
     public function formOptions(): array
     {
         return ['paciente_id' => $this->activePatients()];
