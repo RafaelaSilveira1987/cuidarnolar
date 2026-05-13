@@ -33,7 +33,7 @@ class PacienteController extends ResourceController
 
     public function create(): void
     {
-        $this->renderForm([], [], 'Novo Paciente');
+        $this->renderPacienteForm([], [], 'Novo Paciente');
     }
 
     public function store(): void
@@ -42,7 +42,7 @@ class PacienteController extends ResourceController
         $errors = $this->validatePaciente($data);
 
         if ($errors !== []) {
-            $this->renderForm($data, $errors, 'Novo Paciente');
+            $this->renderPacienteForm($data, $errors, 'Novo Paciente');
             return;
         }
 
@@ -62,7 +62,7 @@ class PacienteController extends ResourceController
             return;
         }
 
-        $this->renderForm($paciente, [], 'Editar Paciente', (int) $id);
+        $this->renderPacienteForm($paciente, [], 'Editar Paciente', (int) $id);
     }
 
     public function update(string $id): void
@@ -80,7 +80,7 @@ class PacienteController extends ResourceController
         $errors = $this->validatePaciente($data);
 
         if ($errors !== []) {
-            $this->renderForm(array_merge($paciente, $data), $errors, 'Editar Paciente', (int) $id);
+            $this->renderPacienteForm(array_merge($paciente, $data), $errors, 'Editar Paciente', (int) $id);
             return;
         }
 
@@ -107,7 +107,8 @@ class PacienteController extends ResourceController
         $this->redirect('/pacientes');
     }
 
-    protected function renderForm(array $paciente, array $errors, string $title, ?int $id = null): void
+    /** Evita sobrescrever {@see ResourceController::renderForm()} (conflito de visibilidade na herança). */
+    protected function renderPacienteForm(array $paciente, array $errors, string $title, ?int $id = null): void
     {
         $model = $this->pacienteModel();
 

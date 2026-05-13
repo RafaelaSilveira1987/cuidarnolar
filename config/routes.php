@@ -70,4 +70,7 @@ $router->get('/financeiro/{id}', 'FinanceiroController@show', ['auth']);
 $router->get('/financeiro/{id}/editar', 'FinanceiroController@edit', ['auth']);
 $router->post('/financeiro/{id}', 'FinanceiroController@update', ['auth', 'csrf']);
 
+$router->get('/relatorio-plantao', 'RelatorioPlantonController@index', ['auth']);
+$router->get('/relatorio-plantao/paciente/{id}', 'RelatorioPlantonController@diario', ['auth']);
+
 return $router;
