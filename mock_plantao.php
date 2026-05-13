@@ -9,7 +9,7 @@ $mockPaciente = [
     'nome'       => 'José da Silva Santos',
     'prontuario' => '4821',
     'idade'      => 74,
-    'diagnostico'=> 'Pós-AVC Isquêmico',
+    'diagnostico' => 'Pós-AVC Isquêmico',
     'iniciais'   => 'JS',
 ];
 
@@ -37,7 +37,7 @@ $mockRelatorios = [
             ['nome' => 'Atorvastatina',   'via' => 'VO', 'horario' => '12:00', 'status' => 'administrado'],
         ],
         'evolucao'       => 'Paciente encontrado em bom estado geral, consciente e orientado em tempo e espaço. Dieta oral aceita sem intercorrências. Sinais vitais estáveis no período, PA ligeiramente elevada às 08h, monitorada com nova aferição às 10h com melhora (128/82 mmHg). Higiene e conforto realizados. Deambulação assistida no quarto sem queixas. Medicações administradas conforme prescrição médica. Sem intercorrências no turno.',
-        'intercorrencias'=> [],
+        'intercorrencias' => [],
     ],
 
     'tarde' => [
@@ -64,7 +64,7 @@ $mockRelatorios = [
             ['nome' => 'Captopril 25mg SL',  'via' => 'SL', 'horario' => '14:25', 'status' => 'administrado'],
         ],
         'evolucao'       => 'Paciente apresentou pico hipertensivo às 14h20 (148/96). Médico responsável acionado, conduta: Captopril 25mg SL. Reavaliação em 30 minutos com PA 135x88. Glicemia elevada às 15h — insulina regular aplicada conforme protocolo. Febre baixa às 16h, dipirona administrada com resolução. Familiar notificado sobre intercorrências.',
-        'intercorrencias'=> [
+        'intercorrencias' => [
             ['descricao' => 'Pico hipertensivo — PA 148/96 mmHg. Médico acionado, conduta: Captopril 25mg SL. Monitoramento reforçado.', 'horario' => '14:20'],
             ['descricao' => 'Glicemia capilar 189 mg/dL. Insulina regular aplicada conforme protocolo. Reavaliação em 2h.', 'horario' => '15:00'],
         ],
@@ -94,6 +94,6 @@ $mockRelatorios = [
             ['nome' => 'AAS 100mg',       'via' => 'VO', 'horario' => '06:00', 'status' => 'pendente'],
         ],
         'evolucao'       => 'Paciente recebido do turno da tarde em repouso no leito. Consciente, orientado, queixando-se de leve cefaleia. PA controlada após intercorrências do turno anterior. Hidratação oral mantida. Paciente dormiu às 22h30, sono tranquilo. Monitoramento de glicemia e PA a cada 2h conforme orientação médica.',
-        'intercorrencias'=> [],
+        'intercorrencias' => [],
     ],
 ];

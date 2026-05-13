@@ -2,102 +2,37 @@
 
 namespace App\Controllers;
 
-use App\Models\RelatorioPlantion;
-
-class RelatorioPlantonController extends ResourceController
+class RelatorioPlantonController extends BaseController
 {
-    protected string $modelClass = RelatorioPlantion::class;
-    protected string $routeBase = '/relatorio-plantao';
-    protected string $viewTitle = 'Relatório de Plantão';
-    protected string $singularTitle = 'Relatório de Plantão';
-
     public function index(): void
     {
-        $page = (int) $this->input('page', 1);
-        $pacienteBusca = trim((string) $this->input('busca', ''));
-        $result = $this->relatorioPlantonModel()->listForIndex($page, 15, $pacienteBusca);
+        require_once ROOT . '/mock_plantao.php';
 
-        $this->view('relatorio_plantao/index', [
-            'pageTitle' => $this->viewTitle,
-            'title' => $this->viewTitle,
-            'routeBase' => $this->routeBase,
-            'rows' => $result['data'],
-            'pagination' => $result,
-            'search' => $pacienteBusca,
+        $this->view('relatorios/plantao/index', [
+            'pageTitle' => 'Relatório de Plantão',
+            'title' => 'Relatório de Plantão',
+            'paciente' => $mockPaciente,
+            'relatorios' => $mockRelatorios,
         ]);
     }
 
-    public function show(string $id): void
+    public function show(string $turno): void
     {
-        $relatorio = $this->relatorioPlantonModel()->findForShow((int) $id);
+        require_once ROOT . '/mock_plantao.php';
 
-        if (!$relatorio) {
+        if (!isset($mockRelatorios[$turno])) {
             http_response_code(404);
-            $this->view('errors/404', ['message' => 'Relatório não encontrado.'], 'layouts/blank');
+            $this->view('errors/404', ['message' => 'Turno não encontrado.'], 'layouts/blank');
             return;
         }
 
-        $this->view('relatorio_plantao/show', [
-            'pageTitle' => $this->singularTitle,
-            'title' => $this->singularTitle,
-            'routeBase' => $this->routeBase,
-            'relatorio' => $relatorio,
+        $this->view('relatorios/plantao/show', [
+            'pageTitle' => 'Relatório - ' . $mockRelatorios[$turno]['label'],
+            'title' => 'Relatório - ' . $mockRelatorios[$turno]['label'],
+            'paciente' => $mockPaciente,
+            'relatorios' => $mockRelatorios,
+            'turnoAtual' => $turno,
+            'relatorio' => $mockRelatorios[$turno],
         ]);
-    }
-
-    public function diarioPaciente(string $pacienteId): void
-    {
-        $data = $this->input('data', date('Y-m-d'));
-        $relatorios = $this->relatorioPlantonModel()->findByPacienteAndData((int) $pacienteId, $data);
-
-        if (empty($relatorios)) {
-            http_response_code(404);
-            $this->view('errors/404', ['message' => 'Nenhum relatório encontrado para esta data.'], 'layouts/blank');
-            return;
-        }
-
-        $paciente = $this->relatorioPlantonModel()->getPaciente((int) $pacienteId);
-
-        $this->view('relatorio_plantao/diario_paciente', [
-            'pageTitle' => 'Diário - ' . $paciente['nome_completo'],
-            'title' => 'Diário de ' . $paciente['nome_completo'],
-            'paciente' => $paciente,
-            'relatorios' => $relatorios,
-            'dataConsulta' => $data,
-            'routeBase' => $this->routeBase,
-        ]);
-    }
-
-    public function assinarRelatorio(string $id): void
-    {
-        $relatorio = $this->relatorioPlantonModel()->findForShow((int) $id);
-
-        if (!$relatorio) {
-            $this->flash('error', 'Relatório não encontrado.');
-            $this->redirect($this->routeBase);
-            return;
-        }
-
-        if ($relatorio['assinado']) {
-            $this->flash('warning', 'Relatório já está assinado.');
-            $this->redirect($this->routeBase . '/' . $id);
-            return;
-        }
-
-        $enfermeiroCoren = $this->input('enfermeiro_coren', '');
-        if (trim($enfermeiroCoren) === '') {
-            $this->flash('error', 'Informe o COREN do profissional.');
-            $this->redirect($this->routeBase . '/' . $id);
-            return;
-        }
-
-        $this->relatorioPlantonModel()->assinarRelatorio((int) $id, $enfermeiroCoren);
-        $this->flash('success', 'Relatório assinado com sucesso.');
-        $this->redirect($this->routeBase . '/' . $id);
-    }
-
-    private function relatorioPlantonModel(): RelatorioPlantion
-    {
-        return new RelatorioPlantion();
     }
 }
