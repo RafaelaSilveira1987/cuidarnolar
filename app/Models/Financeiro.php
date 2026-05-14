@@ -192,7 +192,7 @@ class Financeiro extends BaseModuleModel
         )->fetchAll();
 
         return [
-            'data' => array_map(fn (array $row): array => $this->formatRecord($row), $rows),
+            'data' => array_map(fn(array $row): array => $this->formatRecord($row), $rows),
             'total' => $total,
             'per_page' => $perPage,
             'current_page' => $page,
@@ -222,10 +222,80 @@ class Financeiro extends BaseModuleModel
     }
 
     private function formatRecord(array $row): array
-    {
-        $row['valor_formatado'] = formatMoney((float) ($row['valor'] ?? 0));
-        $row['vencimento_exibicao'] = $row['data_vencimento'] ?? (isset($row['data']) ? substr((string) $row['data'], 0, 10) : '');
+{
+    $row['valor_formatado'] = formatMoney((float) ($row['valor'] ?? 0));
 
-        return $row;
+    $row['vencimento_exibicao'] =
+        $row['data_vencimento']
+        ?? (isset($row['data']) ? substr((string) $row['data'], 0, 10) : '');
+
+    $row['atrasado'] = (
+        strtolower($row['status'] ?? '') === 'pendente'
+        &&
+        !empty($row['data_vencimento'])
+        &&
+        strtotime($row['data_vencimento']) <= strtotime(date('Y-m-d'))
+    );
+
+    return $row;
+}
+
+    /**
+     * Retorna o resumo financeiro (receitas, despesas, a receber, resultado).
+     */
+    public function dashboardResumo(): array
+    {
+        // Ajustando para usar a tabela financeiro
+        return [
+            'receitas' => $this->db->query("SELECT SUM(valor) FROM tb_financeiro WHERE tipo_transacao = 'Entrada'")->fetchColumn() ?? 0,
+            'despesas' => $this->db->query("SELECT SUM(valor) FROM tb_financeiro WHERE tipo_transacao = 'Saida'")->fetchColumn() ?? 0,
+            'a_receber' => $this->db->query("SELECT SUM(valor) FROM tb_financeiro WHERE status = 'Pendente' AND tipo_transacao = 'Entrada'")->fetchColumn() ?? 0,
+        ];
     }
+
+    /**
+     * Retorna contagens de lançamentos e contratos.
+     */
+    public function dashboardCounts(): array
+    {
+        return [
+            'lancamentos' => $this->db->query("SELECT COUNT(*) FROM tb_financeiro")->fetchColumn() ?? 0,
+            'contratos_ativos' => $this->db->query("SELECT COUNT(*) FROM tb_contratos_paciente WHERE status = 'Ativo'")->fetchColumn() ?? 0,
+            'receber_vencidas' => $this->db->query("SELECT COUNT(*) FROM tb_financeiro WHERE status = 'Pendente' AND tipo_transacao = 'Entrada' AND data_vencimento < NOW()")
+                ->fetchColumn() ?? 0,
+            'pagar_pendentes' => $this->db->query("SELECT COUNT(*) FROM tb_financeiro WHERE status = 'Pendente' AND tipo_transacao = 'Saida'")->fetchColumn() ?? 0,
+        ];
+    }
+
+    /**
+     * Retorna alertas de pendências financeiras.
+     */
+    public function dashboardAlertas(): array
+{
+    $sql = "
+        SELECT
+            COALESCE(
+                descricao,
+                observacoes,
+                'Lançamento pendente'
+            ) AS texto,
+
+            COALESCE(
+                detalhes,
+                'Sem detalhes'
+            ) AS detalhe
+
+        FROM tb_financeiro
+
+        WHERE status = 'Pendente'
+
+        ORDER BY id DESC
+
+        LIMIT 5
+    ";
+
+    return $this->db
+        ->query($sql)
+        ->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+}
 }

@@ -45,10 +45,27 @@
             </thead>
             <tbody>
                 <?php foreach ($rows as $row): ?>
+
+
+                <tr class="<?= !empty($row['atrasado']) ? 'linha-atrasada' : '' ?>">
                 <tr>
                     <?php foreach ($columns as $field => $label): ?>
                     <?php $cell = $row[$field] ?? '-'; ?>
-                    <td><?= e($cell) ?></td>
+                    <td>
+
+                        <?php if ($field === 'status' && !empty($row['atrasado'])): ?>
+
+                        <span class="badge-atrasado">
+                            <?= e($cell) ?>
+                        </span>
+
+                        <?php else: ?>
+
+                        <?= e($cell) ?>
+
+                        <?php endif; ?>
+
+                    </td>
 
                     <?php endforeach; ?>
                     <td class="actions">

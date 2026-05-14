@@ -41,15 +41,40 @@
             </thead>
             <tbody>
                 <?php foreach ($rows as $row): ?>
-                <tr>
+
+                <tr class="<?= !empty($row['atrasado']) ? 'row-danger' : '' ?>">
+
                     <?php foreach ($columns as $field => $label): ?>
-                    <td><?= e($row[$field] ?? '-') ?></td>
+
+                    <td>
+
+                        <?= e($row[$field] ?? '-') ?>
+
+                        <?php if(
+                $field === 'status'
+                && !empty($row['atrasado'])
+            ): ?>
+
+                        <span class="badge-danger">
+                            ● Em atraso
+                        </span>
+
+                        <?php endif; ?>
+
+                    </td>
+
                     <?php endforeach; ?>
+
                     <td class="actions">
                         <a href="<?= url($routeBase . '/' . $row['id']) ?>">Ver</a>
-                        <a href="<?= url($routeBase . '/' . $row['id'] . '/editar') ?>">Editar</a>
+
+                        <a href="<?= url($routeBase . '/' . $row['id'] . '/editar') ?>">
+                            Editar
+                        </a>
                     </td>
+
                 </tr>
+
                 <?php endforeach; ?>
             </tbody>
         </table>

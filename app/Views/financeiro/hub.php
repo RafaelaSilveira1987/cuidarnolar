@@ -92,15 +92,16 @@ function fmt(float $v): string
     <div class="alert-strip">
         <i class="ti ti-alert-triangle alert-strip__icon" aria-hidden="true"></i>
         <div>
-            <div class="alert-strip__text"><?= count($alertas) ?> pagamento(s) em atraso</div>
-            <?php foreach ($alertas as $alerta): ?>
-            <div class="alert-strip__sub">
-                <?= htmlspecialchars($alerta['texto']) ?>
-                <?php if (!empty($alerta['detalhe'])): ?>
-                — <?= htmlspecialchars($alerta['detalhe']) ?>
-                <?php endif ?>
-            </div>
-            <?php endforeach ?>
+            <?php if(count($alertas) > 0): ?>
+
+            <a href="financeiro/lancamentos?status=pendente&atrasado=1" class="alert-strip__text">
+
+                <?= count($alertas) ?> pagamento(s) em atraso
+
+            </a>
+
+            <?php endif; ?>
+
         </div>
     </div>
     <?php endif ?>
