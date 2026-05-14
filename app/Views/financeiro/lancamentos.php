@@ -1,5 +1,3 @@
-<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
-
 <section class="page-header">
     <div>
         <h1><?= e($title) ?></h1>
@@ -8,11 +6,14 @@
     <a class="btn btn-primary" href="<?= url('/financeiro/novo') ?>">Novo lançamento</a>
 </section>
 
+<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
+
 <section class="panel">
     <?php if (!empty($tabs)): ?>
     <nav class="tabs" aria-label="Filtros">
         <?php foreach ($tabs as $tabValue => $tabLabel): ?>
-        <a class="<?= ($activeTab ?? '') === (string) $tabValue ? 'active' : '' ?>"
+        <?php $isActive = (($activeTab ?? '') === (string)$tabValue); ?>
+        <a class="<?= $isActive ? 'active' : '' ?>"
             href="<?= url('/financeiro/lancamentos' . ($tabValue !== '' ? '?tipo=' . urlencode((string) $tabValue) : '')) ?>">
             <?= e($tabLabel) ?>
         </a>
@@ -24,7 +25,7 @@
         <?php if (isset($activeTab) && $activeTab !== ''): ?>
         <input type="hidden" name="tipo" value="<?= e($activeTab) ?>">
         <?php endif; ?>
-        <input type="search" name="busca" value="<?= e($search ?? '') ?>"
+        <input type="search" name="busca" <?php $searchValue = $search ?? ''; ?> value="<?= e($searchValue) ?>"
             placeholder="Paciente, responsável ou cuidador...">
         <button class="btn btn-secondary" type="submit">Buscar</button>
     </form>
@@ -46,7 +47,9 @@
                 <?php foreach ($rows as $row): ?>
                 <tr>
                     <?php foreach ($columns as $field => $label): ?>
-                    <td><?= e($row[$field] ?? '-') ?></td>
+                    <?php $cell = $row[$field] ?? '-'; ?>
+                    <td><?= e($cell) ?></td>
+
                     <?php endforeach; ?>
                     <td class="actions">
                         <a href="<?= url('/financeiro/' . (int) $row['id']) ?>">Ver</a>
@@ -61,10 +64,23 @@
     <?php if (($pagination['last_page'] ?? 1) > 1): ?>
     <nav class="pagination" aria-label="Paginacao">
         <?php for ($page = 1; $page <= $pagination['last_page']; $page++): ?>
-        <a class="<?= $page === $pagination['current_page'] ? 'active' : '' ?>"
-            href="<?= url('/financeiro/lancamentos?page=' . $page . ($search ? '&busca=' . urlencode($search) : '') . (!empty($activeTab) ? '&tipo=' . urlencode($activeTab) : '')) ?>">
+
+        <?php
+                    $query = '/financeiro/lancamentos?page=' . $page;
+
+                    if (!empty($search)) {
+                        $query .= '&busca=' . urlencode($search);
+                    }
+
+                    if (!empty($activeTab)) {
+                        $query .= '&tipo=' . urlencode($activeTab);
+                    }
+                    ?>
+
+        <a class="<?= $page === ($pagination['current_page'] ?? 1) ? 'active' : '' ?>" href="<?= url($query) ?>">
             <?= $page ?>
         </a>
+
         <?php endfor; ?>
     </nav>
     <?php endif; ?>

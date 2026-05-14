@@ -322,8 +322,65 @@ textarea {
     background: #f8fafc;
 }
 
-.actions a {
+/* =============================================================
+   Ações da tabela — data-table
+   Adicione ao seu CSS principal (ex: public/assets/css/app.css)
+   ============================================================= */
+
+/* Remove qualquer borda/outline herdado da célula */
+td.actions {
+    border: none;
+    outline: none;
     white-space: nowrap;
+    text-align: right;
+    padding-right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    /* se a sua tabela usar border-collapse e td.actions herdar borda vermelha
+       de alguma regra de :focus-within ou .error, isso zera */
+    box-shadow: none !important;
+}
+
+/* Links de ação — base */
+td.actions a {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    outline: none;
+    transition: background .15s, color .15s;
+    line-height: 1.5;
+}
+
+/* "Ver" — azul */
+td.actions a:first-child {
+    color: #02756c;
+    background: rgba(2, 117, 108, .10);
+}
+td.actions a:first-child:hover {
+    background: rgba(61, 142, 248, .20);
+}
+
+/* "Editar" — verde */
+td.actions a:last-child {
+    color: #22c55e;
+    background: rgba(34, 197, 94, .10);
+}
+td.actions a:last-child:hover {
+    background: rgba(34, 197, 94, .20);
+}
+
+/* Garante que nenhum estado de foco/active adicione borda visível */
+td.actions a:focus,
+td.actions a:focus-visible,
+td.actions a:active {
+    outline: none;
+    box-shadow: none;
 }
 
 .pagination {

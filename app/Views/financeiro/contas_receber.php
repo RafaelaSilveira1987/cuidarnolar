@@ -1,12 +1,13 @@
-<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
-
 <section class="page-header">
     <div>
         <h1><?= e($title) ?></h1>
-        <p class="page-subtitle">Entradas com status <strong>Pendente</strong> — use data de vencimento para inadimplência.</p>
+        <p class="page-subtitle">Entradas com status <strong>Pendente</strong> — use data de vencimento para
+            inadimplência.</p>
     </div>
     <a class="btn btn-primary" href="<?= url('/financeiro/novo') ?>">Novo lançamento</a>
 </section>
+
+<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
 
 <section class="panel">
     <?php if (empty($rows)): ?>

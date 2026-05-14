@@ -1,11 +1,11 @@
-<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
-
 <section class="page-header">
     <div>
         <h1><?= e($title) ?></h1>
         <p class="page-subtitle">Agregação mensal na data do lançamento.</p>
     </div>
 </section>
+
+<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
 
 <section class="panel">
     <form class="search-form" method="GET" action="<?= url('/financeiro/relatorios/fluxo-caixa') ?>">

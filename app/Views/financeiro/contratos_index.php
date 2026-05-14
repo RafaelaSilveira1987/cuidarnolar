@@ -1,5 +1,3 @@
-<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
-
 <section class="page-header">
     <div>
         <h1><?= e($title) ?></h1>
@@ -7,6 +5,8 @@
     </div>
     <a class="btn btn-primary" href="<?= url('/financeiro/contratos/novo') ?>">Novo contrato</a>
 </section>
+
+<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
 
 <section class="panel">
     <form class="search-form" method="GET" action="<?= url('/financeiro/contratos') ?>">
@@ -39,7 +39,8 @@
                     <td><?= e($row['valor_mensal_fmt'] ?? '') ?></td>
                     <td><?= (int) ($row['dia_vencimento'] ?? 0) ?></td>
                     <td><?= e(formatDate($row['vigencia_inicio'] ?? '')) ?>
-                        <?php if (!empty($row['vigencia_fim'])): ?> — <?= e(formatDate($row['vigencia_fim'])) ?><?php endif; ?>
+                        <?php if (!empty($row['vigencia_fim'])): ?> —
+                        <?= e(formatDate($row['vigencia_fim'])) ?><?php endif; ?>
                     </td>
                     <td><?= e($row['status'] ?? '') ?></td>
                 </tr>

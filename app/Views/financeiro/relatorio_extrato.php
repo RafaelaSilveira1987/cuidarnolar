@@ -1,11 +1,11 @@
-<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
-
 <section class="page-header">
     <div>
         <h1><?= e($title) ?></h1>
         <p class="page-subtitle">Entradas e saídas ligadas ao paciente no período (centro de custo).</p>
     </div>
 </section>
+
+<?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
 
 <section class="panel">
     <form class="search-form" method="GET" action="<?= url('/financeiro/relatorios/extrato') ?>">
@@ -14,7 +14,8 @@
             <select name="paciente_id" required>
                 <option value="">Selecione</option>
                 <?php foreach (($pacientes ?? []) as $opt): ?>
-                <option value="<?= (int) ($opt['id'] ?? 0) ?>" <?= (int) ($paciente_id ?? 0) === (int) ($opt['id'] ?? 0) ? 'selected' : '' ?>>
+                <option value="<?= (int) ($opt['id'] ?? 0) ?>"
+                    <?= (int) ($paciente_id ?? 0) === (int) ($opt['id'] ?? 0) ? 'selected' : '' ?>>
                     <?= e($opt['nome_completo'] ?? '') ?>
                 </option>
                 <?php endforeach; ?>
