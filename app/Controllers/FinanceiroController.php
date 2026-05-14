@@ -55,10 +55,66 @@ class FinanceiroController extends ResourceController
     /** Camada 4 — hub com acesso às demais telas. */
     public function hub(): void
     {
+        $model = new Financeiro();
+
+        $meses = [
+            1 => 'Janeiro',
+            2 => 'Fevereiro',
+            3 => 'Março',
+            4 => 'Abril',
+            5 => 'Maio',
+            6 => 'Junho',
+            7 => 'Julho',
+            8 => 'Agosto',
+            9 => 'Setembro',
+            10 => 'Outubro',
+            11 => 'Novembro',
+            12 => 'Dezembro'
+        ];
+
+        $mesRef = $meses[(int)date('n')] . ' ' . date('Y');
+
+        $resumo = [
+            'receitas' => 0,
+            'despesas' => 0,
+            'a_receber' => 0,
+            'resultado' => 0,
+        ];
+
+        $counts = [
+            'lancamentos' => 0,
+            'contratos_ativos' => 0,
+            'receber_vencidas' => 0,
+            'pagar_pendentes' => 0,
+        ];
+
+        $alertas = [];
+
+        // Se o model já tiver métodos reais, substitua aqui:
+        if (method_exists($model, 'dashboardResumo')) {
+            $resumo = $model->dashboardResumo();
+        }
+
+        if (method_exists($model, 'dashboardCounts')) {
+            $counts = $model->dashboardCounts();
+        }
+
+        if (method_exists($model, 'dashboardAlertas')) {
+            $alertas = $model->dashboardAlertas();
+        }
+
+        $resumo['resultado'] =
+            ($resumo['receitas'] ?? 0)
+            - ($resumo['despesas'] ?? 0);
+
         $this->view('financeiro/hub', [
             'pageTitle' => 'Financeiro — Homecare',
             'title' => 'Financeiro',
             'finSubnav' => 'hub',
+            'resumo' => $resumo,
+            'alertas' => $alertas,
+            'counts' => $counts,
+            'mes_ref' => $mesRef,
         ]);
     }
 

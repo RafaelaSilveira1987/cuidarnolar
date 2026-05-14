@@ -24,7 +24,8 @@
         <?php if (isset($activeTab) && $activeTab !== ''): ?>
         <input type="hidden" name="tipo" value="<?= e($activeTab) ?>">
         <?php endif; ?>
-        <input type="search" name="busca" value="<?= e($search ?? '') ?>" placeholder="Paciente, responsável ou cuidador...">
+        <input type="search" name="busca" value="<?= e($search ?? '') ?>"
+            placeholder="Paciente, responsável ou cuidador...">
         <button class="btn btn-secondary" type="submit">Buscar</button>
     </form>
 

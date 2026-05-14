@@ -59,7 +59,7 @@
 <section class="panel">
     <div class="section-header">
         <h2>Proximos agendamentos</h2>
-        <a href="<?= url('/agendamentos') ?>">Ver agenda</a>
+        <a class="dash-quick-link" href="<?= url('/agendamentos') ?>">Ver agenda</a>
     </div>
 
     <?php if (empty($proximosEventos)): ?>
@@ -90,16 +90,17 @@
 
 <section class="panel">
     <h2 class="section-header" style="margin-top:0;">Acesso rápido</h2>
-    <p class="page-subtitle" style="margin-top:-8px;">Atalhos operacionais (o layout principal já inclui o CSS em todas as páginas).</p>
-    <div class="metric-grid">
+    <p class="page-subtitle" style="margin-top:-8px;">Menus Favoritos</p>
+    <div class="dash-quick-grid">
         <?php $menuRel = include BASE_PATH . '/app/Config/MenuRelatorios.php'; ?>
         <?php foreach ($menuRel as $key => $m): ?>
-        <div class="metric-card">
+        <article class="dash-quick-card">
             <div style="font-size:20px;"><?= htmlspecialchars($m['icon'] ?? '') ?></div>
             <strong><?= htmlspecialchars($m['label'] ?? $key) ?></strong>
-            <p style="color:var(--muted);font-size:14px;"><?= htmlspecialchars($m['description'] ?? '') ?></p>
-            <a href="<?= url($m['route'] ?? '#') ?>" class="btn btn-link">Abrir</a>
-        </div>
-        <?php endforeach; ?>
+            <!-- <p style="color:var(--muted);font-size:14px;"><?= htmlspecialchars($m['description'] ?? '') ?></p> -->
+            <a href="<?= url($m['route'] ?? '#') ?>" class="dash-quick-link">Abrir</a>
+        </article>
+    </div>
+    <?php endforeach; ?>
     </div>
 </section>

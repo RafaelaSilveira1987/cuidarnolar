@@ -1,0 +1,368 @@
+/* =============================================================
+   financeiro.css — Módulo Financeiro · Cuidar no Lar
+   Mesmo padrão visual de relatorio_plantao.css
+   ============================================================= */
+
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.hub {
+    display: grid;
+    gap: 18px;
+}
+
+
+/* ── Cabeçalho ──────────────────────────────────────────────── */
+.hub-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.hub-title {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.hub-sub {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.btn-primary {
+    padding: 10px 14px;
+    background: var(--primary);
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: opacity .15s;
+    white-space: nowrap;
+}
+.btn-primary:hover { 
+    opacity: .85; 
+    background: var(--primary-dark);
+}
+
+/* ── Navegação em pílulas ───────────────────────────────────── */
+.fin-subnav {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+}
+
+.fin-subnav a {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .15s;
+    white-space: nowrap;
+}
+
+.fin-subnav a:hover,
+.fin-subnav__link--active {
+    border-color: var(--brand);
+    color: var(--brand) !important;
+    background: var(--brand-dim);
+}
+
+.fin-subnav__sep {
+    width: 1px;
+    background: var(--border);
+    margin: 0 4px;
+    align-self: stretch;
+}
+.nav-sep {
+    width: 1px;
+    background: var(--border);
+    margin: 0 4px;
+    align-self: stretch;
+}
+
+/* ── Labels de seção ────────────────────────────────────────── */
+.section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+/* ── Cards de métricas ──────────────────────────────────────── */
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+}
+
+.metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+}
+
+.metric:nth-child(2) { animation-delay: .05s; }
+.metric:nth-child(3) { animation-delay: .10s; }
+.metric:nth-child(4) { animation-delay: .15s; }
+
+.metric__label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.metric__value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.metric__value { font-size: 20px; font-weight: 700; line-height: 1; }
+
+.metric__delta {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.delta-up {
+    color: var(--success);
+}
+
+.delta-down {
+    color: var(--danger);
+}
+
+
+.metric--receita  .metric__value { color: var(--green); }
+.metric--despesa  .metric__value { color: var(--red); }
+.metric--pendente .metric__value { color: var(--amber); }
+.metric--resultado .metric__value { color: var(--brand); }
+
+/* ── Alert strip ────────────────────────────────────────────── */
+.alert-strip {
+    background: rgba(245,158,11,.07);
+    border: 1px solid rgba(245,158,11,.2);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+.alert-strip__icon { color: var(--amber); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.alert-strip__text { font-size: 12px; color: var(--amber); font-weight: 600; }
+.alert-strip__sub  { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── Grid 2 colunas ─────────────────────────────────────────── */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+@media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* ── Cards principais ───────────────────────────────────────── */
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    transition: border-color .15s, background .15s;
+}
+
+.card:hover {
+    border-color: var(--primary);
+    background: #fafdff;
+}
+
+.card__title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.card__desc {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.card__stat {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+}
+.icon--brand {
+    background: #e7f6f8;
+    color: var(--primary);
+}
+
+.icon--green {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.icon--red {
+    background: #fee2e2;
+    color: #b42318;
+}
+
+.icon--amber {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.icon--purple {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.icon--teal {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+
+.icon--gray {
+    background: #f1f5f9;
+    color: var(--muted);
+}
+
+.card__badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+}
+.badge-green  { background: var(--green-dim); color: var(--green); }
+.badge-red    { background: var(--red-dim);   color: var(--red); }
+.badge-amber  { background: var(--amber-dim); color: var(--amber); }
+.badge-brand  { background: var(--brand-dim); color: var(--brand); }
+.badge-gray   { background: rgba(83,92,114,.15); color: var(--text-secondary); }
+
+.card__title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.card__desc  { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.card__stat  { font-size: 20px; font-weight: 700; }
+.stat-green  { color: var(--green); }
+.stat-red    { color: var(--red); }
+.stat-amber  { color: var(--amber); }
+.stat-brand  { color: var(--brand); }
+
+.card__foot {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+}
+.card__foot-label { font-size: 11px; color: var(--text-muted); }
+.card__arrow      { font-size: 13px; color: var(--text-muted); }
+
+/* ── Cards de relatórios ────────────────────────────────────── */
+.relatorios-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+@media (max-width: 620px) { .relatorios-row { grid-template-columns: repeat(2, 1fr); } }
+
+.rel-card {
+    text-decoration: none;
+    color: inherit;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    transition: border-color .15s;
+}
+.rel-card:hover {
+    border-color: var(--primary);
+}
+.rel-card__icon  { font-size: 20px; margin-bottom: 8px; }
+
+.rel-card__title {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.rel-card__desc {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.alert-strip {
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+}
+
+@media (max-width: 760px) {
+    .metrics,
+    .grid-2,
+    .relatorios-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ── Animação ───────────────────────────────────────────────── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.card:nth-child(1) { animation-delay: .05s; }
+.card:nth-child(2) { animation-delay: .10s; }
+.card:nth-child(3) { animation-delay: .15s; }
+.card:nth-child(4) { animation-delay: .20s; }
