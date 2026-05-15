@@ -80,7 +80,11 @@ $router->get('/financeiro/{id}', 'FinanceiroController@show', ['auth']);
 $router->get('/financeiro/{id}/editar', 'FinanceiroController@edit', ['auth']);
 $router->post('/financeiro/{id}', 'FinanceiroController@update', ['auth', 'csrf']);
 
-$router->get('/relatorio-plantao', 'RelatorioPlantonController@index', ['auth']);
-$router->get('/relatorio-plantao/paciente/{id}', 'RelatorioPlantonController@diario', ['auth']);
+$router->get('/relatorio-plantao', 'RelatorioPlantaoController@index', ['auth']);
+$router->get('/relatorio-plantao/carregar', 'RelatorioPlantaoController@carregar', ['auth']);
+$router->post('/relatorio-plantao/salvar-evolucao', 'RelatorioPlantaoController@salvarEvolucao', ['auth', 'csrf']);
+$router->post('/relatorio-plantao/salvar-sinais', 'RelatorioPlantaoController@salvarSinais', ['auth', 'csrf']);
+$router->post('/relatorio-plantao/salvar-intercorrencia', 'RelatorioPlantaoController@salvarIntercorrencia', ['auth', 'csrf']);
+$router->post('/relatorio-plantao/assinar', 'RelatorioPlantaoController@assinar', ['auth', 'csrf']);
 
 return $router;

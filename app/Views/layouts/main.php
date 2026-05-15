@@ -7,6 +7,7 @@
     <title><?= e($pageTitle ?? 'Cuidar no Lar') ?> - ERP</title>
     <link rel="stylesheet" href="<?= url('/assets/css/app.css') ?>">
     <link rel="stylesheet" href="<?= url('/assets/css/financeiro.css') ?>">
+    <link rel="stylesheet" href="<?= url('/assets/css/relatorio_plantao.css') ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
 

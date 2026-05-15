@@ -1,0 +1,295 @@
+/* =========================
+   RESET
+========================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f3f4f6;
+}
+
+/* =========================
+   CONTAINER
+========================= */
+
+.plantao-page{
+    padding:20px;
+    width:100%;
+}
+
+.page-header{
+    margin-bottom:20px;
+}
+
+.page-header h2{
+    font-size:28px;
+    color:#111827;
+    font-weight:700;
+}
+
+/* =========================
+   TIMELINE
+========================= */
+
+.timeline-scroll{
+    display:flex;
+    gap:16px;
+    overflow-x:auto;
+    padding-bottom:10px;
+    margin-bottom:25px;
+}
+
+.timeline-scroll::-webkit-scrollbar{
+    height:6px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb{
+    background:#cbd5e1;
+    border-radius:20px;
+}
+
+/* =========================
+   CARD PLANTÃO
+========================= */
+
+.plantao-card{
+    min-width:240px;
+    background:#ffffff;
+    border-radius:14px;
+    padding:18px;
+    border:1px solid #e5e7eb;
+    cursor:pointer;
+    transition:0.2s;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+.plantao-card:hover{
+    transform:translateY(-2px);
+    border-color:#2563eb;
+}
+
+.plantao-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+}
+
+.plantao-top span:first-child{
+    font-size:14px;
+    font-weight:600;
+    color:#374151;
+}
+
+.plantao-cuidador{
+    font-size:16px;
+    font-weight:600;
+    color:#111827;
+    margin-bottom:8px;
+}
+
+.plantao-horario{
+    font-size:14px;
+    color:#6b7280;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge{
+    padding:5px 12px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.badge-ok{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-alert{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.badge-critical{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+/* =========================
+   BLOCOS RELATÓRIO
+========================= */
+
+.report-body{
+    background:#ffffff;
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:20px;
+    border:1px solid #e5e7eb;
+    box-shadow:0 2px 5px rgba(0,0,0,0.04);
+}
+
+.section-title{
+    font-size:18px;
+    font-weight:700;
+    color:#111827;
+    margin-bottom:18px;
+}
+
+/* =========================
+   SINAIS VITAIS
+========================= */
+
+.vitals-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:15px;
+}
+
+.vital-card{
+    background:#f9fafb;
+    border-radius:12px;
+    padding:15px;
+    border:1px solid #e5e7eb;
+}
+
+.vital-card label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:#6b7280;
+    margin-bottom:8px;
+}
+
+.vital-card input{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #d1d5db;
+    font-size:14px;
+    background:#fff;
+}
+
+.vital-card input:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
+/* =========================
+   EVOLUÇÃO
+========================= */
+
+.evolucao-box{
+    width:100%;
+    min-height:160px;
+    border-radius:12px;
+    border:1px solid #d1d5db;
+    padding:15px;
+    resize:vertical;
+    font-size:14px;
+    line-height:1.5;
+    background:#fff;
+}
+
+.evolucao-box:focus{
+    outline:none;
+    border-color:#2563eb;
+}
+
+/* =========================
+   TABELA MEDICAÇÕES
+========================= */
+
+.med-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.med-table thead{
+    background:#f9fafb;
+}
+
+.med-table th{
+    text-align:left;
+    padding:14px;
+    font-size:13px;
+    color:#6b7280;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.med-table td{
+    padding:14px;
+    font-size:14px;
+    color:#111827;
+    border-bottom:1px solid #f3f4f6;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+
+.btn-primary{
+    margin-top:18px;
+    padding:12px 22px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.btn-primary:hover{
+    background:#1d4ed8;
+}
+
+.btn-alert{
+    margin-top:18px;
+    padding:12px 22px;
+    border:none;
+    border-radius:10px;
+    background:#dc2626;
+    color:white;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.btn-alert:hover{
+    background:#b91c1c;
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+
+@media(max-width:768px){
+
+    .plantao-page{
+        padding:15px;
+    }
+
+    .page-header h2{
+        font-size:22px;
+    }
+
+    .plantao-card{
+        min-width:200px;
+    }
+
+    .report-body{
+        padding:18px;
+    }
+
+}
