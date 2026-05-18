@@ -1,0 +1,708 @@
+/* ================================================================
+   relatorio_plantao_pages.css  — v3  (dark theme)
+   Telas: /relatorio-plantao  e  /relatorio-plantao/paciente/{id}
+   ================================================================ */
+
+/* ── Design tokens ────────────────────────────────────────────── */
+:root {
+    --rp-bg: #f5f7fb;
+    --rp-surface: #ffffff;
+    --rp-surface-2: #f8fafc;
+    --rp-surface-3: #eef2f7;
+
+    --rp-border: #d9e2ec;
+    --rp-border-soft: #edf2f7;
+
+    --rp-text: #172033;
+    --rp-text-2: #64748b;
+    --rp-text-3: #94a3b8;
+
+    --rp-blue: #02756c;
+    --rp-blue-hover: #02948e;
+    --rp-blue-soft: rgba(2, 117, 108, 0.08);
+
+    --rp-green: #16784c;
+    --rp-green-soft: rgba(22, 120, 76, 0.08);
+
+    --rp-red: #b42318;
+    --rp-red-soft: rgba(180, 35, 24, 0.08);
+
+    --rp-yellow: #b7791f;
+    --rp-yellow-soft: rgba(183, 121, 31, 0.08);
+
+    --rp-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+
+    --rp-r-sm: 8px;
+    --rp-r-md: 12px;
+    --rp-r-lg: 16px;
+    --rp-r-xl: 20px;
+
+    --rp-font: Inter, "Segoe UI", sans-serif;
+}
+
+body {
+    background: var(--rp-bg);
+    color: var(--rp-text);
+    font-family: var(--rp-font);
+}
+
+/* ── Resets locais ────────────────────────────────────────────── */
+.pac-view *,
+.rp-wrapper * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ================================================================
+   TELA 1 — /relatorio-plantao  (index)
+   ================================================================ */
+
+.rp-wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 4px;
+}
+
+/* Cabeçalho da página */
+.rp-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.rp-page-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--rp-text);
+    letter-spacing: -.3px;
+}
+.rp-page-header p {
+    font-size: 13px;
+    color: var(--rp-text-2);
+    margin-top: 3px;
+}
+
+/* Grid de cards */
+.rp-pacientes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+}
+
+.rp-paciente-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--rp-surface);
+    border: .5px solid var(--rp-border);
+    border-radius: var(--rp-r-lg);
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--rp-text);
+    transition: background .15s, border-color .15s;
+    animation: rpFadeUp .2s ease both;
+}
+.rp-paciente-card:hover {
+    background: var(--rp-surface-2);
+    border-color: var(--rp-blue-border);
+}
+
+/* Avatar */
+.rp-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--rp-blue-dim);
+    color: var(--rp-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: var(--rp-font);
+    user-select: none;
+    letter-spacing: -.3px;
+}
+
+.rp-paciente-content { flex: 1; min-width: 0; }
+.rp-paciente-content h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--rp-text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rp-meta { display: flex; flex-wrap: wrap; gap: 3px 8px; }
+.rp-meta span { font-size: 11px; color: var(--rp-text-2); }
+.rp-meta span::before { content: '·'; margin-right: 6px; color: var(--rp-text-3); }
+.rp-meta span:first-child::before { content: ''; margin: 0; }
+
+/* Badge de status do paciente */
+.rp-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    flex-shrink: 0;
+    background: var(--rp-green-dim);
+    color: var(--rp-green);
+    border: .5px solid var(--rp-green-brd);
+}
+.rp-status[data-status="inativo"]  { background:var(--rp-red-dim);   color:var(--rp-red);   border-color:var(--rp-red-brd); }
+.rp-status[data-status="pendente"] { background:var(--rp-amber-dim); color:var(--rp-amber); border-color:var(--rp-amber-brd); }
+
+/* Estado vazio */
+.rp-empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--rp-text-3);
+    font-size: 14px;
+}
+.rp-empty-state i { font-size: 32px; display: block; margin-bottom: 12px; }
+
+/* ================================================================
+   TELA 2 — /relatorio-plantao/paciente/{id}
+   ================================================================ */
+
+.pac-view {
+    max-width: 760px;
+    margin: 0 auto;
+    font-family: var(--rp-font);
+    color: var(--rp-text);
+    font-size: 14px;
+}
+
+/* ── Top bar ────────────────────────────────────────────────── */
+.pac-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.pac-topbar__patient {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pac-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--rp-blue-dim);
+    color: var(--rp-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.pac-topbar__nome {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--rp-text);
+    letter-spacing: -.2px;
+    line-height: 1.3;
+}
+
+.pac-topbar__meta {
+    font-size: 12px;
+    color: var(--rp-text-2);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.pac-topbar__meta i { font-size: 12px; color: var(--rp-text-3); }
+
+/* Navegação de data */
+.pac-topbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--rp-surface);
+    border: .5px solid var(--rp-border);
+    border-radius: var(--rp-r-md);
+    padding: 6px 10px;
+}
+
+.pac-nav-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--rp-r-sm);
+    border: .5px solid var(--rp-border);
+    background: var(--rp-input-bg);
+    color: var(--rp-text-2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: background .15s, color .15s, opacity .15s;
+    flex-shrink: 0;
+}
+.pac-nav-btn:hover:not(:disabled) { background: var(--rp-surface-3); color: var(--rp-text); }
+.pac-nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+.pac-nav-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--rp-text);
+    min-width: 130px;
+    text-align: center;
+}
+
+/* ── Tabs ────────────────────────────────────────────────────── */
+.pac-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rp-border);
+}
+
+.pac-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--rp-text-2);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color .15s, border-color .15s;
+    font-family: var(--rp-font);
+}
+.pac-tab.active {
+    color: white;
+    background: var(--rp-blue);
+    border-radius: 10px;
+    border-bottom: none;
+}
+.pac-tab:hover:not(.active) { color: var(--rp-text); }
+
+.pac-tab-action {
+    margin-left: auto;
+    background: var(--rp-blue);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: var(--rp-shadow);
+    transition: all .2s ease;
+     text-decoration: none;
+}
+
+.pac-tab-action:hover {
+    background: var(--rp-blue-hover);
+    transform: translateY(-1px);
+}
+
+/* ── Cartões de turno ────────────────────────────────────────── */
+.turnos-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.turno-card {
+    background: white;
+    border: 1px solid var(--rp-border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--rp-shadow);
+    transition: all .2s ease;
+}
+
+.turno-card:hover {
+    border-color: var(--rp-blue);
+    transform: translateY(-2px);
+}
+
+.turno-card.tc--ativo {
+    border: 1px solid var(--rp-blue);
+    background: var(--rp-blue-soft);
+}
+
+.turno-card.tc--vazio { opacity: .45; cursor: default; }
+.turno-card.tc--vazio:hover { background: var(--rp-surface); }
+
+.plantao-card {
+    background: white;
+    border: 1px solid var(--rp-border);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    box-shadow: var(--rp-shadow);
+}
+
+.plantao-acoes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--rp-border);
+    border-radius: 14px;
+    box-shadow: var(--rp-shadow);
+}
+
+.acao-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-outline,
+.btn-assinar-link {
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-outline {
+    border: 1px solid var(--rp-border);
+    color: var(--rp-text);
+    background: white;
+}
+
+.btn-assinar-link {
+    background: var(--rp-blue);
+    color: white;
+}
+
+.tc-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.tc-shift {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--rp-text-2);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.tc-shift .ti { font-size: 13px; }
+
+/* Badges de turno */
+.tc-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: capitalize;
+    letter-spacing: .2px;
+    white-space: nowrap;
+}
+.tc-ok      { background: var(--rp-green-dim); color: var(--rp-green); border: .5px solid var(--rp-green-brd); }
+.tc-warn    { background: var(--rp-amber-dim); color: var(--rp-amber); border: .5px solid var(--rp-amber-brd); }
+.tc-info    { background: var(--rp-blue-dim);  color: var(--rp-blue);  border: .5px solid var(--rp-blue-border); }
+.tc-neutral { background: var(--rp-surface-3); color: var(--rp-text-2); border: .5px solid var(--rp-border); }
+
+.tc-enf {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--rp-text);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tc-range { font-size: 11px; color: var(--rp-text-3); }
+
+/* ── Estado vazio do turno ──────────────────────────────────── */
+.turno-vazio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    padding: 60px 24px;
+    background: var(--rp-surface);
+    border: .5px solid var(--rp-border);
+    border-radius: var(--rp-r-lg);
+    color: var(--rp-text-3);
+    font-size: 14px;
+}
+.turno-vazio i { font-size: 28px; }
+
+/* ── Blocos de conteúdo ──────────────────────────────────────── */
+.bloco {
+    background: var(--rp-surface);
+    border: 1px solid var(--rp-border-soft);
+    border-radius: var(--rp-r-lg);
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--rp-shadow);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.bloco:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.bloco-titulo {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    color: var(--rp-text-3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+.bloco-titulo .ti { font-size: 13px; }
+
+/* ── Sinais vitais ───────────────────────────────────────────── */
+.sv-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+    background: transparent;
+}
+
+.sv-col {
+    background: var(--rp-surface-2);
+    border: 1px solid var(--rp-border-soft);
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.sv-sigla {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    color: var(--rp-text-3);
+}
+
+.sv-valor {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--rp-text);
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.sv-sufixo {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--rp-text-3);
+}
+
+.sv-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+.badge-ok   { background: var(--rp-green-dim); color: var(--rp-green); border: .5px solid var(--rp-green-brd); }
+.badge-warn { background: var(--rp-amber-dim); color: var(--rp-amber); border: .5px solid var(--rp-amber-brd); }
+.badge-crit { background: var(--rp-red-dim);   color: var(--rp-red);   border: .5px solid var(--rp-red-brd); }
+
+/* ── Tabela de medicações ────────────────────────────────────── */
+.med-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.med-table thead th {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: var(--rp-text-3);
+    text-align: left;
+    padding: 0 8px 10px;
+    border-bottom: .5px solid var(--rp-border);
+}
+.med-table tbody tr {
+    border-bottom: .5px solid var(--rp-border-2);
+    transition: background .1s;
+}
+.med-table tbody tr:last-child { border-bottom: none; }
+.med-table tbody tr:hover { background: var(--rp-surface-2); }
+.med-table td {
+    padding: 10px 8px;
+    color: var(--rp-text);
+    vertical-align: middle;
+}
+.med-nome { font-weight: 500; }
+.med-via  { color: var(--rp-text-2); font-size: 12px; }
+.med-hora { font-size: 12px; font-weight: 600; color: var(--rp-text-2); min-width: 48px; }
+
+.med-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.med-ok   { background: var(--rp-green-dim); color: var(--rp-green); border: .5px solid var(--rp-green-brd); }
+.med-rec  { background: var(--rp-red-dim);   color: var(--rp-red);   border: .5px solid var(--rp-red-brd); }
+.med-pend { background: var(--rp-surface-3); color: var(--rp-text-3); border: .5px solid var(--rp-border); }
+
+/* ── Evolução ────────────────────────────────────────────────── */
+.evolucao-txt {
+    font-size: 13px;
+    color: var(--rp-text-2);
+    line-height: 1.8;
+    background: var(--rp-input-bg);
+    border: .5px solid var(--rp-border);
+    border-radius: var(--rp-r-md);
+    padding: 14px 16px;
+}
+
+/* ── Intercorrências ─────────────────────────────────────────── */
+.inter-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--rp-amber-dim);
+    border: .5px solid var(--rp-amber-brd);
+    border-radius: var(--rp-r-md);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+.inter-item:last-child { margin-bottom: 0; }
+
+.inter-icon {
+    font-size: 15px;
+    color: var(--rp-amber);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.inter-body { flex: 1; min-width: 0; }
+.inter-body p { font-size: 13px; color: var(--rp-text); line-height: 1.6; }
+
+.inter-hora {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--rp-amber);
+    margin-top: 5px;
+}
+
+/* ── Responsável ─────────────────────────────────────────────── */
+.bloco-resp {}
+
+.resp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.resp-av {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--rp-surface-3);
+    color: var(--rp-text-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.resp-info { flex: 1; min-width: 0; }
+.resp-info strong { font-size: 14px; color: var(--rp-text); display: block; }
+.resp-coren { font-size: 11px; color: var(--rp-text-3); }
+
+.resp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.resp-ok   { background: var(--rp-green-dim); color: var(--rp-green); border: .5px solid var(--rp-green-brd); }
+.resp-pend { background: var(--rp-surface-3); color: var(--rp-text-3); border: .5px solid var(--rp-border); }
+
+/* ── Botões globais ──────────────────────────────────────────── */
+a.btn-primary,
+button.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--rp-blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--rp-r-sm);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity .15s;
+    font-family: var(--rp-font);
+    white-space: nowrap;
+}
+a.btn-primary:hover, button.btn-primary:hover { opacity: .85; }
+
+.page-actions { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+
+/* ── Animação ────────────────────────────────────────────────── */
+@keyframes rpFadeUp {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsivo ──────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .rp-pacientes-grid    { grid-template-columns: 1fr; }
+    .turnos-row           { grid-template-columns: 1fr; }
+    .sv-row               { flex-wrap: wrap; }
+    .sv-col               { min-width: 80px; }
+    .pac-topbar           { flex-direction: column; align-items: flex-start; }
+    .pac-topbar__nav      { width: 100%; justify-content: center; }
+    .pac-tabs             { flex-wrap: wrap; }
+    .pac-tab-action       { margin-left: 0; margin-top: 4px; }
+    .med-table thead      { display: none; }
+    .med-table td         { display: block; padding: 4px 8px; }
+    .med-table tr         { padding: 8px 0; display: block; border-bottom: .5px solid var(--rp-border); }
+    .resp-row             { flex-wrap: wrap; }
+}

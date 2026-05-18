@@ -118,12 +118,39 @@ button.btn-primary:hover {
   gap: 1.5rem;
 }
 
+/* Melhorias no layout do relatório de plantão */
+
+/* Estilo para as abas */
+.tab-container {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.tab-link {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab-link.active {
+  color: #0f766e;
+  border-bottom: 2px solid #0f766e;
+}
+
+/* Estilo para os cards de plantão */
 .plantao-card {
-  background: white;
-  border-radius: 18px;
-  padding: 1.5rem;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .plantao-topo {
@@ -133,40 +160,50 @@ button.btn-primary:hover {
   margin-bottom: 1rem;
 }
 
-.status-badge {
-  background: #ccfbf1;
-  color: #115e59;
-  padding: 0.35rem 0.8rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
+.plantao-topo strong {
+  font-size: 1.1rem;
+  color: #1e293b;
 }
 
-/* SINAIS VITAIS */
+.plantao-topo .status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: #0f766e;
+}
 
 .sv-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 1rem;
-  margin: 1rem 0;
+  margin-bottom: 1rem;
 }
 
 .sv-item {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 1rem;
   text-align: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.8rem;
 }
 
 .sv-item small {
   display: block;
+  font-size: 0.8rem;
   color: #64748b;
-  margin-bottom: 0.3rem;
 }
 
 .sv-item strong {
-  color: #0f172a;
-  font-size: 1rem;
+  font-size: 1.2rem;
+  color: #1e293b;
+}
+
+.plantao-body {
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.6;
 }
 
 /* EMPTY */
