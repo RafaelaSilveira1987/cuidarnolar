@@ -50,7 +50,7 @@ abstract class BaseModel
         $stmt = $this->db->prepare("INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})");
         $stmt->execute($data);
 
-        return (int) $this->db->lastInsertId();
+        return $this->db->lastInsertId();
     }
 
     public function update(int $id, array $data): bool
@@ -59,7 +59,7 @@ abstract class BaseModel
             return true;
         }
 
-        $sets = implode(', ', array_map(static fn (string $col): string => "{$col} = :{$col}", array_keys($data)));
+        $sets = implode(', ', array_map(static fn(string $col): string => "{$col} = :{$col}", array_keys($data)));
         $params = [];
         foreach ($data as $key => $value) {
             $params[":{$key}"] = $value;

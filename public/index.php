@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 define('BASE_PATH', dirname(__DIR__));
 define('APP_START', microtime(true));
+define('BASE_URL', '/cuidarnolar/public');
 
 $autoload = BASE_PATH . '/vendor/autoload.php';
 if (file_exists($autoload)) {

@@ -22,7 +22,7 @@
             <?= $content ?>
         </main>
     </div>
-    <script src="<?= assets('js/app.js') ?>"></script>
+    <script src="<?= BASE_URL ?>/assets/js/app.js"></script>
 </body>
 
 </html>

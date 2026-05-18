@@ -9,6 +9,24 @@ class Paciente extends BaseModuleModel
     protected string $orderBy = 'p.nome_completo';
     protected string $orderDirection = 'ASC';
 
+    public function buscarPorId(int $id): ?array
+    {
+        $sql = "
+        SELECT *
+        FROM tb_pacientes
+        WHERE id = :id
+        LIMIT 1
+    ";
+
+        $stmt = $this->query($sql, [
+            ':id' => $id
+        ]);
+
+        $resultado = $stmt->fetch();
+
+        return $resultado ?: null;
+    }
+
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {
         return $this->listWithJoins($page, $perPage, $search);
@@ -64,6 +82,22 @@ class Paciente extends BaseModuleModel
             'status' => 'Inativo',
             'motivo_inativacao' => $motivo !== '' ? $motivo : 'Inativado pelo painel MVC',
         ]);
+    }
+
+    public function pacientesComRelatorio(): array
+    {
+        $sql = "
+        SELECT DISTINCT
+            p.id,
+            p.nome_completo,
+            p.status
+        FROM tb_pacientes p
+        INNER JOIN tb_relatorio_plantao rp
+            ON rp.paciente_id = p.id
+        ORDER BY p.nome_completo ASC
+    ";
+
+        return $this->query($sql)->fetchAll();
     }
 
     private function normalizeData(array $data): array

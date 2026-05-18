@@ -81,10 +81,11 @@ $router->get('/financeiro/{id}/editar', 'FinanceiroController@edit', ['auth']);
 $router->post('/financeiro/{id}', 'FinanceiroController@update', ['auth', 'csrf']);
 
 $router->get('/relatorio-plantao', 'RelatorioPlantaoController@index', ['auth']);
-$router->get('/relatorio-plantao/carregar', 'RelatorioPlantaoController@carregar', ['auth']);
-$router->post('/relatorio-plantao/salvar-evolucao', 'RelatorioPlantaoController@salvarEvolucao', ['auth', 'csrf']);
-$router->post('/relatorio-plantao/salvar-sinais', 'RelatorioPlantaoController@salvarSinais', ['auth', 'csrf']);
-$router->post('/relatorio-plantao/salvar-intercorrencia', 'RelatorioPlantaoController@salvarIntercorrencia', ['auth', 'csrf']);
-$router->post('/relatorio-plantao/assinar', 'RelatorioPlantaoController@assinar', ['auth', 'csrf']);
+$router->get('/relatorio-plantao/paciente/{id}', 'RelatorioPlantaoController@paciente', ['auth']);
+$router->get('/relatorios-plantao/{id}', 'RelatorioPlantaoController@paciente', ['auth']);
+$router->get('/relatorio-plantao/paciente/([0-9]+)/novo', 'RelatorioPlantaoController@create',['auth']);
+$router->post('/relatorio-plantao/store', 'RelatorioPlantaoController@store', ['auth', 'csrf']);
+$router->post('/relatorio-plantao', 'RelatorioPlantaoController@store', ['auth', 'csrf']);
+$router->get('/relatorio-plantao/novo','RelatorioPlantaoController@create', ['auth']);
 
 return $router;

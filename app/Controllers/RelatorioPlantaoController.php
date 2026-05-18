@@ -2,116 +2,103 @@
 
 namespace App\Controllers;
 
-use App\Models\PlantaoModel;
+use App\Models\Paciente;
+use App\Models\Cuidador;
+use App\Models\RelatorioPlantao;
 
-class RelatorioPlantaoController extends ResourceController
+class RelatorioPlantaoController extends BaseController
 {
-    private $plantaoModel;
-
-    public function __construct()
-    {
-        $this->plantaoModel = new PlantaoModel();
-    }
-
     public function index(): void
     {
-        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        $pacienteModel = new Paciente();
 
-        $pacienteId = $_GET['paciente'] ?? 1;
-        $pacientes = $this->plantaoModel->listarPacientes();
-        $pacienteSelecionado = null;
-
-        if (count($pacientes) > 1) {
-            foreach ($pacientes as $paciente) {
-                if ($paciente['id'] == $pacienteId) {
-                    $pacienteSelecionado = $paciente;
-                    break;
-                }
-            }
-        } else {
-            $pacienteSelecionado = $pacientes[0] ?? null;
-        }
-
-        if (!$pacienteSelecionado && !empty($pacientes)) {
-            $pacienteSelecionado = $pacientes[0];
-        }
-
-        if (!$pacienteSelecionado) {
-            if ($isAjax) {
-                $this->json(['success' => false, 'message' => 'Paciente não encontrado'], 404);
-                return;
-            }
-            $this->view('relatorio_plantao/index', [
-                'pacientes'           => $pacientes,
-                'temDados'            => false,
-                'pacienteSelecionado' => null,
-            ]);
-            return;
-        }
-
-        $plantoes = $this->plantaoModel->listarPorPaciente($pacienteSelecionado['id']);
-
-        foreach ($plantoes as &$plantao) {
-            $dadosPlantao = $this->plantaoModel->buscarPlantaoCompleto($plantao['id']);
-            $plantao = array_merge($plantao, $dadosPlantao);
-
-            $plantao['sinais_vitais'] = !empty($plantao['sinais_vitais_json'])
-                ? json_decode($plantao['sinais_vitais_json'], true) : [];
-
-            $plantao['medicacoes'] = !empty($plantao['medicacoes_json'])
-                ? json_decode($plantao['medicacoes_json'], true) : [];
-
-            $plantao['evolucao'] = $plantao['evolucao_texto'] ?? '';
-
-            $plantao['intercorrencias'] = !empty($plantao['intercorrencias_json'])
-                ? json_decode($plantao['intercorrencias_json'], true) : [];
-
-            $partes = explode(' ', $plantao['enfermeiro'] ?? 'N/A');
-            $plantao['iniciais'] = strtoupper(($partes[0][0] ?? '') . ($partes[1][0] ?? ''));
-        }
-
-        if ($isAjax) {
-            $this->json([
-                'success'             => true,
-                'pacientes'           => $pacientes,
-                'temDados'            => !empty($pacientes[0]['plantoes'] ?? []),
-                'pacienteSelecionado' => $pacienteSelecionado,
-            ]);
-            return;
-        }
+        $pacientes = $pacienteModel->pacientesComRelatorio();
 
         $this->view('relatorio_plantao/index', [
-            'pacientes'           => $pacientes,
-            'temDados'            => !empty($pacientes[0]['plantoes'] ?? []),
-            'pacienteSelecionado' => $pacienteSelecionado,
+            'pageTitle' => 'Relatórios de Plantão',
+            'pacientes' => $pacientes,
         ]);
     }
 
-    public function assinar(): void
+    public function paciente(int $id): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->json(['success' => false, 'message' => 'Método não permitido'], 405);
-            return;
-        }
+        $pacienteModel = new Paciente();
+        $relatorioModel = new RelatorioPlantao();
 
-        $data = json_decode(file_get_contents('php://input'), true);
-        $plantaoId = $data['plantao_id'] ?? 0;
+        $paciente = $pacienteModel->buscarPorId($id);
 
-        if (!$plantaoId) {
-            $this->json(['success' => false, 'message' => 'ID do plantão não informado'], 400);
-            return;
-        }
+        $plantoes = $relatorioModel->buscarPorPaciente($id);
 
-        $enfermeiroId = $_SESSION['user_id'] ?? 1;
-        $success = $this->plantaoModel->assinarPlantao($plantaoId, $enfermeiroId);
-
-        if ($success) {
-            $this->json(['success' => true]);
-        } else {
-            $this->json(['success' => false, 'message' => 'Erro ao assinar plantão'], 500);
-        }
+        $this->view('relatorio_plantao/paciente', [
+            'pageTitle' => 'Relatório do Paciente',
+            'paciente'  => $paciente,
+            'plantoes'  => $plantoes
+        ]);
     }
 
-    
+    public function create($pacienteId = null): void
+    {
+        $pacienteModel = new Paciente();
+        $cuidadorModel = new Cuidador();
+
+        $pacienteSelecionado = $pacienteId
+            ? $pacienteModel->buscarPorId((int)$pacienteId)
+            : null;
+
+        $this->view('relatorio_plantao/create', [
+            'pageTitle' => 'Novo Relatório',
+            'pacienteSelecionado' => $pacienteSelecionado,
+            'pacientes' => $pacienteModel->all(),
+            'cuidadores' => $cuidadorModel->all()
+        ]);
+    }
+
+    public function store(): void
+    {
+        $request = $_POST;
+
+        $dataInicio = !empty($_POST['data_inicio'])
+            ? str_replace('T', ' ', $_POST['data_inicio']) . ':00'
+            : null;
+
+        $dataFim = !empty($_POST['data_fim'])
+            ? str_replace('T', ' ', $_POST['data_fim']) . ':00'
+            : null;
+
+        $pacienteId = (int)($request['paciente_id'] ?? 0);
+        $cuidadorId = (int)($request['cuidador_id'] ?? 0);
+
+        $evolucao = trim($request['evolucao'] ?? '');
+
+        $model = new RelatorioPlantao();
+
+        $model->criarCompleto([
+
+            'paciente_id' => $pacienteId,
+            'cuidador_id' => $cuidadorId,
+
+            'data_inicio' => $dataInicio,
+            'data_fim' => $dataFim,
+
+            'evolucao' => $evolucao,
+
+            'status' => 'finalizado',
+            'assinado' => 1,
+
+            'pa' => trim($request['sv_pa'] ?? ''),
+            'fc' => trim($request['sv_fc'] ?? ''),
+            'temperatura' => trim($request['sv_temp'] ?? ''),
+            'spo2' => trim($request['sv_spo2'] ?? ''),
+            'hgt' => trim($request['sv_hgt'] ?? ''),
+
+            'observacao_sv' => trim($request['observacao_sv'] ?? ''),
+
+            'intercorrencias' => $request['intercorrencias'] ?? [],
+        ]);
+
+        $_SESSION['success'] = 'Relatório criado com sucesso!';
+
+        header('Location: ' . BASE_URL . '/relatorio-plantao');
+        exit;
+    }
 }
