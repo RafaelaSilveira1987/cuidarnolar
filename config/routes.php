@@ -87,5 +87,7 @@ $router->get('/relatorio-plantao/paciente/([0-9]+)/novo', 'RelatorioPlantaoContr
 $router->post('/relatorio-plantao/store', 'RelatorioPlantaoController@store', ['auth', 'csrf']);
 $router->post('/relatorio-plantao', 'RelatorioPlantaoController@store', ['auth', 'csrf']);
 $router->get('/relatorio-plantao/novo','RelatorioPlantaoController@create', ['auth']);
+$router->get('/relatorio-plantao/plantao/{id}/editar', 'RelatorioPlantaoController@edit', ['auth']);
+$router->post('/relatorio-plantao/plantao/{id}/atualizar', 'RelatorioPlantaoController@update', ['auth', 'csrf']);
 
 return $router;

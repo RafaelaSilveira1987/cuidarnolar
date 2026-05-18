@@ -161,6 +161,104 @@ class RelatorioPlantaoController extends BaseController
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // edit — carrega o formulário de edição de um plantão
+    // ─────────────────────────────────────────────────────────────────────────
+    public function edit(int $id): void
+    {
+        $model         = new RelatorioPlantao();
+        $pacienteModel = new Paciente();
+        $cuidadorModel = new Cuidador();
+
+        $relatorio = $model->buscarPorIdCompleto($id);
+
+        if (!$relatorio) {
+            $_SESSION['error'] = 'Relatório não encontrado.';
+            header('Location: ' . BASE_URL . '/relatorio-plantao');
+            exit;
+        }
+
+        $pacienteId  = (int)$relatorio['paciente_id'];
+        $pacSelecionado = $pacienteModel->buscarPorId($pacienteId);
+        $paciente       = $this->normalizarPaciente($pacSelecionado, $pacienteModel, $pacienteId);
+
+        $this->view('relatorio_plantao/edit', [
+            'pageTitle'           => 'Editar Relatório de Plantão',
+            'paciente'            => $paciente,
+            'pacienteSelecionado' => $pacSelecionado,
+            'pacientes'           => $pacienteModel->all(),
+            'cuidadores'          => $cuidadorModel->all(),
+            'medicacoes'          => [],
+            'relatorio'           => $relatorio,
+            'turno_atual'         => 'plantao_24h',
+            'enfermeiro'          => [
+                'nome'  => $_SESSION['user']['nome']  ?? ($this->user['nome']  ?? ''),
+                'coren' => $_SESSION['user']['coren'] ?? ($this->user['coren'] ?? ''),
+            ],
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // update — persiste a edição de um plantão
+    // ─────────────────────────────────────────────────────────────────────────
+    public function update(int $id): void
+    {
+        $req = $_POST;
+
+        $dataInicio = !empty($req['data_inicio'])
+            ? str_replace('T', ' ', $req['data_inicio']) . ':00'
+            : null;
+        if ($dataInicio && strlen($dataInicio) > 19) {
+            $dataInicio = substr($dataInicio, 0, 19);
+        }
+
+        $dataFim = !empty($req['data_fim'])
+            ? str_replace('T', ' ', $req['data_fim']) . ':00'
+            : null;
+        if ($dataFim && strlen($dataFim) > 19) {
+            $dataFim = substr($dataFim, 0, 19);
+        }
+
+        $model = new RelatorioPlantao();
+
+        $relatorio = $model->find($id);
+        if (!$relatorio) {
+            $_SESSION['error'] = 'Relatório não encontrado.';
+            header('Location: ' . BASE_URL . '/relatorio-plantao');
+            exit;
+        }
+
+        $model->atualizarCompleto($id, [
+            'cuidador_id'        => (int)($req['cuidador_id']      ?? 0),
+            'data_inicio'        => $dataInicio,
+            'data_fim'           => $dataFim,
+            'evolucao'           => trim($req['evolucao']           ?? ''),
+            'status'             => $req['acao'] === 'assinar' ? 'finalizado' : 'rascunho',
+            'assinado'           => $req['acao'] === 'assinar' ? 1 : 0,
+            'pa'                 => trim($req['sv_pa']              ?? ''),
+            'fc'                 => trim($req['sv_fc']              ?? ''),
+            'temperatura'        => trim($req['sv_temp']            ?? ''),
+            'spo2'               => trim($req['sv_spo2']            ?? ''),
+            'hgt'                => trim($req['sv_hgt']             ?? ''),
+            'observacao_sv'      => trim($req['observacao_sv']      ?? ''),
+            'alimentacao'        => trim($req['alimentacao']        ?? ''),
+            'eliminacoes'        => $req['eliminacoes']             ?? [],
+            'observacoes_gerais' => trim($req['observacoes_gerais'] ?? ''),
+            'consciencia'        => trim($req['consciencia']        ?? ''),
+            'nivel_dor'          => (int)($req['nivel_dor']         ?? 0),
+            'hidratacao_ml'      => (int)($req['hidratacao_ml']     ?? 0),
+            'higiene'            => trim($req['higiene']            ?? ''),
+            'sono'               => trim($req['sono']               ?? ''),
+            'decubito'           => $req['decubito']                ?? [],
+        ]);
+
+        $_SESSION['success'] = 'Relatório atualizado com sucesso!';
+
+        $pacienteId = (int)$relatorio['paciente_id'];
+        header('Location: ' . BASE_URL . '/relatorio-plantao/paciente/' . $pacienteId);
+        exit;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // helpers privados
     // ─────────────────────────────────────────────────────────────────────────
     private function normalizarPaciente(?array $raw, Paciente $model, int $id): array
