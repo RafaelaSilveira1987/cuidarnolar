@@ -180,6 +180,10 @@ textarea {
   padding: 24px;
 }
 
+.panel {
+  margin-top: 10px;
+}
+
 .page-subtitle {
   margin: 6px 0 0;
   color: var(--muted);
@@ -1255,4 +1259,151 @@ td.actions a:active {
     font-size: 16px;
     text-align: left;
     /* font-weight: 700; */
+}
+
+/* Paciente: ficha clinica e medicacoes continuas */
+.form-section-title {
+  border-top: 1px solid #e2e8f0;
+  margin-top: 8px;
+  padding-top: 18px;
+}
+
+.form-section-title h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.paciente-form .checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.paciente-form .checkbox-grid label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.paciente-form .checkbox-grid input {
+  width: auto;
+}
+
+.med-editor {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 14px;
+}
+
+.med-editor-head,
+.med-tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.med-editor-head span {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.med-form-row {
+  display: grid;
+  grid-template-columns: 32px repeat(3, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.med-form-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ccfbf1;
+  color: #115e59;
+  font-weight: 800;
+  align-self: center;
+}
+
+.med-form-obs {
+  grid-column: span 2;
+}
+
+.med-form-remove {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.med-form-remove input {
+  width: auto;
+}
+
+.med-enumerada,
+.pac-med-mini-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.med-enumerada {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.med-enumerada li {
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.med-enumerada__main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.med-enumerada__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.pac-med-mini-list li + li {
+  margin-top: 6px;
+}
+
+.pac-med-mini-list span {
+  color: #475569;
+  margin-left: 4px;
+}
+
+@media (max-width: 900px) {
+  .med-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .med-form-obs {
+    grid-column: auto;
+  }
 }

@@ -22,9 +22,23 @@ USE `cuidar_no_lar`;
 -- Copiando estrutura para tabela cuidar_no_lar.tb_anamnese
 CREATE TABLE IF NOT EXISTS `tb_anamnese` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL,
   `data_anamnese` date NOT NULL,
   `patologia` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `diagnostico_principal` varchar(255) DEFAULT NULL,
+  `cid_principal` varchar(20) DEFAULT NULL,
+  `motivo_homecare` text,
+  `observacoes_clinicas` text,
+  `usa_sonda` enum('Sim','Não') DEFAULT 'Não',
+  `tipo_sonda` varchar(100) DEFAULT NULL,
+  `usa_gastrostomia` enum('Sim','Não') DEFAULT 'Não',
+  `usa_traqueostomia` enum('Sim','Não') DEFAULT 'Não',
+  `usa_oxigenio` enum('Sim','Não') DEFAULT 'Não',
+  `fluxo_oxigenio` varchar(50) DEFAULT NULL,
+  `usa_colostomia` enum('Sim','Não') DEFAULT 'Não',
+  `usa_cateter_vesical` enum('Sim','Não') DEFAULT 'Não',
+  `usa_picc` enum('Sim','Não') DEFAULT 'Não',
   `sintomas` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `sequelas` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `historia_medica` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
@@ -49,19 +63,22 @@ CREATE TABLE IF NOT EXISTS `tb_anamnese` (
   `medico` varchar(30) DEFAULT NULL,
   `status` enum('completa','pendente','em revisão') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_anamnese_uuid` (`uuid`),
   KEY `paciente_id` (`paciente_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb3;
+) ENGINE=MyISAM AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb3;
 
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_categorias_financeiro
 CREATE TABLE IF NOT EXISTS `tb_categorias_financeiro` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `nome` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   `tipo` enum('entrada','saida') COLLATE utf8mb4_unicode_ci NOT NULL,
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_categorias_nome_tipo` (`nome`,`tipo`)
+  UNIQUE KEY `uq_categorias_nome_tipo` (`nome`,`tipo`),
+  UNIQUE KEY `uq_categorias_financeiro_uuid` (`uuid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Exportação de dados foi desmarcado.
@@ -69,6 +86,7 @@ CREATE TABLE IF NOT EXISTS `tb_categorias_financeiro` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_contratos_paciente
 CREATE TABLE IF NOT EXISTS `tb_contratos_paciente` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL,
   `tipo_servico` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
   `valor_mensal` decimal(12,2) NOT NULL,
@@ -80,6 +98,7 @@ CREATE TABLE IF NOT EXISTS `tb_contratos_paciente` (
   `observacoes` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_contratos_paciente_uuid` (`uuid`),
   KEY `idx_contratos_paciente` (`paciente_id`),
   KEY `idx_contratos_status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -89,6 +108,7 @@ CREATE TABLE IF NOT EXISTS `tb_contratos_paciente` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_cuidador
 CREATE TABLE IF NOT EXISTS `tb_cuidador` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `nome_completo` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `endereco` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `numero` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
@@ -107,7 +127,8 @@ CREATE TABLE IF NOT EXISTS `tb_cuidador` (
   `contrato_horas` enum('6h','8h','12h','24h') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `motivo_inativacao` text,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `cpf` (`cpf`)
+  UNIQUE KEY `cpf` (`cpf`),
+  UNIQUE KEY `uq_cuidador_uuid` (`uuid`)
 ) ENGINE=MyISAM AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb3;
 
 -- Exportação de dados foi desmarcado.
@@ -115,6 +136,7 @@ CREATE TABLE IF NOT EXISTS `tb_cuidador` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_diarioidoso
 CREATE TABLE IF NOT EXISTS `tb_diarioidoso` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL,
   `visita_mensal` datetime DEFAULT (now()),
   `oxigenio` int DEFAULT NULL,
@@ -129,15 +151,37 @@ CREATE TABLE IF NOT EXISTS `tb_diarioidoso` (
   `historico_id` int DEFAULT NULL,
   `observacao` varchar(250) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_diarioidoso_uuid` (`uuid`),
   KEY `paciente_id` (`paciente_id`),
   KEY `historico_id` (`historico_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3;
 
 -- Exportação de dados foi desmarcado.
 
+-- Copiando estrutura para tabela cuidar_no_lar.tb_dispositivos_paciente
+CREATE TABLE IF NOT EXISTS `tb_dispositivos_paciente` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `tipo` enum('Sonda Nasogástrica','Sonda Nasoenteral','Gastrostomia','Traqueostomia','Oxigênio','Cateter Vesical','Colostomia','PICC','Port-a-Cath','Outros') NOT NULL,
+  `descricao` varchar(255) DEFAULT NULL,
+  `data_insercao` date DEFAULT NULL,
+  `data_retirada` date DEFAULT NULL,
+  `protocolo_cuidado` text,
+  `status` enum('Ativo','Inativo') DEFAULT 'Ativo',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_dispositivos_uuid` (`uuid`),
+  KEY `idx_dispositivos_paciente` (`paciente_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+
+-- Exportação de dados foi desmarcado.
+
 -- Copiando estrutura para tabela cuidar_no_lar.tb_eventos
 CREATE TABLE IF NOT EXISTS `tb_eventos` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL DEFAULT '0',
   `titulo` varchar(255) NOT NULL,
   `descricao` text,
@@ -145,6 +189,7 @@ CREATE TABLE IF NOT EXISTS `tb_eventos` (
   `cuidador_id` int DEFAULT NULL,
   `status` enum('Pendente','Concluído') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_eventos_uuid` (`uuid`),
   KEY `paciente_id` (`paciente_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=82 DEFAULT CHARSET=utf8mb3;
 
@@ -153,6 +198,7 @@ CREATE TABLE IF NOT EXISTS `tb_eventos` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_financeiro
 CREATE TABLE IF NOT EXISTS `tb_financeiro` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `responsavel_id` int DEFAULT NULL,
   `cuidador_id` int DEFAULT NULL,
   `paciente_id` int DEFAULT NULL,
@@ -169,6 +215,7 @@ CREATE TABLE IF NOT EXISTS `tb_financeiro` (
   `status` enum('Pendente','Pago','Transporte') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `observacoes` tinytext NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_financeiro_uuid` (`uuid`),
   KEY `responsavel_id` (`responsavel_id`),
   KEY `cuidador_id` (`cuidador_id`),
   KEY `fk_plano` (`plano_id`),
@@ -181,6 +228,7 @@ CREATE TABLE IF NOT EXISTS `tb_financeiro` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_historico
 CREATE TABLE IF NOT EXISTS `tb_historico` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL,
   `historico_familiar` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `historico_profissional` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
@@ -190,6 +238,7 @@ CREATE TABLE IF NOT EXISTS `tb_historico` (
   `limitacoes` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `status` enum('Finalizado','Pendente') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT 'Pendente',
   PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uq_historico_uuid` (`uuid`),
   KEY `paciente_id` (`paciente_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
 
@@ -198,12 +247,14 @@ CREATE TABLE IF NOT EXISTS `tb_historico` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_intercorrencias
 CREATE TABLE IF NOT EXISTS `tb_intercorrencias` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `plantao_id` int NOT NULL,
   `descricao` text COLLATE utf8mb4_unicode_ci,
   `gravidade` enum('leve','media','grave') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `horario` time DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_intercorrencias_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Exportação de dados foi desmarcado.
@@ -211,6 +262,7 @@ CREATE TABLE IF NOT EXISTS `tb_intercorrencias` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_lancamentos
 CREATE TABLE IF NOT EXISTS `tb_lancamentos` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `tipo_transacao` enum('Entrada','Saida') COLLATE utf8mb4_unicode_ci NOT NULL,
   `valor` decimal(10,2) NOT NULL,
   `status` enum('Pendente','Pago','Cancelado') COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -220,20 +272,47 @@ CREATE TABLE IF NOT EXISTS `tb_lancamentos` (
   `detalhes` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_lancamentos_uuid` (`uuid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Exportação de dados foi desmarcado.
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_medicacoes_paciente
+CREATE TABLE IF NOT EXISTS `tb_medicacoes_paciente` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `nome_medicamento` varchar(150) NOT NULL,
+  `apresentacao` varchar(100) DEFAULT NULL,
+  `dosagem` varchar(100) DEFAULT NULL,
+  `via` enum('VO','EV','IM','SC','SL','Retal','Tópica','Inalatória','GTT','SNE','Gastrostomia') DEFAULT NULL,
+  `horarios` varchar(255) DEFAULT NULL,
+  `frequencia` varchar(100) DEFAULT NULL,
+  `data_inicio` date DEFAULT NULL,
+  `data_fim` date DEFAULT NULL,
+  `observacoes` text,
+  `status` enum('Ativo','Inativo') DEFAULT 'Ativo',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_medicacoes_uuid` (`uuid`),
+  KEY `idx_medicacoes_paciente` (`paciente_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 
 -- Exportação de dados foi desmarcado.
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_medicacoes_plantao
 CREATE TABLE IF NOT EXISTS `tb_medicacoes_plantao` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `plantao_id` int NOT NULL,
   `medicamento` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `via` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `horario` time DEFAULT NULL,
   `status` enum('administrado','pendente') COLLATE utf8mb4_unicode_ci DEFAULT 'pendente',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_medicacoes_plantao_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Exportação de dados foi desmarcado.
@@ -241,7 +320,9 @@ CREATE TABLE IF NOT EXISTS `tb_medicacoes_plantao` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_pacientes
 CREATE TABLE IF NOT EXISTS `tb_pacientes` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `nome_completo` varchar(100) NOT NULL,
+  `diagnostico` varchar(255) DEFAULT NULL,
   `data_nascimento` date DEFAULT NULL,
   `cpf` varchar(14) DEFAULT NULL,
   `rg` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
@@ -253,6 +334,7 @@ CREATE TABLE IF NOT EXISTS `tb_pacientes` (
   `status` enum('Ativo','Inativo') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT 'Ativo',
   `motivo_inativacao` text,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pacientes_uuid` (`uuid`),
   KEY `responsavel_id` (`responsavel_id`),
   KEY `cuidador_id` (`cuidador_id`),
   KEY `anamnese_id` (`anamnese_id`)
@@ -263,11 +345,13 @@ CREATE TABLE IF NOT EXISTS `tb_pacientes` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_permissoes
 CREATE TABLE IF NOT EXISTS `tb_permissoes` (
   `permissao_id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `usuario_id` int NOT NULL,
   `incluir` tinyint(1) NOT NULL DEFAULT '0',
   `editar` tinyint(1) NOT NULL DEFAULT '0',
   `visualizar` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`permissao_id`),
+  UNIQUE KEY `uq_permissoes_uuid` (`uuid`),
   KEY `fk_usuario_id` (`usuario_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
 
@@ -276,10 +360,12 @@ CREATE TABLE IF NOT EXISTS `tb_permissoes` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_planos
 CREATE TABLE IF NOT EXISTS `tb_planos` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `descricao` varchar(255) DEFAULT NULL,
   `horas` enum('6h','8h','12h','24h') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `valor` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_planos_uuid` (`uuid`)
 ) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 
 -- Exportação de dados foi desmarcado.
@@ -287,6 +373,7 @@ CREATE TABLE IF NOT EXISTS `tb_planos` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_plantoes
 CREATE TABLE IF NOT EXISTS `tb_plantoes` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL,
   `cuidador_id` int NOT NULL,
   `data_inicio` datetime NOT NULL,
@@ -295,7 +382,8 @@ CREATE TABLE IF NOT EXISTS `tb_plantoes` (
   `status` enum('em_andamento','finalizado','intercorrencia') COLLATE utf8mb4_unicode_ci DEFAULT 'em_andamento',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_plantoes_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Exportação de dados foi desmarcado.
@@ -303,6 +391,7 @@ CREATE TABLE IF NOT EXISTS `tb_plantoes` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_relatorio_plantao
 CREATE TABLE IF NOT EXISTS `tb_relatorio_plantao` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL,
   `cuidador_id` int DEFAULT NULL,
   `data_inicio` datetime DEFAULT NULL,
@@ -329,7 +418,8 @@ CREATE TABLE IF NOT EXISTS `tb_relatorio_plantao` (
   `temperatura` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `spo2` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `hgt` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_relatorio_plantao_uuid` (`uuid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Exportação de dados foi desmarcado.
@@ -337,6 +427,7 @@ CREATE TABLE IF NOT EXISTS `tb_relatorio_plantao` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_relatorio_plantao_eventos
 CREATE TABLE IF NOT EXISTS `tb_relatorio_plantao_eventos` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `relatorio_id` int NOT NULL,
   `hora_evento` time NOT NULL,
   `tipo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -347,6 +438,7 @@ CREATE TABLE IF NOT EXISTS `tb_relatorio_plantao_eventos` (
   `intercorrencia` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_relatorio_plantao_eventos_uuid` (`uuid`),
   KEY `fk_relatorio_evento` (`relatorio_id`),
   CONSTRAINT `fk_relatorio_evento` FOREIGN KEY (`relatorio_id`) REFERENCES `tb_relatorio_plantao` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -356,6 +448,7 @@ CREATE TABLE IF NOT EXISTS `tb_relatorio_plantao_eventos` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_responsavel
 CREATE TABLE IF NOT EXISTS `tb_responsavel` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `nome_completo` varchar(100) NOT NULL,
   `endereco` varchar(255) NOT NULL,
   `numero` varchar(10) DEFAULT NULL,
@@ -371,7 +464,8 @@ CREATE TABLE IF NOT EXISTS `tb_responsavel` (
   `status` enum('Ativo','Inativo') DEFAULT 'Ativo',
   `motivo_inativacao` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `cpf` (`cpf`)
+  UNIQUE KEY `cpf` (`cpf`),
+  UNIQUE KEY `uq_responsavel_uuid` (`uuid`)
 ) ENGINE=MyISAM AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb3;
 
 -- Exportação de dados foi desmarcado.
@@ -379,6 +473,7 @@ CREATE TABLE IF NOT EXISTS `tb_responsavel` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_sinais_vitais
 CREATE TABLE IF NOT EXISTS `tb_sinais_vitais` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `relatorio_id` int NOT NULL,
   `pa` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `fc` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -387,7 +482,8 @@ CREATE TABLE IF NOT EXISTS `tb_sinais_vitais` (
   `hgt` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `observacao` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_sinais_vitais_uuid` (`uuid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Exportação de dados foi desmarcado.
@@ -395,10 +491,12 @@ CREATE TABLE IF NOT EXISTS `tb_sinais_vitais` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_tipos_usuarios
 CREATE TABLE IF NOT EXISTS `tb_tipos_usuarios` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `nome_tipo` varchar(50) NOT NULL,
   `descricao` text,
   `prioridade` int DEFAULT '1',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_tipos_usuarios_uuid` (`uuid`)
 ) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3;
 
 -- Exportação de dados foi desmarcado.
@@ -417,6 +515,7 @@ CREATE TABLE IF NOT EXISTS `tb_tipos_usuarios_permissoes` (
 -- Copiando estrutura para tabela cuidar_no_lar.tb_usuarios
 CREATE TABLE IF NOT EXISTS `tb_usuarios` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
   `nome_completo` varchar(50) NOT NULL,
   `email` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `telefone` varchar(20) DEFAULT NULL,
@@ -436,6 +535,7 @@ CREATE TABLE IF NOT EXISTS `tb_usuarios` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `uq_usuarios_uuid` (`uuid`),
   KEY `fk_tipo_usuario` (`tipo_usuario_id`),
   KEY `idx_token_recuperacao` (`token_recuperacao`),
   KEY `idx_email` (`email`),

@@ -1,115 +1,233 @@
 <?php
-
 /**
  * app/Views/relatorio_plantao/paciente.php
  *
- * Variáveis esperadas do Controller:
- *   $paciente  (array)  — dados do paciente
- *   $plantoes  (array)  — todos os plantões (tb_relatorio_plantao)
- *   $cuidadores (array) — mapa cuidador_id → {nome, registro}
- *   $_user     (array)  — usuário logado
+ * Layout ERP profissional para visualização dos relatórios de plantão.
+ * Funcionalidades:
+ * - Header clínico do paciente
+ * - Filtro de data no topo
+ * - Exibição somente dos plantões da data selecionada
+ * - Cards por faixa de horário
+ * - Links para visualizar e editar
+ *
+ * Variáveis esperadas:
+ * - $paciente (array)
+ * - $plantoes (array)
  */
 
-function getTurnoKey(string $dt): string
+// ======================================================
+// Funções auxiliares
+// ======================================================
+
+function rp_fmt_date(?string $date, string $fallback = '—'): string
 {
-    $h = (int) date('H', strtotime($dt));
-    if ($h >= 7  && $h < 13) return 'manha';
-    if ($h >= 13 && $h < 19) return 'tarde';
-    return 'noite';
+    if (!$date) {
+        return $fallback;
+    }
+
+    $ts = strtotime($date);
+    return $ts ? date('d/m/Y', $ts) : $fallback;
 }
 
-function jsonDecode(mixed $val): mixed
+function rp_fmt_time(?string $date, string $fallback = '—'): string
 {
-    if (is_array($val)) return $val;
-    if (!$val) return [];
-    $r = json_decode($val, true);
-    return is_array($r) ? $r : [];
+    if (!$date) {
+        return $fallback;
+    }
+
+    $ts = strtotime($date);
+    return $ts ? date('H:i', $ts) : $fallback;
 }
 
-/* Agrupa: data → turno → [plantão] */
+function rp_text(mixed $value, string $fallback = '—'): string
+{
+    if ($value === null) {
+        return $fallback;
+    }
+
+    $value = trim((string)$value);
+    return $value !== '' ? htmlspecialchars($value) : $fallback;
+}
+
+// ======================================================
+// Normalização de dados
+// ======================================================
+
+$paciente = isset($paciente) && is_array($paciente) ? $paciente : [];
+$plantoes = isset($plantoes) && is_array($plantoes) ? $plantoes : [];
+
+$nomePaciente = $paciente['nome_completo']
+    ?? $paciente['nome']
+    ?? 'Paciente';
+
+$pacienteUuid = (string)($paciente['uuid'] ?? '');
+$totalPlantoes = count($plantoes);
+
+// ======================================================
+// Agrupamento por data
+// ======================================================
+
 $agrupado = [];
-foreach ($plantoes ?? [] as $p) {
-    $dia = date('Y-m-d', strtotime($p['data_inicio']));
+
+foreach ($plantoes as $p) {
+    $dataInicio = $p['data_inicio'] ?? null;
+
+    if (!$dataInicio) {
+        continue;
+    }
+
+    $dia = date('Y-m-d', strtotime($dataInicio));
     $agrupado[$dia][] = $p;
 }
+
 ksort($agrupado);
 
-$datas     = array_keys($agrupado);
-$dataAtual = !empty($datas) ? end($datas) : date('Y-m-d');
-$cuidadores = $cuidadores ?? [];
+$datasDisponiveis = array_keys($agrupado);
+$ultimaData = !empty($datasDisponiveis)
+    ? end($datasDisponiveis)
+    : date('Y-m-d');
 
-/* Iniciais do nome */
-function iniciais(string $nome): string
-{
-    $p = explode(' ', trim($nome));
-    return strtoupper(substr($p[0] ?? '', 0, 1)) . strtoupper(substr($p[1] ?? '', 0, 1));
+// ======================================================
+// Data selecionada via GET (?date=YYYY-MM-DD)
+// ======================================================
+
+$dataSelecionada = $_GET['date'] ?? null;
+
+if (!$dataSelecionada || !isset($agrupado[$dataSelecionada])) {
+    $dataSelecionada = $ultimaData;
 }
+
+$plantoesDia = $agrupado[$dataSelecionada] ?? [];
+$totalDia = count($plantoesDia);
+
+// ======================================================
+// Links
+// ======================================================
+
+$novoLink = BASE_URL
+    . '/relatorio-plantao/paciente/'
+    . rawurlencode($pacienteUuid)
+    . '/novo';
+
+// ======================================================
+// Avatar
+// ======================================================
+
+$partes = array_values(array_filter(explode(' ', trim($nomePaciente))));
+$iniciais = '';
+
+foreach (array_slice($partes, 0, 2) as $parte) {
+    $iniciais .= mb_strtoupper(mb_substr($parte, 0, 1));
+}
+
+$iniciais = $iniciais ?: '?';
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/relatorio_plantao_pages.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/relatorio_plantao_erp.css">
 
-<div class="pac-view">
+<div class="rp-page">
 
-    <!-- ══ Top bar ══════════════════════════════════════════════ -->
-    <div class="pac-topbar">
-        <div class="pac-topbar__patient">
-            <?php
-            $nome   = $paciente['nome_completo'] ?? 'Paciente';
-            $av     = iniciais($nome);
-            ?>
-            <div class="pac-avatar"><?= htmlspecialchars($av) ?></div>
-            <div>
-                <h1 class="pac-topbar__nome"><?= htmlspecialchars($nome) ?></h1>
-                <p class="pac-topbar__meta">
+    <!-- ==================================================
+         Header do paciente
+    =================================================== -->
+    <header class="rp-header-card">
+        <div class="rp-patient">
+            <div class="rp-avatar">
+                <?= htmlspecialchars($iniciais) ?>
+            </div>
+
+            <div class="rp-patient-info">
+                <h1><?= htmlspecialchars($nomePaciente) ?></h1>
+
+                <p class="rp-patient-meta">
                     <?php if (!empty($paciente['prontuario'])): ?>
-                    <i class="ti ti-id-badge-2"></i>
-                    Prontuário #<?= htmlspecialchars($paciente['prontuario']) ?>
-                    <?php endif ?>
+                    Prontuário #<?= htmlspecialchars((string)$paciente['prontuario']) ?>
+                    <?php endif; ?>
+
                     <?php if (!empty($paciente['idade'])): ?>
-                    · <?= (int)$paciente['idade'] ?> anos
-                    <?php endif ?>
+                    • <?= (int)$paciente['idade'] ?> anos
+                    <?php endif; ?>
+
                     <?php if (!empty($paciente['diagnostico'])): ?>
-                    · <?= htmlspecialchars($paciente['diagnostico']) ?>
-                    <?php endif ?>
+                    • <?= htmlspecialchars((string)$paciente['diagnostico']) ?>
+                    <?php endif; ?>
                 </p>
             </div>
         </div>
 
-        <div class="pac-topbar__nav">
-            <button class="pac-nav-btn" id="btnDiaAnterior" aria-label="Dia anterior">
-                <i class="ti ti-chevron-left"></i>
-            </button>
-            <span class="pac-nav-label" id="labelData">—</span>
-            <button class="pac-nav-btn" id="btnProximoDia" aria-label="Próximo dia">
-                <i class="ti ti-chevron-right"></i>
-            </button>
+        <div class="rp-header-actions">
+            <a href="<?= BASE_URL ?>/relatorio-plantao" class="rp-btn rp-btn-secondary">
+                Voltar
+            </a>
+
+            <a href="<?= htmlspecialchars($novoLink) ?>" class="rp-btn rp-btn-primary">
+                + Novo relatório
+            </a>
+        </div>
+    </header>
+
+    <!-- ==================================================
+         Barra de informações
+    =================================================== -->
+    <div class="rp-stats">
+        <div class="rp-stat">
+            <span class="rp-stat-label">Total de relatórios</span>
+            <strong><?= $totalPlantoes ?></strong>
+        </div>
+
+        <div class="rp-stat">
+            <span class="rp-stat-label">Data selecionada</span>
+            <strong><?= rp_fmt_date($dataSelecionada) ?></strong>
+        </div>
+
+        <div class="rp-stat">
+            <span class="rp-stat-label">Plantões no dia</span>
+            <strong><?= $totalDia ?></strong>
         </div>
     </div>
 
-    <!-- ══ Tabs ═════════════════════════════════════════════════ -->
-    <div class="pac-tabs">
-        <button class="pac-tab active"><i class="ti ti-clipboard-list"></i> Relatório de plantão</button>
-        <button class="pac-tab"><i class="ti ti-history"></i> Histórico</button>
-        <a href="<?= BASE_URL ?>/relatorio-plantao/paciente/<?= htmlspecialchars($paciente['uuid']) ?>/novo"
-            class="pac-tab-action"><i class="ti ti-plus"></i> Novo relatório</a>
+    <!-- ==================================================
+         Filtro de datas
+    =================================================== -->
+    <?php if (!empty($datasDisponiveis)): ?>
+    <nav class="rp-date-nav">
+        <?php foreach ($datasDisponiveis as $data): ?>
+        <a href="?date=<?= urlencode($data) ?>" class="rp-date-pill <?= $data === $dataSelecionada ? 'active' : '' ?>">
+            <?= rp_fmt_date($data) ?>
+        </a>
+        <?php endforeach; ?>
+    </nav>
+    <?php endif; ?>
+
+    <!-- ==================================================
+         Lista de plantões da data selecionada
+    =================================================== -->
+    <?php if (empty($plantoesDia)): ?>
+    <div class="rp-empty">
+        Nenhum relatório encontrado para
+        <strong><?= rp_fmt_date($dataSelecionada) ?></strong>.
     </div>
+    <?php else: ?>
+    <section class="rp-cards">
+        <?php foreach ($plantoesDia as $i => $relatorio): ?>
+        <?php
+                // Primeiro card aberto por padrão
+                $expanded = ($i === 0);
 
-    <!-- ══ Seletor de turno ═══════════════════════════════════════ -->
-    <div class="turnos-row" id="turnosRow"></div>
-
-    <!-- ══ Detalhe ════════════════════════════════════════════════ -->
-    <div id="turnoDetalhe"></div>
+                // Inclui o card individual
+                include __DIR__ . '/card.php';
+                ?>
+        <?php endforeach; ?>
+    </section>
+    <?php endif; ?>
 
 </div>
 
-<!-- ══ Dados PHP → JS ════════════════════════════════════════════ -->
 <script>
 window.RELATORIO_DATA = {
-    agrupado: <?= json_encode($agrupado, JSON_UNESCAPED_UNICODE) ?>,
-    datas: <?= json_encode($datas, JSON_UNESCAPED_UNICODE) ?>,
-    cuidadores: <?= json_encode($cuidadores, JSON_UNESCAPED_UNICODE) ?>,
-    pacienteUuid: <?= json_encode($paciente['uuid'] ?? '') ?>,
-    baseUrl: <?= json_encode(BASE_URL) ?>
+    baseUrl: <?= json_encode(BASE_URL) ?>,
+    pacienteUuid: <?= json_encode($pacienteUuid) ?>,
+    dataSelecionada: <?= json_encode($dataSelecionada) ?>
 };
 </script>
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * app/Views/relatorio_plantao/index.php
  * Lista de pacientes com relatórios de plantão.
@@ -29,13 +30,14 @@
         <?php foreach ($pacientes as $paciente):
                 $status = strtolower($paciente['status'] ?? 'ativo');
             ?>
-        <a href="<?= BASE_URL ?>/relatorio-plantao/paciente/<?= (int)$paciente['id'] ?>" class="rp-paciente-card">
+        <a href="<?= BASE_URL ?>/relatorio-plantao/paciente/<?= htmlspecialchars((string)($paciente['uuid'] ?? $paciente['id'])) ?>"
+            class="rp-paciente-card">
 
             <div class="rp-avatar">
                 <?= htmlspecialchars(
-                        strtoupper(substr($paciente['nome_completo'] ?? '', 0, 1))
-                        . strtoupper(substr(strstr($paciente['nome_completo'] ?? ' ', ' '), 1, 1))
-                    ) ?>
+                            strtoupper(substr($paciente['nome_completo'] ?? '', 0, 1))
+                                . strtoupper(substr(strstr($paciente['nome_completo'] ?? ' ', ' '), 1, 1))
+                        ) ?>
             </div>
 
             <div class="rp-paciente-content">
