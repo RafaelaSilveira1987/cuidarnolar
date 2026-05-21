@@ -534,9 +534,9 @@ td.actions a:active {
   padding: 24px;
 }
 
-.auth-shell {
+/* .auth-shell {
   width: min(100%, 420px);
-}
+} */
 
 .auth-card form {
   display: grid;
