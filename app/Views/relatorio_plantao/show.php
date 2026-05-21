@@ -1,4 +1,5 @@
 <?php
+
 /**
  * app/Views/relatorio_plantao/show.php
  */
@@ -151,7 +152,7 @@ $voltarLink = 'javascript:history.back()';
     <!-- Header -->
     <header class="rp-header-card">
         <div class="rp-patient">
-            <div class="rp-avatar">📋</div>
+            <div class="rp-avatar"> </div>
 
             <div class="rp-patient-info">
                 <h1>Relatório de Plantão</h1>
@@ -200,12 +201,169 @@ $voltarLink = 'javascript:history.back()';
             <strong>
                 <?= rp_show_text(
                     $relatorio['profissional_nome']
-                    ?? $relatorio['responsavel_nome']
-                    ?? 'Não informado'
+                        ?? $relatorio['responsavel_nome']
+                        ?? 'Não informado'
                 ) ?>
             </strong>
         </div>
     </div>
+
+    <!-- Resumo Clínico -->
+    <section class="rp-summary-grid">
+
+        <!-- Identificação Clínica -->
+        <div class="rp-card">
+            <div class="rp-card-body">
+
+                <h3 class="rp-section-title">
+                    Identificação Clínica
+                </h3>
+
+                <div class="rp-info-grid">
+
+                    <div>
+                        <span>Idade</span>
+                        <strong><?= rp_show_text($paciente['idade'] ?? null) ?> anos</strong>
+                    </div>
+
+                    <div>
+                        <span>Sexo</span>
+                        <strong><?= rp_show_text($paciente['sexo'] ?? null) ?></strong>
+                    </div>
+
+                    <div>
+                        <span>CID</span>
+                        <strong><?= rp_show_text($paciente['cid_principal'] ?? null) ?></strong>
+                    </div>
+
+                    <div>
+                        <span>Tipo Sanguíneo</span>
+                        <strong><?= rp_show_text($paciente['tipo_sanguineo'] ?? null) ?></strong>
+                    </div>
+
+                </div>
+
+                <div class="rp-text-box" style="margin-top:16px;">
+                    <strong>Diagnóstico:</strong><br>
+                    <?= rp_show_text($paciente['diagnostico'] ?? null) ?>
+                </div>
+
+                <?php if (!empty($paciente['alergias'])): ?>
+                <div class="rp-alert-box">
+                    ⚠ <strong>Alergias:</strong>
+                    <?= rp_show_text($paciente['alergias']) ?>
+                </div>
+                <?php endif; ?>
+
+            </div>
+        </div>
+
+        <!-- Dispositivos -->
+        <div class="rp-card">
+            <div class="rp-card-body">
+
+                <h3 class="rp-section-title">
+                    Dispositivos em Uso
+                </h3>
+
+                <div class="rp-tags">
+
+                    <?php if (($paciente['usa_oxigenio'] ?? '') === 'Sim'): ?>
+                    <span class="rp-tag">O₂</span>
+                    <?php endif; ?>
+
+                    <?php if (($paciente['usa_sonda'] ?? '') === 'Sim'): ?>
+                    <span class="rp-tag">Sonda</span>
+                    <?php endif; ?>
+
+                    <?php if (($paciente['traqueostomia'] ?? '') === 'Sim'): ?>
+                    <span class="rp-tag">Traqueostomia</span>
+                    <?php endif; ?>
+
+                    <?php if (($paciente['gastrostomia'] ?? '') === 'Sim'): ?>
+                    <span class="rp-tag">GTT</span>
+                    <?php endif; ?>
+
+                    <?php if (!empty($paciente['sne'])): ?>
+                    <span class="rp-tag">SNE</span>
+                    <?php endif; ?>
+
+                    <?php if (!empty($paciente['picc'])): ?>
+                    <span class="rp-tag">PICC</span>
+                    <?php endif; ?>
+
+                    <?php if (($paciente['cateter_vesical'] ?? '') === 'Sim'): ?>
+                    <span class="rp-tag">Cateter Vesical</span>
+                    <?php endif; ?>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Mobilidade -->
+        <div class="rp-card">
+            <div class="rp-card-body">
+
+                <h3 class="rp-section-title">
+                    Mobilidade e Cognição
+                </h3>
+
+                <div class="rp-info-grid">
+
+                    <div>
+                        <span>Mobilidade</span>
+                        <strong><?= rp_show_text($paciente['mobilidade'] ?? null) ?></strong>
+                    </div>
+
+                    <div>
+                        <span>Cognição</span>
+                        <strong><?= rp_show_text($paciente['estado_cognitivo_base'] ?? null) ?></strong>
+                    </div>
+
+                    <div>
+                        <span>Acamado</span>
+                        <strong>
+                            <?= !empty($paciente['acamado']) ? 'Sim' : 'Não' ?>
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <?php if (
+            !empty($paciente['areas_risco']) ||
+            !empty($paciente['condutas_permanentes'])
+        ): ?>
+
+        <div class="rp-card">
+            <div class="rp-card-body">
+
+                <h3 class="rp-section-title">
+                    Alertas Assistenciais
+                </h3>
+
+                <?php if (!empty($paciente['areas_risco'])): ?>
+                <div class="rp-alert-box">
+                    ⚠ <?= rp_decode_json_or_text($paciente['areas_risco']) ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if (!empty($paciente['condutas_permanentes'])): ?>
+                <div class="rp-alert-box">
+                    ⚠ <?= rp_decode_json_or_text($paciente['condutas_permanentes']) ?>
+                </div>
+                <?php endif; ?>
+
+            </div>
+        </div>
+
+        <?php endif; ?>
+
+    </section>
 
     <!-- Conteúdo -->
     <article class="rp-card expanded">

@@ -30,21 +30,25 @@
 
 .rp-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--rpf-surface);
-  border: 1px solid var(--rpf-border);
-  border-radius: 8px;
-  box-shadow: var(--rpf-shadow);
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: stretch;
+  margin-bottom: 2rem;
 }
+
 
 .rp-header__patient {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  min-width: 0;
+  gap: 1.25rem;
+  min-height: 180px;
+  padding: 2rem;
+  background: var(--rpf-surface);
+  border: 1px solid var(--rpf-border);
+  border-radius: 12px;
+  box-shadow: var(--rpf-shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .rp-avatar,
@@ -80,6 +84,36 @@
   margin-top: 0.25rem;
 }
 
+.rp-header > .rp-card {
+  height: 100%;
+  margin: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--rpf-surface);
+  border: 1px solid var(--rpf-border);
+  box-shadow: var(--rpf-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.rp-header > .rp-card .rp-card-header {
+  padding: 1.25rem 1.5rem 1rem;
+}
+
+.rp-header > .rp-card .rp-card-body {
+  flex: 1;
+  padding: 0 1.5rem 1.5rem;
+}
+
+.rp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--rpf-text);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
 .turno-selector {
   display: flex;
   flex-wrap: wrap;
@@ -97,7 +131,10 @@
   padding: 0.55rem 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease,
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
     transform 0.18s ease;
 }
 
@@ -122,6 +159,11 @@
 
 .rp-section + .rp-section {
   margin-top: 0;
+}
+
+.rp-field-full {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .rp-section__title {
@@ -193,7 +235,8 @@
 .sinal-field__unidade {
   position: absolute;
   right: 1rem;
-  top: 3.05rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--rpf-muted);
   font-size: 0.78rem;
   font-weight: 700;
@@ -254,7 +297,10 @@
   font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .check-opt input {
@@ -349,7 +395,10 @@
   font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .med-pill:hover,

@@ -17,7 +17,7 @@ class MedicacaoPacienteController extends ResourceController
         $pacienteModel = new Paciente();
         $medicacaoModel = new MedicacaoPaciente();
 
-        $paciente = $pacienteModel->buscarPorId((int) $pacienteId);
+        $paciente = $this->pacientePorUuid($pacienteId);
 
         if (!$paciente) {
             http_response_code(404);
@@ -29,7 +29,9 @@ class MedicacaoPacienteController extends ResourceController
             return;
         }
 
-        $medicacoes = $medicacaoModel->listByPacienteId((int) $pacienteId);
+        $medicacoes = $medicacaoModel->listByPacienteId(
+            (int)$paciente['id']
+        );
 
         $this->view('pacientes/medicacoes/index', [
             'pageTitle'  => 'Medicações',
@@ -256,6 +258,7 @@ class MedicacaoPacienteController extends ResourceController
             'data_fim'         => $this->input('data_fim', ''),
             'status'           => $this->input('status', 'Ativo'),
             'observacoes'      => $this->input('observacoes', ''),
+            'created_by' => $_SESSION['user']['id'] ?? null,
         ];
     }
 
@@ -282,5 +285,10 @@ class MedicacaoPacienteController extends ResourceController
         }
 
         return $errors;
+    }
+
+    private function pacientePorUuid(string $uuid): ?array
+    {
+        return (new Paciente())->findByUuid($uuid);
     }
 }

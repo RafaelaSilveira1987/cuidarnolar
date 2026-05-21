@@ -153,6 +153,32 @@ document.addEventListener("DOMContentLoaded", () => {
     setBadge("badge-" + tipo, cls, txt);
   };
 
+  window.setTurno = function (valor, btnClicado) {
+    // Remove active de todos os pills do seletor
+    document
+      .querySelectorAll("#turno-selector .turno-pill")
+      .forEach((p) => p.classList.remove("active"));
+
+    // Ativa o clicado
+    btnClicado.classList.add("active");
+
+    // Atualiza o campo hidden
+    const input = document.getElementById("input-turno");
+    if (input) input.value = valor;
+  };
+
+  // Estado inicial: garante que o pill correto está ativo ao carregar a página
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputTurno = document.getElementById("input-turno");
+    if (!inputTurno) return;
+
+    const turnoAtual = inputTurno.value;
+
+    document.querySelectorAll("#turno-selector .turno-pill").forEach((p) => {
+      p.classList.toggle("active", p.dataset.turno === turnoAtual);
+    });
+  });
+
   function setBadge(id, cls, txt) {
     const el = document.getElementById(id);
     if (!el) return;

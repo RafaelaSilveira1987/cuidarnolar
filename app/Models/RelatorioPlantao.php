@@ -68,9 +68,54 @@ class RelatorioPlantao extends BaseModel
 
     public function buscarPorUuid(string $uuid): ?array
     {
-        $stmt = $this->db->prepare(
-            'SELECT * FROM tb_relatorio_plantao WHERE uuid = ? LIMIT 1'
-        );
+        $sql = "
+        SELECT
+            rp.*,
+
+            p.nome_completo AS paciente_nome,
+            r.nome_completo AS responsavel_nome,
+            r.telefone AS responsavel_telefone,
+
+            a.acamado,
+            a.diabetes,
+            p.estado_cognitivo_base,
+            p.prescricao_medica,
+            p.usa_oxigenio,
+            p.usa_sonda,
+            a.usa_gastrostomia,
+            a.usa_traqueostomia,
+            a.usa_colostomia,
+            a.usa_cateter_vesical,
+            p.sne,
+            p.picc,
+            p.gtt,
+
+            COALESCE(rp.pa, sv.pa) AS pa,
+            COALESCE(rp.fc, sv.fc) AS fc,
+            COALESCE(rp.temperatura, sv.temperatura) AS temperatura,
+            COALESCE(rp.spo2, sv.spo2) AS spo2,
+            COALESCE(rp.hgt, sv.hgt) AS hgt,
+            sv.observacao AS observacao_sv
+
+        FROM tb_relatorio_plantao rp
+
+        LEFT JOIN tb_pacientes p
+            ON p.id = rp.paciente_id
+
+        LEFT JOIN tb_responsavel r
+            ON r.id = p.responsavel_id
+
+        LEFT JOIN tb_anamnese a
+            ON a.paciente_id = p.id
+
+        LEFT JOIN tb_sinais_vitais sv
+            ON sv.relatorio_id = rp.id
+
+        WHERE rp.uuid = ?
+        LIMIT 1
+    ";
+
+        $stmt = $this->db->prepare($sql);
 
         $stmt->execute([$uuid]);
 
@@ -149,6 +194,7 @@ class RelatorioPlantao extends BaseModel
                     cuidador_id,
                     data_inicio,
                     data_fim,
+                    turno,
                     evolucao,
                     assinado,
                     estado_paciente,
@@ -180,6 +226,7 @@ class RelatorioPlantao extends BaseModel
                     :cuidador_id,
                     :data_inicio,
                     :data_fim,
+                    :turno,
                     :evolucao,
                     :assinado,
                     :estado_paciente,
@@ -199,11 +246,11 @@ class RelatorioPlantao extends BaseModel
                     :fc,
                     :temperatura,
                     :spo2,
+                    :hgt,
                     :diurese,
                     :evacuacao,
                     :dispositivos,
                     :alimentacao_via,
-                    :hgt,
                     NOW(),
                     NOW()
                 )
@@ -241,6 +288,7 @@ class RelatorioPlantao extends BaseModel
                     cuidador_id = :cuidador_id,
                     data_inicio = :data_inicio,
                     data_fim = :data_fim,
+                    turno = :turno,
                     evolucao = :evolucao,
                     assinado = :assinado,
                     estado_paciente = :estado_paciente,
@@ -311,6 +359,7 @@ class RelatorioPlantao extends BaseModel
                 : null,
             ':data_inicio'       => $this->normalizarDatetime($dados['data_inicio'] ?? null),
             ':data_fim'          => $this->normalizarDatetime($dados['data_fim'] ?? null),
+            ':turno' => $this->stringOrNull($dados['turno'] ?? null),
             ':evolucao'          => $this->stringOrNull($evolucao),
             ':assinado'          => (int) ($dados['assinado'] ?? 0),
             ':estado_paciente'   => $this->stringOrNull($dados['estado_paciente'] ?? null),

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Formulario de relatorio de plantao.
  *
@@ -15,8 +16,29 @@ $pacSel     = isset($pacienteSelecionado) ? $pacienteSelecionado : null;
 $csrfToken  = isset($csrf) ? $csrf : (isset($_csrf) ? $_csrf : '');
 $turnoAtual = isset($turno_atual) ? (string) $turno_atual : 'plantao_24h';
 
-$isEdit = !empty($rel['uuid']);
+// UUID do paciente
 $pacienteUuid = (string)($pacSel['uuid'] ?? $pac['uuid'] ?? '');
+
+// Link de retorno
+$voltarLink = $pacienteUuid !== ''
+    ? BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode($pacienteUuid)
+    : 'javascript:history.back()';
+
+// ── Datas — calcular ANTES de qualquer output ─────────────────
+$dataInicioFormatada = '';
+$dataFimFormatada    = '';
+
+if (!empty($relatorio['data_inicio'])) {
+    $ts = strtotime((string)$relatorio['data_inicio']);
+    if ($ts) $dataInicioFormatada = date('Y-m-d\TH:i', $ts);
+}
+if (!empty($relatorio['data_fim'])) {
+    $ts = strtotime((string)$relatorio['data_fim']);
+    if ($ts) $dataFimFormatada = date('Y-m-d\TH:i', $ts);
+}
+
+$isEdit = !empty($rel['uuid']);
+
 $formAction = $isEdit
     ? BASE_URL . '/relatorio-plantao/plantao/' . rawurlencode((string)$rel['uuid']) . '/atualizar'
     : ($pacienteUuid !== ''
@@ -73,6 +95,16 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
 
     return (string)$current === $value ? ' checked' : '';
 };
+
+// Turno salvo no banco (vem do $relatorio)
+$turnoSalvo = $relatorio['turno'] ?? 'plantao_24h';
+
+$turnos = [
+    'plantao_6h'  => '6 horas',
+    'plantao_8h'  => '8 horas',
+    'plantao_12h' => '12 horas',
+    'plantao_24h' => '24 horas',
+];
 ?>
 
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/relatorio_plantao.css">
@@ -102,14 +134,74 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
                 </div>
             </div>
 
-            <div class="turno-selector">
-                <?php foreach ($turnosConfig as $key => $label): ?>
-                <button type="button" class="turno-pill<?= $key === $turnoAtual ? ' active' : '' ?>"
-                    data-turno="<?= $key ?>">
-                    <?= htmlspecialchars($label) ?>
-                </button>
-                <?php endforeach ?>
-            </div>
+            <article class="rp-card">
+                <div class="rp-card-header">
+                    <div class="rp-card-title">
+                        <i class="ti ti-calendar"></i> Dados do Plantão
+                    </div>
+                    <div class="rp-card-subtitle">Período, turno, cuidador e status</div>
+                </div>
+                <div class="rp-card-body">
+
+                    <!-- Seletor de duração do turno -->
+                    <div class="rp-form-group">
+                        <label class="rp-label">Duração do turno</label>
+                        <div class="turno-selector" id="turno-selector">
+                            <?php foreach ($turnos as $valor => $label): ?>
+                            <button type="button" class="turno-pill <?= $turnoSalvo === $valor ? 'active' : '' ?>"
+                                data-turno="<?= $valor ?>" onclick="setTurno('<?= $valor ?>', this)">
+                                <?= $label ?>
+                            </button>
+                            <?php endforeach ?>
+                        </div>
+                        <!-- Campo hidden que será enviado no POST -->
+                        <input type="hidden" name="turno" id="input-turno" value="<?= htmlspecialchars($turnoSalvo) ?>">
+                    </div>
+
+                    <!-- Grade de datas + cuidador + status -->
+                    <div class="rp-form-grid">
+                        <div class="rp-form-group">
+                            <label>Data/Hora Inicial <span class="req">*</span></label>
+                            <input type="datetime-local" name="data_inicio" value="<?= $dataInicioFormatada ?>"
+                                class="rp-input" required>
+                        </div>
+                        <div class="rp-form-group">
+                            <label>Data/Hora Final</label>
+                            <input type="datetime-local" name="data_fim" value="<?= $dataFimFormatada ?>"
+                                class="rp-input">
+                        </div>
+
+                        <?php if (!empty($cuidadores) && is_array($cuidadores)): ?>
+                        <div class="rp-form-group">
+                            <label>Cuidador</label>
+                            <select name="cuidador_id" class="rp-input">
+                                <option value="">— Selecione —</option>
+                                <?php foreach ($cuidadores as $cid => $c):
+                                        $sel = ((int)($relatorio['cuidador_id'] ?? 0) === (int)$cid) ? 'selected' : '';
+                                    ?>
+                                <option value="<?= (int)$cid ?>" <?= $sel ?>>
+                                    <?= htmlspecialchars($c['nome'] ?? '') ?>
+                                </option>
+                                <?php endforeach ?>
+                            </select>
+                        </div>
+                        <?php endif ?>
+
+                        <div class="rp-form-group">
+                            <label>Status</label>
+                            <select name="status" class="rp-input">
+                                <?php foreach (['rascunho' => 'Rascunho', 'finalizado' => 'Finalizado', 'assinado' => 'Assinado'] as $v => $l): ?>
+                                <option value="<?= $v ?>"
+                                    <?= ($relatorio['status'] ?? 'rascunho') === $v ? 'selected' : '' ?>>
+                                    <?= $l ?>
+                                </option>
+                                <?php endforeach ?>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
         </div>
 
         <div class="rp-section">
@@ -198,7 +290,6 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
                     <span class="sinal-badge hidden" id="badge-spo2"></span>
                 </div>
 
-                <?php if ($temDiabetes): ?>
                 <div class="sinal-field">
                     <label class="sinal-field__label" for="inp-hgt">Glicemia (HGT)</label>
                     <input class="sinal-field__input" type="number" id="inp-hgt" name="hgt" placeholder="mg/dL" min="0"
@@ -206,13 +297,12 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
                     <span class="sinal-field__unidade">mg/dL</span>
                     <span class="sinal-badge hidden" id="badge-hgt"></span>
                 </div>
-                <?php endif ?>
             </div>
 
             <div class="form-group" style="margin-top:1.25rem">
                 <label class="form-label">Nivel de consciencia</label>
                 <div class="check-group" data-mode="single">
-                    <?php foreach (['Lucido e orientado','Confuso','Sonolento','Nao responsivo'] as $c): ?>
+                    <?php foreach (['Lucido e orientado', 'Confuso', 'Sonolento', 'Nao responsivo'] as $c): ?>
                     <label class="check-opt">
                         <input type="radio" name="consciencia" value="<?= htmlspecialchars($c) ?>"
                             <?= $isChecked('consciencia', $c, $rel['consciencia'] ?? '') ?>>
@@ -220,6 +310,13 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
                     </label>
                     <?php endforeach ?>
                 </div>
+            </div>
+
+            <div class="rp-field-full rp-section">
+                <label>Observação dos Sinais Vitais</label>
+
+                <textarea name="observacao_sv"
+                    rows="3"><?= htmlspecialchars($relatorio['observacao_sv'] ?? '') ?></textarea>
             </div>
 
             <div class="form-group">
@@ -240,16 +337,18 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
 
             <div class="form-row-2">
                 <div class="form-group">
-                    <label class="form-label" for="alimentacao">Aceitacao alimentar</label>
+                    <label class="form-label" for="alimentacao">Aceitação alimentar</label>
                     <select id="alimentacao" name="alimentacao">
                         <option value="">Selecionar...</option>
-                        <?php foreach ([
-                            'Aceitou bem todas as refeicoes',
-                            'Aceitou parcialmente',
-                            'Recusou alimentacao',
-                            'Dieta via sonda - infundida',
-                            'Jejum prescrito',
-                        ] as $opt): ?>
+                        <?php foreach (
+                            [
+                                'Aceitou bem todas as refeicoes',
+                                'Aceitou parcialmente',
+                                'Recusou alimentacao',
+                                'Dieta via sonda - infundida',
+                                'Jejum prescrito',
+                            ] as $opt
+                        ): ?>
                         <option value="<?= htmlspecialchars($opt) ?>"
                             <?= $isChecked('alimentacao', $opt, $rel['alimentacao'] ?? '') ?>>
                             <?= htmlspecialchars($opt) ?>
@@ -258,7 +357,7 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="hidratacao">Hidratacao (ml)</label>
+                    <label class="form-label" for="hidratacao">Hidratação (ml)</label>
                     <input type="number" id="hidratacao" name="hidratacao_ml" placeholder="ex: 500" min="0" max="5000"
                         class="sinal-field__input" value="<?= $relValue('hidratacao_ml') ?>">
                 </div>
@@ -267,7 +366,7 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
             <div class="form-group">
                 <label class="form-label">Higiene</label>
                 <div class="check-group" data-mode="single">
-                    <?php foreach (['Banho de chuveiro','Banho no leito','Higiene parcial','Troca de fraldas','Nao realizado'] as $h): ?>
+                    <?php foreach (['Banho de chuveiro', 'Banho no leito', 'Higiene parcial', 'Troca de fraldas', 'Nao realizado'] as $h): ?>
                     <label class="check-opt">
                         <input type="radio" name="higiene" value="<?= htmlspecialchars($h) ?>"
                             <?= $isChecked('higiene', $h, $rel['higiene'] ?? '') ?>>
@@ -278,10 +377,10 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
             </div>
 
             <div class="form-group">
-                <label class="form-label">Eliminacoes</label>
+                <label class="form-label">Eliminações</label>
                 <div class="check-group" data-mode="multi">
                     <?php $eliminacoes = $selectedList('eliminacoes'); ?>
-                    <?php foreach (['Diurese normal','Evacuacao normal','Incontinencia urinaria','Incontinencia fecal','Sem eliminacoes no turno'] as $e): ?>
+                    <?php foreach (['Diurese normal', 'Evacuacao normal', 'Incontinencia urinaria', 'Incontinencia fecal', 'Sem eliminacoes no turno'] as $e): ?>
                     <label class="check-opt">
                         <input type="checkbox" name="eliminacoes[]" value="<?= htmlspecialchars($e) ?>"
                             <?= $isChecked('eliminacoes', $e, $eliminacoes) ?>>
@@ -293,10 +392,10 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
 
             <?php if ($acamado): ?>
             <div class="form-group">
-                <label class="form-label">Mudanca de decubito</label>
+                <label class="form-label">Mudança de decúbito</label>
                 <div class="check-group" data-mode="multi">
                     <?php $decubito = $selectedList('decubito'); ?>
-                    <?php foreach (['D.D. para D.L.D.','D.L.D. para D.L.E.','D.L.E. para D.D.','Semi-fowler','Fowler'] as $d): ?>
+                    <?php foreach (['D.D. para D.L.D.', 'D.L.D. para D.L.E.', 'D.L.E. para D.D.', 'Semi-fowler', 'Fowler'] as $d): ?>
                     <label class="check-opt">
                         <input type="checkbox" name="decubito[]" value="<?= htmlspecialchars($d) ?>"
                             <?= $isChecked('decubito', $d, $decubito) ?>>
@@ -310,7 +409,7 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
             <div class="form-group">
                 <label class="form-label">Sono / repouso</label>
                 <div class="check-group" data-mode="single">
-                    <?php foreach (['Dormiu bem','Sono fragmentado','Insonia / agitacao','Turno diurno'] as $s): ?>
+                    <?php foreach (['Dormiu bem', 'Sono fragmentado', 'Insonia / agitacao', 'Turno diurno'] as $s): ?>
                     <label class="check-opt">
                         <input type="radio" name="sono" value="<?= htmlspecialchars($s) ?>"
                             <?= $isChecked('sono', $s, $rel['sono'] ?? '') ?>>
@@ -322,8 +421,123 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
         </div>
 
         <div class="rp-section">
+            <h3>Dispositivos em Uso</h3>
+
+            <div class="rp-checkbox-grid">
+
+                <?php
+                $dispositivosSelecionados = [];
+
+                if (!empty($relatorio['dispositivos'])) {
+                    $dispositivosSelecionados = json_decode(
+                        $relatorio['dispositivos'],
+                        true
+                    ) ?: [];
+                }
+                ?>
+
+                <?php
+                $listaDispositivos = [
+                    'Oxigênio',
+                    'SNE',
+                    'GTT',
+                    'PICC',
+                    'Sonda Vesical',
+                    'Traqueostomia',
+                    'Colostomia',
+                ];
+                ?>
+
+                <?php foreach ($listaDispositivos as $disp): ?>
+
+                <label class="rp-check">
+                    <input type="checkbox" name="dispositivos[]" value="<?= $disp ?>"
+                        <?= in_array($disp, $dispositivosSelecionados) ? 'checked' : '' ?>>
+
+                    <?= $disp ?>
+                </label>
+
+                <?php endforeach; ?>
+
+            </div>
+        </div>
+
+        <div class="rp-field">
+            <label>Diurese</label>
+
+            <select name="diurese">
+                <option value="">Selecione</option>
+
+                <?php
+                $diurese = $relatorio['diurese'] ?? '';
+                ?>
+
+                <option value="Presente" <?= $diurese === 'Presente' ? 'selected' : '' ?>>
+                    Presente
+                </option>
+
+                <option value="Ausente" <?= $diurese === 'Ausente' ? 'selected' : '' ?>>
+                    Ausente
+                </option>
+
+                <option value="Sonda Vesical" <?= $diurese === 'Sonda Vesical' ? 'selected' : '' ?>>
+                    Sonda Vesical
+                </option>
+            </select>
+        </div>
+
+        <div class="rp-field">
+            <label>Evacuação</label>
+
+            <select name="evacuacao">
+                <option value="">Selecione</option>
+
+                <?php
+                $evacuacao = $relatorio['evacuacao'] ?? '';
+                ?>
+
+                <option value="Presente" <?= $evacuacao === 'Presente' ? 'selected' : '' ?>>
+                    Presente
+                </option>
+
+                <option value="Ausente" <?= $evacuacao === 'Ausente' ? 'selected' : '' ?>>
+                    Ausente
+                </option>
+
+                <option value="Colostomia" <?= $evacuacao === 'Colostomia' ? 'selected' : '' ?>>
+                    Colostomia
+                </option>
+            </select>
+        </div>
+
+        <div class="rp-field">
+            <label>Via de Alimentação</label>
+
+            <select name="alimentacao_via">
+
+                <?php
+                $via = $relatorio['alimentacao_via'] ?? '';
+                ?>
+
+                <option value="">Selecione</option>
+
+                <option value="VO" <?= $via === 'VO' ? 'selected' : '' ?>>
+                    VO
+                </option>
+
+                <option value="SNE" <?= $via === 'SNE' ? 'selected' : '' ?>>
+                    SNE
+                </option>
+
+                <option value="GTT" <?= $via === 'GTT' ? 'selected' : '' ?>>
+                    GTT
+                </option>
+            </select>
+        </div>
+
+        <div class="rp-section">
             <div class="rp-section__title">
-                <i class="ti ti-pill" aria-hidden="true"></i> Medicacoes do plantao
+                <i class="ti ti-pill" aria-hidden="true"></i> Medicações do plantão
             </div>
             <?php if (!empty($meds)): ?>
             <div class="med-list">
@@ -340,7 +554,7 @@ $isChecked = static function (string $name, string $value, mixed $current): stri
                     <span class="med-name">
                         <?= htmlspecialchars($med['nome'] ?? $med['nome_medicamento'] ?? '') ?>
                         <?php if (!empty($med['dosagem'])): ?>
-                            <span class="med-via">- <?= htmlspecialchars($med['dosagem']) ?></span>
+                        <span class="med-via">- <?= htmlspecialchars($med['dosagem']) ?></span>
                         <?php endif ?>
                         <span class="med-via">- <?= htmlspecialchars($med['via'] ?? '') ?></span>
                     </span>

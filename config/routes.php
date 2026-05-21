@@ -18,6 +18,20 @@ $router->get('/pacientes/{uuid}/editar', 'PacienteController@edit', ['auth']);
 $router->post('/pacientes/{uuid}', 'PacienteController@update', ['auth', 'csrf']);
 $router->post('/pacientes/{uuid}/inativar', 'PacienteController@inativar', ['auth', 'csrf']);
 
+/*
+|--------------------------------------------------------------------------
+| MEDICAÇÕES DO PACIENTE
+|--------------------------------------------------------------------------
+*/
+
+$router->get('/pacientes/{uuid}/medicacoes', 'MedicacaoPacienteController@index', ['auth']);
+$router->get('/pacientes/{uuid}/medicacoes/novo','MedicacaoPacienteController@create', ['auth']);
+$router->post('/pacientes/{uuid}/medicacoes','MedicacaoPacienteController@store', ['auth', 'csrf']);
+$router->get('/medicacoes/{id}/editar', 'MedicacaoPacienteController@edit', ['auth']);
+$router->post('/medicacoes/{id}', 'MedicacaoPacienteController@update', ['auth', 'csrf']);
+$router->post('/medicacoes/{id}/inativar', 'MedicacaoPacienteController@inativar', ['auth', 'csrf']);
+$router->post('/medicacoes/{id}/delete', 'MedicacaoPacienteController@destroy', ['auth', 'csrf']);
+
 $router->get('/responsaveis', 'ResponsavelController@index', ['auth']);
 $router->get('/responsaveis/novo', 'ResponsavelController@create', ['auth']);
 $router->post('/responsaveis', 'ResponsavelController@store', ['auth', 'csrf']);

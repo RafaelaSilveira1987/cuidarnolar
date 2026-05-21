@@ -116,6 +116,9 @@ class RelatorioPlantaoController extends BaseController
         try {
             $relatorioId = $relatorioModel->criarCompleto($dados);
 
+            $medicacoes = $this->extrairMedicacoesPost($_POST['medicacoes'] ?? []);
+            $relatorioModel->salvarMedicacoesPlantao($relatorioId, $medicacoes);
+
             $novoRelatorio = $relatorioModel->buscarPorIdCompleto($relatorioId);
 
             if ($novoRelatorio && !empty($novoRelatorio['uuid'])) {
@@ -136,10 +139,6 @@ class RelatorioPlantaoController extends BaseController
                 BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode($pacienteUuid) . '/novo'
             );
         }
-
-        // Após criar o relatório, salva medicações:
-        $medicacoes = $this->extrairMedicacoesPost($_POST['medicacoes'] ?? []);
-        $relatorioModel->salvarMedicacoesPlantao($relatorioId, $medicacoes);
     }
 
     private function extrairMedicacoesPost(array $raw): array
@@ -350,6 +349,14 @@ class RelatorioPlantaoController extends BaseController
                 $_POST['observacao_sv']
                 ?? ($relatorio['observacao_sv'] ?? '')
             )),
+
+            'diurese' => $_POST['diurese'] ?? null,
+
+            'evacuacao' => $_POST['evacuacao'] ?? null,
+
+            'dispositivos' => $_POST['dispositivos'] ?? [],
+
+            'alimentacao_via' => $_POST['alimentacao_via'] ?? null,
         ];
 
         try {
@@ -409,6 +416,7 @@ class RelatorioPlantaoController extends BaseController
             'cuidador_id' => $cuidadorId ?: null,
             'data_inicio' => $dataInicio,
             'data_fim' => $dataFim,
+            'turno' => $this->stringValue($req['turno'] ?? $base['turno'] ?? null),
             'evolucao' => trim((string)($req['evolucao'] ?? ($base['evolucao'] ?? ''))),
             'estado_paciente' => trim((string)($req['estado_paciente'] ?? ($base['estado_paciente'] ?? ''))),
             'alimentacao' => $this->stringValue($req['alimentacao'] ?? ($base['alimentacao'] ?? null)),
@@ -424,11 +432,11 @@ class RelatorioPlantaoController extends BaseController
             'higiene' => $this->stringValue($req['higiene'] ?? ($base['higiene'] ?? null)),
             'sono' => $this->stringValue($req['sono'] ?? ($base['sono'] ?? null)),
             'decubito' => $this->toJsonValue($req['decubito'] ?? ($base['decubito'] ?? [])),
-            'pa' => trim((string)($req['sv_pa'] ?? ($base['pa'] ?? ''))),
-            'fc' => trim((string)($req['sv_fc'] ?? ($base['fc'] ?? ''))),
-            'temperatura' => trim((string)($req['sv_temp'] ?? ($base['temperatura'] ?? ''))),
-            'spo2' => trim((string)($req['sv_spo2'] ?? ($base['spo2'] ?? ''))),
-            'hgt' => trim((string)($req['sv_hgt'] ?? ($base['hgt'] ?? ''))),
+            'pa' => trim((string)($req['pa'] ?? ($base['pa'] ?? ''))),
+            'fc' => trim((string)($req['fc'] ?? ($base['fc'] ?? ''))),
+            'temperatura' => trim((string)($req['temperatura'] ?? ($base['temperatura'] ?? ''))),
+            'spo2' => trim((string)($req['spo2'] ?? ($base['spo2'] ?? ''))),
+            'hgt' => trim((string)($req['hgt'] ?? ($base['hgt'] ?? ''))),
             'observacao_sv' => trim((string)($req['observacao_sv'] ?? ($base['observacao_sv'] ?? ''))),
         ];
     }
@@ -521,13 +529,79 @@ class RelatorioPlantaoController extends BaseController
 
         return [
             'id' => (int)($raw['id'] ?? 0),
+
+            'uuid' => $raw['uuid'] ?? null,
+
             'nome' => $nome,
+
             'iniciais' => $this->iniciais($nome),
+
             'prontuario' => (string)($raw['id'] ?? ''),
-            'idade' => $this->calcularIdade($raw['data_nascimento'] ?? ''),
-            'diagnostico' => $raw['diagnostico'] ?? '',
-            'tem_diabetes' => ($anamnese['diabetes'] ?? '') === 'Sim' || !empty($anamnese['tem_diabetes']),
-            'acamado' => ($anamnese['acamado'] ?? '') === 'Sim' || !empty($anamnese['acamado']),
+
+            'idade' => $this->calcularIdade(
+                $raw['data_nascimento'] ?? ''
+            ),
+
+            'sexo' => $raw['sexo'] ?? null,
+
+            'diagnostico' => $raw['diagnostico']
+                ?? $raw['diagnostico_principal']
+                ?? '',
+
+            'cid_principal' => $raw['cid_principal'] ?? null,
+
+            'alergias' => $raw['alergias'] ?? null,
+
+            'tipo_sanguineo' => $raw['tipo_sanguineo'] ?? null,
+
+            'mobilidade' => $raw['mobilidade'] ?? null,
+
+            'estado_cognitivo_base' =>
+            $raw['estado_cognitivo_base'] ?? null,
+
+            'acamado' => ($anamnese['acamado'] ?? '') === 'Sim'
+                || !empty($anamnese['acamado']),
+
+            'tem_diabetes' => ($anamnese['diabetes'] ?? '') === 'Sim'
+                || !empty($anamnese['tem_diabetes']),
+
+            // dispositivos
+            'usa_oxigenio' =>
+            $raw['usa_oxigenio'] ?? 'Não',
+
+            'usa_sonda' =>
+            $raw['usa_sonda'] ?? 'Não',
+
+            'traqueostomia' =>
+            $raw['traqueostomia'] ?? 'Não',
+
+            'gastrostomia' =>
+            $raw['gastrostomia'] ?? 'Não',
+
+            'colostomia' =>
+            $raw['colostomia'] ?? 'Não',
+
+            'cateter_vesical' =>
+            $raw['cateter_vesical'] ?? 'Não',
+
+            'gtt' => $raw['gtt'] ?? null,
+
+            'sne' => $raw['sne'] ?? null,
+
+            'picc' => $raw['picc'] ?? null,
+
+            'cateter_venoso' =>
+            $raw['cateter_venoso'] ?? null,
+
+            // alertas clínicos
+            'areas_risco' =>
+            $raw['areas_risco'] ?? null,
+
+            'condutas_permanentes' =>
+            $raw['condutas_permanentes'] ?? null,
+
+            'prescricao_medica' =>
+            $raw['prescricao_medica'] ?? null,
         ];
     }
 

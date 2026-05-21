@@ -21,6 +21,7 @@ class MedicacaoPaciente extends BaseModuleModel
         'data_fim',
         'status',
         'observacoes',
+        'created_by',
     ];
 
     protected array $nullable = [
@@ -32,6 +33,7 @@ class MedicacaoPaciente extends BaseModuleModel
         'data_inicio',
         'data_fim',
         'observacoes',
+        'created_by',
     ];
 
     public function listByPacienteId(int $pacienteId): array
@@ -75,12 +77,16 @@ class MedicacaoPaciente extends BaseModuleModel
 
     public function inativarMedicacao(int $id): bool
     {
-        return $this->update($id, ['status' => 'Inativo']);
+        return $this->updateMedicacao($id, [
+            'status' => 'Inativo'
+        ]);
     }
 
     public function deleteMedicacao(int $id): bool
     {
-        return $this->delete($id);
+        return $this->updateMedicacao($id, [
+            'status' => 'Inativo'
+        ]);
     }
 
     public function salvarListaPaciente(int $pacienteId, array $itens): void
@@ -111,6 +117,7 @@ class MedicacaoPaciente extends BaseModuleModel
                 'data_fim' => $item['data_fim'] ?? '',
                 'status' => $item['status'] ?? 'Ativo',
                 'observacoes' => $item['observacoes'] ?? '',
+                'created_by' => $_SESSION['user']['id'] ?? null,
             ];
 
             if ($id > 0) {
