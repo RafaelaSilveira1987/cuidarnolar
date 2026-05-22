@@ -112,4 +112,8 @@ $router->get('/relatorio-plantao/plantao/{uuid}/editar', 'RelatorioPlantaoContro
 $router->post('/relatorio-plantao/plantao/{uuid}/atualizar', 'RelatorioPlantaoController@update', ['auth', 'csrf']);
 $router->post('/relatorio-plantao/update/{uuid}', 'RelatorioPlantaoController@update', ['auth', 'csrf']);
 
+/*Escalas*/
+$router->get('/escala', 'EscalaController@index', ['auth']);
+$router->get('/escala', 'EscalaController@index', ['auth']);
+
 return $router;

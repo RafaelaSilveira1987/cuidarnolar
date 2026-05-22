@@ -75,3 +75,10 @@ function formatDate(?string $date): string
 
     return date('d/m/Y', strtotime($date));
 }
+
+function view(string $path, array $data = [])
+{
+    extract($data);
+
+    require __DIR__ . '/../Views/' . $path . '.php';
+}

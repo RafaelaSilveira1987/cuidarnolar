@@ -7,6 +7,7 @@
             ['label' => 'Cuidadores', 'route' => '/cuidadores'],
             ['label' => 'Responsaveis', 'route' => '/responsaveis'],
             ['label' => 'Agendamentos', 'route' => '/agendamentos'],
+            ['label' => 'Gestão de Escalas', 'route' => '/escala'],
             ['label' => 'Financeiro', 'route' => '/financeiro'],
             ['label' => 'Relatório de Plantão', 'route' => '/relatorio-plantao'],
         ];
