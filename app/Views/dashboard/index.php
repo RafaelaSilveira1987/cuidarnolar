@@ -92,7 +92,7 @@
     <h2 class="section-header" style="margin-top:0;">Acesso rápido</h2>
     <p class="page-subtitle" style="margin-top:-8px;">Menus Favoritos</p>
     <div class="dash-quick-grid">
-        <?php $menuRel = include BASE_PATH . '/app/Config/MenuRelatorios.php'; ?>
+        <?php $menuRel = include BASE_PATH . '/app/Config/AcessoRapido.php'; ?>
         <?php foreach ($menuRel as $key => $m): ?>
         <article class="dash-quick-card">
             <div style="font-size:20px;"><?= htmlspecialchars($m['icon'] ?? '') ?></div>
@@ -100,7 +100,8 @@
             <!-- <p style="color:var(--muted);font-size:14px;"><?= htmlspecialchars($m['description'] ?? '') ?></p> -->
             <a href="<?= url($m['route'] ?? '#') ?>" class="dash-quick-link">Abrir</a>
         </article>
-    </div>
-    <?php endforeach; ?>
+
+
+        <?php endforeach; ?>
     </div>
 </section>
