@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Models\Escala;
 use App\Models\EscalaOcorrencia;
-use App\Models\EscalaConflito;
 use App\Models\EscalaSubstituicao;
 
 class EscalaController extends BaseController
@@ -15,11 +14,10 @@ class EscalaController extends BaseController
 
     public function __construct()
     {
-        $this->escala = new Escala();
+        $this->escala             = new Escala();
         $this->escalaOcorrencia   = new EscalaOcorrencia();
         $this->escalaSubstituicao = new EscalaSubstituicao();
     }
-
 
     // =========================================================
     // GET /escalas — Central de Cobertura
@@ -35,24 +33,38 @@ class EscalaController extends BaseController
         $dias = $this->gerarDias($dataBase);
 
         // ── 3. Filtros ───────────────────────────────────────
+        $pacienteUuid    = $this->sanitizarUuid($_GET['paciente_uuid']    ?? null);
+        $colaboradorUuid = $this->sanitizarUuid($_GET['colaborador_uuid'] ?? null);
+
+        // Resolve UUIDs → IDs numéricos exigidos pelo Model
+        $pacienteId    = null;
+        $colaboradorId = null;
+
+        if ($pacienteUuid) {
+            $pac = $this->escala->buscarPacientePorUuid($pacienteUuid);
+            $pacienteId = $pac['id'] ?? null;
+        }
+
+        if ($colaboradorUuid) {
+            $col = $this->escala->buscarCuidadorPorUuid($colaboradorUuid);
+            $colaboradorId = $col['id'] ?? null;
+        }
+
         $filtros = [
-            'paciente_id'    => (int)($_GET['paciente_id']    ?? 0) ?: null,
-            'colaborador_id' => (int)($_GET['colaborador_id'] ?? 0) ?: null,
+            'paciente_uuid'    => $pacienteUuid,
+            'colaborador_uuid' => $colaboradorUuid,
         ];
 
-        // // ── 4. Busca dados do banco ──────────────────────────
+        // ── 4. Busca dados do banco ──────────────────────────
         $pacientes     = $this->escala->listarPacientes();
-        $colaboradores = $this->escala->listarCuidadores();
-        if (!is_array($colaboradores)) {
-            $colaboradores = [];
-        }
+        $colaboradores = $this->escala->listaCuidadores();
 
         // Ocorrências da semana (plantões gerados/alocados)
         $ocorrencias = $this->escalaOcorrencia->porSemana(
             $dias[0]['date'],
             $dias[6]['date'],
-            $filtros['paciente_id'],
-            $filtros['colaborador_id']
+            $pacienteId,
+            $colaboradorId
         );
 
         // Substituições da semana
@@ -84,15 +96,39 @@ class EscalaController extends BaseController
             'resumo'        => $resumo,
             'alertas'       => $alertas,
             'filtros'       => $filtros,
-            'colaboradores' => $colaboradores ?? [],
-            'pacientes' => $pacientes ?? [],
-            '_csrf' => $_csrf ?? null,
         ]);
     }
 
     // =========================================================
     // Helpers privados
     // =========================================================
+
+    /**
+     * Valida e retorna um UUID v4 ou string numérica (id legado), ou null.
+     */
+    private function sanitizarUuid(mixed $valor): ?string
+    {
+        if (!isset($valor) || !is_scalar($valor)) return null;
+        $str = trim((string) $valor);
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $str)) {
+            return strtolower($str);
+        }
+        if (preg_match('/^[0-9]+$/', $str)) return $str;
+        return null;
+    }
+
+    /**
+     * Valida e retorna uma data no formato Y-m-d ou null.
+     */
+    private function sanitizarData(mixed $valor): ?string
+    {
+        if (!isset($valor) || !is_scalar($valor)) return null;
+        $str = trim((string) $valor);
+        if (preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/', $str) && strtotime($str) !== false) {
+            return $str;
+        }
+        return null;
+    }
 
     /**
      * Resolve a segunda-feira da semana a partir de uma data qualquer.
@@ -124,9 +160,6 @@ class EscalaController extends BaseController
         }
         return $dias;
     }
-
-
-
 
     /**
      * Monta a estrutura de cobertura agrupada por paciente.
@@ -265,6 +298,24 @@ class EscalaController extends BaseController
         return $resultado;
     }
 
+    // =========================================================
+    // POST /escala/excluir — Remove um plantão avulso
+    // =========================================================
+    public function excluir(): void
+    {
+        $escalaId = (int) ($_POST['escala_id'] ?? 0);
+
+        if (!$escalaId) {
+            $this->redirectComErro('/escala', 'ID de plantão inválido.');
+            return;
+        }
+
+        $this->escalaOcorrencia->delete($escalaId);
+
+        header("Location: " . BASE_URL . "/escala?sucesso=" . urlencode('Plantão removido.'));
+        exit;
+    }
+
     /**
      * Calcula o resumo dos 4 cards superiores.
      */
@@ -377,5 +428,165 @@ class EscalaController extends BaseController
         $h = (int)explode(':', $inicio)[0];
         if ($h >= 6 && $h < 18) return 'ti-sun';
         return 'ti-moon';
+    }
+
+    // =========================================================
+    // POST /escala/salvar — Cria ou atualiza um plantão avulso
+    // =========================================================
+    public function salvar(): void
+    {
+        $pacienteUuid = $this->sanitizarUuid($_POST['paciente_uuid'] ?? null);
+        $cuidadorUuid = $this->sanitizarUuid($_POST['cuidador_uuid'] ?? null);
+        $dataPlantao  = $this->sanitizarData($_POST['data_plantao']  ?? null);
+        $turno        = trim($_POST['turno']      ?? '');
+        $observacao   = trim($_POST['observacao'] ?? '');
+        $escalaId     = (int) ($_POST['escala_id'] ?? 0) ?: null;
+
+        if (!$pacienteUuid || !$cuidadorUuid || !$dataPlantao || !$turno) {
+            $this->redirectComErro('/escala', 'Preencha todos os campos obrigatórios.');
+            return;
+        }
+
+        $paciente = $this->escala->buscarPacientePorUuid($pacienteUuid);
+        $cuidador = $this->escala->buscarCuidadorPorUuid($cuidadorUuid);
+
+        if (!$paciente || !$cuidador) {
+            $this->redirectComErro('/escala', 'Paciente ou cuidador não encontrado.');
+            return;
+        }
+
+        [$inicio, $fim] = $this->resolverHorarioTurno($turno, $dataPlantao, $_POST);
+
+        // Deriva tipo_plantao a partir do turno
+        $tipoPlantao = match ($turno) {
+            '24h'        => '24h',
+            'noturno'    => '12h',
+            'personalizado' => '12h',
+            default      => '12h',  // diurno
+        };
+
+        $dados = [
+            'escala_base_id' => null,           // plantão avulso
+            'paciente_id'    => $paciente['id'],
+            'cuidador_id'    => $cuidador['id'],
+            'data_plantao'   => $dataPlantao,
+            'inicio'         => $inicio,
+            'fim'            => $fim,
+            'tipo_plantao'   => $tipoPlantao,
+            'status'         => 'previsto',
+            'origem'         => 'Manual',
+            'observacoes'    => $observacao ?: null,
+        ];
+
+        if ($escalaId) {
+            $this->escalaOcorrencia->update($escalaId, $dados);
+            $msg = 'Plantao atualizado com sucesso.';
+        } else {
+            $conflito = $this->escalaOcorrencia->conflito(
+                $cuidador['id'],
+                $inicio,
+                $fim
+            );
+
+            if ($conflito) {
+                $this->redirectComErro('/escala', 'Conflito de horario: este cuidador ja tem plantao neste periodo.');
+                return;
+            }
+
+            $this->escalaOcorrencia->createRecord($dados);
+            $msg = 'Plantao alocado com sucesso.';
+        }
+
+        $segunda = $this->resolverSegunda($dataPlantao);
+        header("Location: " . BASE_URL . "/escala?semana={$segunda}&sucesso=" . urlencode($msg));
+        exit;
+    }
+
+    // =========================================================
+    // POST /escala/substituir — Registra substituicao de cuidador
+    // =========================================================
+    public function substituir(): void
+    {
+        $escalaId       = (int) ($_POST['escala_id']     ?? 0);
+        $substitutoUuid = $this->sanitizarUuid($_POST['substituto_id'] ?? null);
+        $motivo         = trim($_POST['motivo']     ?? '');
+        $observacao     = trim($_POST['observacao'] ?? '');
+
+        if (!$escalaId || !$substitutoUuid) {
+            $this->redirectComErro('/escala', 'Dados invalidos para substituicao.');
+            return;
+        }
+
+        $substituto = $this->escala->buscarCuidadorPorUuid($substitutoUuid);
+        if (!$substituto) {
+            $this->redirectComErro('/escala', 'Substituto nao encontrado.');
+            return;
+        }
+
+        // Busca o cuidador original da ocorrência para registrar corretamente
+        $ocorrencia = $this->escalaOcorrencia->find($escalaId);
+        if (!$ocorrencia) {
+            $this->redirectComErro('/escala', 'Plantao nao encontrado.');
+            return;
+        }
+
+        $this->escalaSubstituicao->createRecord([
+            'ocorrencia_id'          => $escalaId,
+            'cuidador_original_id'   => $ocorrencia['cuidador_id'] ?? null,
+            'cuidador_substituto_id' => $substituto['id'],
+            'motivo'                 => $motivo ?: null,
+            'observacoes'            => $observacao ?: null,
+        ]);
+
+        header("Location: " . BASE_URL . "/escala?sucesso=" . urlencode('Substituicao registrada.'));
+        exit;
+    }
+
+    // =========================================================
+    // Helpers de suporte
+    // =========================================================
+
+    /**
+     * Resolve inicio e fim absolutos (Y-m-d H:i:s) com base no turno.
+     */
+    private function resolverHorarioTurno(string $turno, string $data, array $post): array
+    {
+        $map = [
+            'diurno'  => ['07:00:00', '19:00:00'],
+            'noturno' => ['19:00:00', '07:00:00'],
+            '24h'     => ['07:00:00', '07:00:00'],
+        ];
+
+        if ($turno === 'personalizado') {
+            $hi = ($post['inicio'] ?? '07:00') . ':00';
+            $hf = ($post['fim']    ?? '19:00') . ':00';
+        } else {
+            [$hi, $hf] = $map[$turno] ?? ['07:00:00', '19:00:00'];
+        }
+
+        $inicioDt = new \DateTime("{$data} {$hi}");
+        $fimDt    = new \DateTime("{$data} {$hf}");
+
+        if ($turno === '24h') {
+            $fimDt = clone $inicioDt;
+            $fimDt->modify('+1 day');
+        } elseif ($fimDt <= $inicioDt) {
+            $fimDt->modify('+1 day');
+        }
+
+        return [
+            $inicioDt->format('Y-m-d H:i:s'),
+            $fimDt->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
+     * Redireciona com mensagem de erro na session.
+     */
+    private function redirectComErro(string $rota, string $msg): void
+    {
+        $_SESSION['erro'] = $msg;
+        header("Location: " . BASE_URL . $rota);
+        exit;
     }
 }

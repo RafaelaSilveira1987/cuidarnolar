@@ -25,8 +25,8 @@ $router->post('/pacientes/{uuid}/inativar', 'PacienteController@inativar', ['aut
 */
 
 $router->get('/pacientes/{uuid}/medicacoes', 'MedicacaoPacienteController@index', ['auth']);
-$router->get('/pacientes/{uuid}/medicacoes/novo','MedicacaoPacienteController@create', ['auth']);
-$router->post('/pacientes/{uuid}/medicacoes','MedicacaoPacienteController@store', ['auth', 'csrf']);
+$router->get('/pacientes/{uuid}/medicacoes/novo', 'MedicacaoPacienteController@create', ['auth']);
+$router->post('/pacientes/{uuid}/medicacoes', 'MedicacaoPacienteController@store', ['auth', 'csrf']);
 $router->get('/medicacoes/{id}/editar', 'MedicacaoPacienteController@edit', ['auth']);
 $router->post('/medicacoes/{id}', 'MedicacaoPacienteController@update', ['auth', 'csrf']);
 $router->post('/medicacoes/{id}/inativar', 'MedicacaoPacienteController@inativar', ['auth', 'csrf']);
@@ -114,6 +114,10 @@ $router->post('/relatorio-plantao/update/{uuid}', 'RelatorioPlantaoController@up
 
 /*Escalas*/
 $router->get('/escala', 'EscalaController@index', ['auth']);
-$router->get('/escala', 'EscalaController@index', ['auth']);
+$router->post('/escala/salvar', 'EscalaController@salvar',  ['auth', 'csrf']);
+$router->post('/escala/substituir', 'EscalaController@substituir', ['auth', 'csrf']);
+$router->get('/escala/paciente/{uuid}', 'EscalaController@paciente', ['auth']);
+$router->get('/escala/colaborador/{uuid}', 'EscalaController@colaborador', ['auth']);
+$router->post('/escala/excluir', 'EscalaController@excluir', ['auth', 'csrf']);
 
 return $router;

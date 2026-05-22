@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Views/escalas/partials/card_paciente.php
  *
@@ -43,19 +44,19 @@ $pct = (int)($pac['cobertura_pct'] ?? 0);
 $cob_cls = $pct >= 95 ? 'ok' : ($pct >= 70 ? 'warn' : 'danger');
 
 $tipo  = $pac['tipo_contrato'] ?? '12h';
-$badge_cls = match($tipo) {
+$badge_cls = match ($tipo) {
     '24h'    => 'badge-contrato--24h',
     'diurno' => 'badge-contrato--diurno',
     default  => 'badge-contrato--12h',
 };
-$badge_txt = match($tipo) {
+$badge_txt = match ($tipo) {
     '24h'    => 'Plantão 24h',
     'diurno' => 'Somente diurno',
     default  => 'Plantão 12h',
 };
 ?>
 
-<div class="paciente-card" id="pac-<?= $pac['id'] ?>">
+<div class="paciente-card paciente-card--<?= $pac['card_bg_index'] ?? 0 ?>" id="pac-<?= $pac['id'] ?>">
 
     <!-- Cabeçalho do card -->
     <div class="paciente-card__header">
@@ -89,7 +90,7 @@ $badge_txt = match($tipo) {
     </div>
 
     <!-- Grade semanal -->
-    <div class="grade-wrap">
+    <div class="grade-wrap grade-wrap--scroll">
         <?php include __DIR__ . '/bloco_plantao.php'; ?>
     </div>
 

@@ -8,7 +8,7 @@ const Escalas = (() => {
   const state = {
     semana: null, // data base (Date)
     paciente_id: "",
-    colaborador_id: "",
+    cuidador_id: "",
   };
 
   // ---- Inicialização ----
@@ -45,7 +45,7 @@ const Escalas = (() => {
       if (!el) return;
       el.addEventListener("change", () => {
         state.paciente_id = selPac?.value || "";
-        state.colaborador_id = selCol?.value || "";
+        state.cuidador_id = selCol?.value || "";
         const semanaStr = selSem?.value || "";
         _recarregarGrade(semanaStr);
       });
@@ -54,14 +54,27 @@ const Escalas = (() => {
 
   // ---- Recarrega via AJAX (ou submit normal) ----
   function _recarregarGrade(semana) {
-    const params = new URLSearchParams({
-      paciente_id: state.paciente_id,
-      colaborador_id: state.colaborador_id,
-      semana: semana,
-    });
+    const params = new URLSearchParams();
 
-    // Se o projeto usa fetch + renderização parcial, troca pelo endpoint:
-    const url = `${window.BASE_URL ?? ""}/escalas?${params}`;
+    if (state.paciente_id) {
+      params.set("paciente_id", state.paciente_id);
+    }
+
+    if (state.cuidador_id) {
+      params.set("cuidador_id", state.cuidador_id);
+    }
+
+    if (semana) {
+      params.set("semana", semana);
+    }
+
+    const base =
+      document.querySelector('meta[name="base-url"]')?.content ??
+      window.BASE_URL ??
+      "";
+
+    const url = `${base}/escala?${params.toString()}`;
+
     window.location.href = url;
   }
 
@@ -77,13 +90,9 @@ const Escalas = (() => {
           paciente_id: data.pacienteId || "",
           data_plantao: data.dataPlantao || "",
           turno: data.turno || "",
-          colaborador_id: data.colaboradorId || "",
+          cuidador_id: data.cuidadorId || "",
           escala_id: data.escalaId || "",
         });
-        if (e.target.classList.contains("modal-overlay")) {
-          _fecharModal();
-          _fecharModalSub();
-        }
       }
 
       // Fechar modal
@@ -97,16 +106,18 @@ const Escalas = (() => {
 
     // ESC fecha
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        _fecharModal();
-        _fecharModalSub();
-      }
+      if (e.key === "Escape") _fecharModal();
     });
   }
 
   function _abrirModal(dados) {
     const overlay = document.getElementById("modal-escala");
-    if (!overlay) return;
+    if (!overlay) {
+      console.error(
+        "[Escalas] #modal-escala não encontrado no DOM. Verifique se modal_criar.php está sendo incluído.",
+      );
+      return;
+    }
 
     // Preenche campos
     _setVal("modal_paciente_id", dados.paciente_id);
@@ -115,13 +126,22 @@ const Escalas = (() => {
     _setVal("modal_colaborador_id", dados.colaborador_id);
     _setVal("modal_escala_id", dados.escala_id);
 
-    overlay.removeAttribute("hidden");
+    // Modo editar vs criar: ajusta título e label do botão submit
+    const isEdicao = !!dados.escala_id;
+    const titulo   = overlay.querySelector("[data-modal-titulo]");
+    const btnSalvar = overlay.querySelector("[data-modal-submit]");
+    if (titulo)    titulo.textContent    = isEdicao ? "Editar Plantão"    : "Novo Plantão";
+    if (btnSalvar) btnSalvar.textContent = isEdicao ? "Salvar alterações" : "Alocar cuidador";
+
+    overlay.style.display = "flex";
     overlay.querySelector("select, input")?.focus();
   }
 
   function _fecharModal() {
-    document.getElementById("modal-escala")?.setAttribute("hidden", "");
-    document.getElementById("modal-substituicao")?.setAttribute("hidden", "");
+    document.getElementById("modal-escala")?.style &&
+      (document.getElementById("modal-escala").style.display = "none");
+    document.getElementById("modal-substituicao")?.style &&
+      (document.getElementById("modal-substituicao").style.display = "none");
   }
 
   function _setVal(id, val) {
@@ -130,35 +150,93 @@ const Escalas = (() => {
   }
 
   // ---- Clique nas células de plantão ---- //
+  // Substitua _bindPlantaoCells() por esta versão:
   function _bindPlantaoCells() {
     document.addEventListener("click", (e) => {
-      const cell = e.target.closest(".plantao-cell[data-escala-id]");
-      if (!cell) return;
+      // ── Botão Editar ──────────────────────────────────────
+      const btnEditar = e.target.closest('[data-action="editar"]');
+      if (btnEditar) {
+        e.stopPropagation();
+        const cell = btnEditar.closest(".plantao-cell");
+        if (!cell) return;
+        const d = cell.dataset;
+        _abrirModal({
+          paciente_id: d.pacienteId,
+          data_plantao: d.dataPlantao,
+          turno: d.turno,
+          colaborador_id: d.colaboradorId,
+          escala_id: d.escalaId,
+        });
+        return;
+      }
 
+      const btnSub = e.target.closest('[data-action="substituir"]');
+
+      if (btnSub) {
+        e.stopPropagation();
+
+        const cell = btnSub.closest(".plantao-cell");
+
+        if (!cell) return;
+
+        const d = cell.dataset;
+
+        _abrirModalSub({
+          escala_id: d.escalaId,
+          colaborador_id: d.colaboradorId,
+          data_plantao: d.dataPlantao,
+        });
+
+        return;
+      }
+
+      // ── Botão Excluir ─────────────────────────────────────
+      const btnExcluir = e.target.closest('[data-action="excluir"]');
+      if (btnExcluir) {
+        e.stopPropagation();
+        if (!confirm("Remover este plantão? Esta ação não pode ser desfeita."))
+          return;
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+                  ?? document.querySelector('input[name="_csrf"]')?.value
+                  ?? "";
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = `${window.BASE_URL}/escala/excluir`;
+        form.innerHTML = `
+          <input name="escala_id" value="${btnExcluir.dataset.escalaId}">
+          <input name="_token"    value="${csrf}">
+        `;
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
+
+      // ── Clique na célula vaga → abrir modal criar ─────────
+      const cell = e.target.closest(".plantao-cell");
+      if (!cell) return;
       const {
-        escalaId,
+        status,
         pacienteId,
         dataPlantao,
         turno,
+        escalaId,
         colaboradorId,
-        status,
       } = cell.dataset;
 
       if (status === "vago") {
-        // Abre modal de criar
         _abrirModal({
           paciente_id: pacienteId,
           data_plantao: dataPlantao,
           turno,
         });
       } else if (status === "ok" || status === "sub") {
-        // Abre modal de substituição
         _abrirModalSub({
           escala_id: escalaId,
           colaborador_id: colaboradorId,
           data_plantao: dataPlantao,
         });
       }
+      // 'ok' → sem ação no clique da célula, use os botões
     });
   }
 
@@ -170,19 +248,8 @@ const Escalas = (() => {
     _setVal("sub_colaborador_id", dados.colaborador_id);
     _setVal("sub_data", dados.data_plantao);
 
-    overlay.removeAttribute("hidden");
-  }
-
-  function _fecharModalSub() {
-    const overlay = document.getElementById("modal-substituicao");
-    if (!overlay) return;
-
-    overlay.setAttribute("hidden", "");
-
-    // opcional: limpa campos pra evitar “memória fantasma”
-    _setVal("sub_escala_id", "");
-    _setVal("sub_colaborador_id", "");
-    _setVal("sub_data", "");
+    overlay.style.display = "flex";
+    overlay.querySelector("select, input")?.focus();
   }
 
   // ---- Calcula % de cobertura e atualiza barra ----

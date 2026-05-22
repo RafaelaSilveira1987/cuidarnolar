@@ -1,6 +1,6 @@
 <header class="topbar">
     <div class="topbar-left">
-        <strong>Cuidar no Lar</strong>
+        <img src="<?= BASE_URL ?>/assets/images/logo_interna.png" alt="Logo Cuidar no Lar">
     </div>
 
     <div class="topbar-center">

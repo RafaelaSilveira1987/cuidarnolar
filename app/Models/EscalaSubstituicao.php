@@ -22,18 +22,21 @@ class EscalaSubstituicao extends BaseModuleModel
     public function porSemana($inicio, $fim)
     {
         return $this->query("
-        SELECT 
+        SELECT
             s.*,
-            p.nome_completo AS paciente_nome,
-            c.nome_completo AS colaborador_original_nome,
-            sub.nome_completo AS substituto_nome
+            s.ocorrencia_id           AS escala_ocorrencia_id,
+            eo.data_plantao,
+            p.nome_completo           AS paciente_nome,
+            c.nome_completo           AS colaborador_original_nome,
+            sub.id                    AS substituto_id,
+            sub.nome_completo         AS substituto_nome
         FROM tb_escala_substituicoes s
-        INNER JOIN tb_escala_ocorrencias eo ON eo.id = s.ocorrencia_id
-        INNER JOIN tb_pacientes p ON p.id = eo.paciente_id
-        INNER JOIN tb_cuidador c ON c.id = s.cuidador_original_id
-        INNER JOIN tb_cuidador sub ON sub.id = s.cuidador_substituto_id
-        WHERE s.data_plantao BETWEEN :inicio AND :fim
-        ORDER BY s.data_plantao ASC
+        INNER JOIN tb_escala_ocorrencias eo ON eo.id  = s.ocorrencia_id
+        INNER JOIN tb_pacientes p           ON p.id   = eo.paciente_id
+        INNER JOIN tb_cuidador c            ON c.id   = s.cuidador_original_id
+        INNER JOIN tb_cuidador sub          ON sub.id = s.cuidador_substituto_id
+        WHERE eo.data_plantao BETWEEN :inicio AND :fim
+        ORDER BY eo.data_plantao ASC
     ", [
             ':inicio' => $inicio,
             ':fim'    => $fim

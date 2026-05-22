@@ -1,15 +1,17 @@
 <?php
 /**
  * Views/escalas/modal_criar.php
- * Modal para criar ou editar um plantão da escala.
  *
- * Variáveis opcionais (para pré-preenchimento via JS):
- *   $colaboradores — array [{id, nome}]
- *   $pacientes     — array [{id, nome}]
+ * Incluído pelo index.php — tem acesso às mesmas variáveis:
+ *   $pacientes, $colaboradores, $_csrf (injetado pelo BaseController via View::render)
  */
+
+// Garante que $_csrf existe mesmo se o controller não passou explicitamente
+// (o View::render do seu sistema já injeta _csrf no escopo — usamos ele aqui)
+$csrfToken = $_csrf ?? '';
 ?>
 
-<div id="modal-escala" class="modal-overlay" hidden role="dialog" aria-modal="true"
+<div id="modal-escala" class="modal-overlay" style="display:none" role="dialog" aria-modal="true"
     aria-labelledby="modal-escala-title">
 
     <div class="modal-box">
@@ -19,18 +21,20 @@
             Alocar plantão
         </h2>
 
-        <form method="POST" action="<?= BASE_URL ?>/escalas/salvar" id="form-escala">
+        <form method="POST" action="<?= BASE_URL ?>/escala/salvar" id="form-escala">
 
-            <input type="hidden" name="_csrf" value="<?= $_csrf ?>">
+            <input type="hidden" name="_csrf" value="<?= htmlspecialchars($csrfToken) ?>">
             <input type="hidden" id="modal_escala_id" name="escala_id">
 
             <!-- Paciente -->
             <div class="modal-form-group">
                 <label for="modal_paciente_id">Paciente</label>
-                <select id="modal_paciente_id" name="paciente_id" required>
+                <select id="modal_paciente_id" name="paciente_uuid" required>
                     <option value="">Selecione…</option>
-                    <?php foreach ($pacientes as $p): ?>
-                    <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nome']) ?></option>
+                    <?php foreach ($pacientes ?? [] as $p): ?>
+                    <option value="<?= htmlspecialchars($p['uuid']) ?>">
+                        <?= htmlspecialchars($p['nome_completo']) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -53,7 +57,7 @@
                 </div>
             </div>
 
-            <!-- Horário personalizado (exibe só quando turno = personalizado) -->
+            <!-- Horário personalizado -->
             <div id="grupo-horario-custom" class="modal-form-row" style="display:none">
                 <div class="modal-form-group">
                     <label for="modal_inicio">Início</label>
@@ -68,10 +72,12 @@
             <!-- Cuidador -->
             <div class="modal-form-group">
                 <label for="modal_colaborador_id">Cuidador</label>
-                <select id="modal_colaborador_id" name="colaborador_id" required>
+                <select id="modal_colaborador_id" name="cuidador_uuid" required>
                     <option value="">Selecione…</option>
-                    <?php foreach ($colaboradores as $c): ?>
-                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nome']) ?></option>
+                    <?php foreach ($colaboradores ?? [] as $c): ?>
+                    <option value="<?= htmlspecialchars($c['uuid']) ?>">
+                        <?= htmlspecialchars($c['nome_completo']) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -97,7 +103,6 @@
 </div>
 
 <script>
-// Exibe/oculta campos de horário personalizado
 document.getElementById('modal_turno')?.addEventListener('change', function() {
     const g = document.getElementById('grupo-horario-custom');
     if (g) g.style.display = this.value === 'personalizado' ? 'grid' : 'none';

@@ -15,7 +15,7 @@
             Registrar substituição
         </h2>
 
-        <form method="POST" action="<?= BASE_URL ?>/escalas/substituir" id="form-substituicao">
+        <form method="POST" action="<?= BASE_URL ?>/escala/substituir" id="form-substituicao">
 
             <input type="hidden" name="_csrf" value="<?= $_csrf ?>">
             <input type="hidden" id="sub_escala_id" name="escala_id">
@@ -26,7 +26,7 @@
                 <select id="sub_colaborador_id" name="colaborador_original_id" disabled>
                     <option value="">—</option>
                     <?php foreach ($colaboradores as $c): ?>
-                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nome']) ?></option>
+                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nome_completo']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -56,7 +56,7 @@
                 <select id="sub_substituto_id" name="substituto_id" required>
                     <option value="">Selecione o cuidador disponível…</option>
                     <?php foreach ($colaboradores as $c): ?>
-                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nome']) ?></option>
+                    <option value="<?= $c['uuid'] ?>"><?= htmlspecialchars($c['nome_completo']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -75,8 +75,6 @@
                     Confirmar substituição
                 </button>
             </div>
-
-            <button type="button" data-modal-close>Cancelar</button>
 
         </form>
 

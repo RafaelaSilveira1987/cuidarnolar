@@ -74,8 +74,11 @@ textarea {
   z-index: 100;
 }
 
-.topbar-left {
-  justify-self: start;
+.topbar-left img {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .topbar-center {
