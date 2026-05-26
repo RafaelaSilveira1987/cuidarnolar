@@ -184,6 +184,8 @@ class EscalaController extends BaseController
             $subIdx[$sub['escala_ocorrencia_id']] = $sub;
         }
 
+        
+
         // Agrupa ocorrências por paciente → turno
         $porPaciente = [];
         foreach ($ocorrencias as $oc) {
