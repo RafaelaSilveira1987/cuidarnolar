@@ -419,27 +419,6 @@ td.actions a:active {
   border-color: var(--primary);
 }
 
-.tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.tabs a {
-  padding: 10px 12px;
-  text-decoration: none;
-  color: var(--muted);
-  border-bottom: 2px solid transparent;
-}
-
-.tabs a.active {
-  color: var(--primary-dark);
-  border-color: var(--primary);
-  font-weight: 700;
-}
-
 .detail-list,
 .summary-list {
   display: grid;
@@ -1100,7 +1079,7 @@ td.actions a:active {
 }
 
 /* --- Ficha do paciente (abas) --- */
-.pac-tabs {
+.patient-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1111,7 +1090,7 @@ td.actions a:active {
   border: 1px solid var(--border);
 }
 
-.pac-tabs__link {
+.patient-tabs a {
   padding: 10px 14px;
   border-radius: 8px;
   text-decoration: none;
@@ -1119,13 +1098,14 @@ td.actions a:active {
   font-weight: 600;
   font-size: 14px;
   border: 1px solid transparent;
+  transition: 0.2s ease;
 }
 
-.pac-tabs__link:hover {
+.patient-tabs a:hover {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.pac-tabs__link--active {
+.patient-tabs a.active {
   background: var(--surface);
   border-color: var(--border);
   color: var(--primary-dark);
@@ -1255,13 +1235,13 @@ td.actions a:active {
 }
 
 .badge-atrasado {
-    background: #fee4e2;
-    /* color: #b42318; */
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 16px;
-    text-align: left;
-    /* font-weight: 700; */
+  background: #fee4e2;
+  /* color: #b42318; */
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 16px;
+  text-align: left;
+  /* font-weight: 700; */
 }
 
 /* Paciente: ficha clinica e medicacoes continuas */
@@ -1399,6 +1379,527 @@ td.actions a:active {
 .pac-med-mini-list span {
   color: #475569;
   margin-left: 4px;
+}
+
+/* ==========================================================
+   PACIENTES - TOPO CLÍNICO LIMPO
+   Cole este bloco no final de public/assets/css/app.css
+   ========================================================== */
+
+.pac-profile-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.pac-profile-main {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.pac-profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, #02756c, #02948e);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.7rem;
+  box-shadow: 0 10px 22px rgba(2, 117, 108, 0.18);
+}
+
+.pac-profile-title {
+  min-width: 0;
+}
+
+.pac-profile-kicker {
+  display: inline-flex;
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pac-profile-title h1 {
+  margin: 0;
+  color: #172033;
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  line-height: 1.15;
+}
+
+.pac-profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 8px;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.pac-profile-actions {
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.pac-quick-panel {
+  margin-bottom: 18px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #d9e2ec;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.pac-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.pac-quick-item {
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.pac-quick-item--wide {
+  grid-column: span 2;
+}
+
+.pac-quick-item span {
+  display: block;
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pac-quick-item strong {
+  display: block;
+  color: #172033;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.pac-clinical-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pac-clinical-tags span {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #047857;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.pac-clinical-summary {
+  margin-bottom: 20px;
+}
+
+.pac-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pac-summary-box {
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.pac-summary-box h3 {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.pac-summary-box dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.pac-summary-box dl div {
+  display: grid;
+  gap: 2px;
+}
+
+.pac-summary-box dt {
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pac-summary-box dd {
+  margin: 0;
+  color: #172033;
+  font-size: 0.94rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.pac-summary-note {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  color: #172033;
+  line-height: 1.55;
+}
+
+/* =====================================================
+   Paciente - Aba Responsáveis e Contatos
+===================================================== */
+
+.patient-tab-content .responsaveis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.patient-tab-content .responsavel-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 18px rgba(16, 42, 67, 0.06);
+}
+
+.patient-tab-content .responsavel-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.patient-tab-content .responsavel-card__header h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.patient-tab-content .responsavel-card__header span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.patient-tab-content .responsavel-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+  margin: 0;
+}
+
+.patient-tab-content .responsavel-lista div {
+  min-width: 0;
+}
+
+.patient-tab-content .responsavel-lista dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.patient-tab-content .responsavel-lista dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.patient-tab-content .responsavel-card .page-subtitle {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  font-size: 13px;
+}
+
+.patient-tab-content .responsavel-card .badge {
+  background: #e8f7f4;
+  color: var(--primary-dark);
+  border: 1px solid rgba(1, 148, 142, 0.18);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Aba Responsáveis dentro da ficha do paciente */
+.responsaveis-paciente-panel {
+  margin-top: 16px;
+}
+
+.responsaveis-paciente-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.responsaveis-paciente-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.responsavel-paciente-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--surface);
+}
+
+.responsavel-paciente-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.responsavel-paciente-main strong {
+  font-size: 17px;
+  color: var(--text);
+}
+
+.responsavel-paciente-main span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.responsavel-paciente-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 14px 0 0;
+}
+
+.responsavel-paciente-grid div {
+  min-width: 0;
+}
+
+.responsavel-paciente-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.responsavel-paciente-grid dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+
+.responsavel-paciente-grid dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.responsavel-paciente-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+,
+/* Agenda - calendário compacto */
+.agenda-calendar {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.agenda-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.agenda-calendar-header strong {
+  font-size: 16px;
+  color: var(--text);
+}
+
+.agenda-calendar-header a {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef6f5;
+  color: var(--primary-dark);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.agenda-calendar-weekdays,
+.agenda-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.agenda-calendar-weekdays span {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 6px 0;
+}
+
+.agenda-calendar-day {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.agenda-calendar-day:hover {
+  background: #eef6f5;
+  border-color: var(--primary);
+}
+
+.agenda-calendar-day.is-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.agenda-calendar-day.is-muted {
+  opacity: 0.35;
+}
+
+.agenda-calendar-day .agenda-day-count {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 720px) {
+  .responsavel-paciente-main {
+    display: block;
+  }
+
+  .responsavel-paciente-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .patient-tab-content .responsavel-lista {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-tab-content .responsavel-card__header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .responsavel-item__topo {
+    flex-direction: column;
+  }
+
+  .responsavel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .pac-profile-hero {
+    flex-direction: column;
+  }
+
+  .pac-profile-actions {
+    width: 100%;
+  }
+
+  .pac-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pac-quick-item--wide {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .pac-profile-main {
+    align-items: flex-start;
+  }
+
+  .pac-profile-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    font-size: 1.35rem;
+  }
+
+  .pac-profile-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
 }
 
 @media (max-width: 900px) {

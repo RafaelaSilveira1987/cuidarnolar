@@ -57,6 +57,7 @@ class EscalaController extends BaseController
 
         // ── 4. Busca dados do banco ──────────────────────────
         $pacientes     = $this->escala->listarPacientes();
+        $pacientesOperacionais = $this->escala->listarPacientesOperacionais($pacienteId, $colaboradorId);
         $colaboradores = $this->escala->listaCuidadores();
 
         // Ocorrências da semana (plantões gerados/alocados)
@@ -74,7 +75,7 @@ class EscalaController extends BaseController
         );
 
         // ── 5. Monta estrutura de cobertura por paciente ─────
-        $cobertura = $this->montarCobertura($ocorrencias, $substituicoes, $dias, $filtros);
+        $cobertura = $this->montarCobertura($pacientesOperacionais, $ocorrencias, $substituicoes, $dias, $filtros);
 
         // ── 6. Resumo dos cards superiores ───────────────────
         $resumo = $this->calcularResumo($cobertura, $colaboradores);
@@ -173,6 +174,7 @@ class EscalaController extends BaseController
      *   colaborador, inicio, fim, status, sub_nome
      */
     private function montarCobertura(
+        array $pacientesOperacionais,
         array $ocorrencias,
         array $substituicoes,
         array $dias,
@@ -186,52 +188,96 @@ class EscalaController extends BaseController
 
         
 
-        // Agrupa ocorrências por paciente → turno
+        // Base: somente pacientes com escala base ativa entram na grade.
         $porPaciente = [];
+        foreach ($pacientesOperacionais as $pac) {
+            $pid = (int)$pac['id'];
+            $tipoContrato = $this->normalizarContrato((string)($pac['tipo_contrato'] ?? $pac['tipo_cobertura'] ?? '12h'));
+            $equipe = $this->normalizarEquipeEscala($pac);
+
+            $porPaciente[$pid] = [
+                'id' => $pid,
+                'uuid' => $pac['uuid'] ?? '',
+                'nome' => $pac['nome_completo'] ?? 'Paciente',
+                'iniciais' => $this->iniciais($pac['nome_completo'] ?? 'Paciente'),
+                'cor_avatar' => '#dbeafe',
+                'cor_avatar_t' => '#1e3a8a',
+                'endereco' => $pac['endereco'] ?? '',
+                'tipo_contrato' => $tipoContrato,
+                'cuidador_referencia_id' => $pac['cuidador_referencia_id'] ?? null,
+                'cuidador_referencia_uuid' => $pac['cuidador_referencia_uuid'] ?? null,
+                'cuidador_referencia_nome' => $pac['cuidador_referencia_nome'] ?? null,
+                'equipe_escala' => $equipe,
+                '_turnos' => [],
+                '_turnos_meta' => [],
+                '_turnos_validos' => [],
+            ];
+
+            foreach ($this->turnosPorContrato($tipoContrato) as $turno) {
+                $porPaciente[$pid]['_turnos'][$turno['label']] = [];
+                $porPaciente[$pid]['_turnos_validos'][$turno['label']] = true;
+                $porPaciente[$pid]['_turnos_meta'][$turno['label']] = [
+                    'icone' => $turno['icone'],
+                    'codigo' => $turno['codigo'],
+                    'inicio' => $turno['inicio'],
+                    'fim' => $turno['fim'],
+                ];
+            }
+        }
+
+        // Sobrepõe com ocorrências salvas no banco.
         foreach ($ocorrencias as $oc) {
-            $pid = $oc['paciente_id'];
+            $pid = (int)$oc['paciente_id'];
             if (!isset($porPaciente[$pid])) {
                 $porPaciente[$pid] = [
-                    'id'            => $pid,
-                    'nome'          => $oc['paciente_nome'],
-                    'iniciais'      => $this->iniciais($oc['paciente_nome']),
-                    'cor_avatar'    => $oc['cor_avatar']   ?? '#dbeafe',
-                    'cor_avatar_t'  => $oc['cor_avatar_t'] ?? '#1e3a8a',
-                    'endereco'      => $oc['endereco']     ?? '',
-                    'tipo_contrato' => $oc['tipo_contrato'] ?? '12h',
-                    '_turnos'       => [], // temporário: turno_label → [data → plantao]
-                    '_turnos_meta'  => [], // icone
+                    'id' => $pid,
+                    'uuid' => $oc['paciente_uuid'] ?? '',
+                    'nome' => $oc['paciente_nome'] ?? 'Paciente',
+                    'iniciais' => $this->iniciais($oc['paciente_nome'] ?? 'Paciente'),
+                    'cor_avatar' => '#dbeafe',
+                    'cor_avatar_t' => '#1e3a8a',
+                    'endereco' => '',
+                    'tipo_contrato' => '12h',
+                    'cuidador_referencia_id' => null,
+                    'cuidador_referencia_uuid' => null,
+                    'cuidador_referencia_nome' => null,
+                    '_turnos' => [],
+                    '_turnos_meta' => [],
                 ];
             }
 
-            $turno = $oc['turno_label'] ?? 'Turno';
-            $icone = $this->iconeParaTurno($oc['turno_inicio'] ?? '07:00');
+            $turnoMeta = $this->turnoMetaPorHorario($oc['inicio'] ?? $oc['turno_inicio'] ?? '', $oc['fim'] ?? $oc['turno_fim'] ?? '', $oc['tipo_plantao'] ?? null);
+            $turno = $turnoMeta['label'];
 
-            if (!isset($porPaciente[$pid]['_turnos'][$turno])) {
-                $porPaciente[$pid]['_turnos'][$turno]      = [];
-                $porPaciente[$pid]['_turnos_meta'][$turno] = $icone;
+            // Evita poluir a tela com ocorrências antigas/incompatíveis.
+            // Ex.: paciente configurado como 24h não deve abrir linhas extras de 12h.
+            if (empty($porPaciente[$pid]['_turnos_validos'][$turno])) {
+                continue;
             }
 
-            // Verifica se tem substituição ativa
-            $sub     = $subIdx[$oc['id']] ?? null;
-            $status  = 'ok';
+            $sub = $subIdx[$oc['id']] ?? null;
+            $status = 'ok';
             $subNome = null;
+
             if ($sub) {
-                $status  = 'sub';
+                $status = 'sub';
                 $subNome = $oc['colaborador_nome'] ?? null;
-            } elseif (empty($oc['colaborador_id'])) {
+            } elseif (empty($oc['colaborador_id']) && empty($oc['cuidador_id']) && empty($oc['colaborador_id'])) {
                 $status = 'vago';
             }
 
             $porPaciente[$pid]['_turnos'][$turno][$oc['data_plantao']] = [
-                'data'           => $oc['data_plantao'],
-                'escala_id'      => $oc['id'],
-                'colaborador_id' => $sub ? ($sub['substituto_id'] ?? null) : ($oc['colaborador_id'] ?? null),
-                'colaborador'    => $sub ? ($sub['substituto_nome'] ?? '—') : ($oc['colaborador_nome'] ?? '—'),
-                'inicio'         => $oc['turno_inicio'] ?? '00:00',
-                'fim'            => $oc['turno_fim']    ?? '00:00',
-                'status'         => $status,
-                'sub_nome'       => $subNome,
+                'data' => $oc['data_plantao'],
+                'escala_id' => $oc['id'],
+                'paciente_uuid' => $porPaciente[$pid]['uuid'],
+                'colaborador_uuid' => $sub ? ($sub['substituto_uuid'] ?? null) : ($oc['colaborador_uuid'] ?? null),
+                'colaborador_id' => $sub ? ($sub['substituto_id'] ?? null) : ($oc['cuidador_id'] ?? $oc['colaborador_id'] ?? null),
+                'colaborador' => $sub ? ($sub['substituto_nome'] ?? '—') : ($oc['colaborador_nome'] ?? '—'),
+                'inicio' => substr((string)($oc['inicio'] ?? $oc['turno_inicio'] ?? ''), 11, 5) ?: substr((string)($oc['turno_inicio'] ?? ''), 0, 5),
+                'fim' => substr((string)($oc['fim'] ?? $oc['turno_fim'] ?? ''), 11, 5) ?: substr((string)($oc['turno_fim'] ?? ''), 0, 5),
+                'status' => $status,
+                'sub_nome' => $subNome,
+                'turno_codigo' => $turnoMeta['codigo'],
             ];
         }
 
@@ -258,25 +304,32 @@ class EscalaController extends BaseController
                     $totalSlots++;
                     if (isset($plantoesPorData[$d['date']])) {
                         $p = $plantoesPorData[$d['date']];
-                        if ($p['status'] === 'ok' || $p['status'] === 'sub') $cobertos++;
+                        if (in_array($p['status'], ['ok', 'sub', 'sugerido'], true)) $cobertos++;
                         $plantoes[] = $p;
                     } else {
-                        // Slot sem ocorrência registrada = vago
+                        $meta = $pac['_turnos_meta'][$turnoLabel] ?? ['codigo' => 'diurno', 'inicio' => '07:00', 'fim' => '19:00'];
+                        $diaIdx = array_search($d, $dias, true);
+                        $sugerido = $this->cuidadorSugeridoParaDia($pac, is_int($diaIdx) ? $diaIdx : 0);
+                        $temReferencia = !empty($sugerido['id']);
                         $plantoes[] = [
-                            'data'           => $d['date'],
-                            'escala_id'      => null,
-                            'colaborador_id' => null,
-                            'colaborador'    => '',
-                            'inicio'         => '—',
-                            'fim'            => '—',
-                            'status'         => 'vago',
-                            'sub_nome'       => null,
+                            'data' => $d['date'],
+                            'escala_id' => null,
+                            'paciente_uuid' => $pac['uuid'] ?? '',
+                            'colaborador_uuid' => $sugerido['uuid'] ?? null,
+                            'colaborador_id' => $sugerido['id'] ?? null,
+                            'colaborador' => $temReferencia ? ($sugerido['nome'] ?? '') : '',
+                            'colaborador_cor' => $sugerido['cor'] ?? '#0f766e',
+                            'inicio' => $meta['inicio'] ?? '07:00',
+                            'fim' => $meta['fim'] ?? '19:00',
+                            'status' => $temReferencia ? 'sugerido' : 'vago',
+                            'sub_nome' => null,
+                            'turno_codigo' => $meta['codigo'] ?? 'diurno',
                         ];
                     }
                 }
                 $turnos[] = [
                     'label'    => $turnoLabel,
-                    'icone'    => $pac['_turnos_meta'][$turnoLabel],
+                    'icone'    => $pac['_turnos_meta'][$turnoLabel]['icone'] ?? 'ti-clock',
                     'plantoes' => $plantoes,
                 ];
             }
@@ -432,6 +485,98 @@ class EscalaController extends BaseController
         return 'ti-moon';
     }
 
+
+
+    private function normalizarEquipeEscala(array $pac): array
+    {
+        $ids = array_values(array_filter(explode('||', (string)($pac['equipe_ids'] ?? ''))));
+        $uuids = array_values(array_filter(explode('||', (string)($pac['equipe_uuids'] ?? ''))));
+        $nomes = array_values(array_filter(explode('||', (string)($pac['equipe_nomes'] ?? ''))));
+        $cores = array_values(array_filter(explode('||', (string)($pac['equipe_cores'] ?? ''))));
+
+        $equipe = [];
+        foreach ($ids as $i => $id) {
+            $id = (int)$id;
+            if ($id <= 0) continue;
+            $equipe[] = [
+                'id' => $id,
+                'uuid' => $uuids[$i] ?? null,
+                'nome' => $nomes[$i] ?? 'Cuidador',
+                'cor' => $cores[$i] ?? '#0f766e',
+            ];
+        }
+
+        return $equipe;
+    }
+
+    private function cuidadorSugeridoParaDia(array $pac, int $diaIndex): array
+    {
+        $equipe = $pac['equipe_escala'] ?? [];
+        if (is_array($equipe) && count($equipe) > 0) {
+            return $equipe[$diaIndex % count($equipe)];
+        }
+
+        if (!empty($pac['cuidador_referencia_id'])) {
+            return [
+                'id' => (int)$pac['cuidador_referencia_id'],
+                'uuid' => $pac['cuidador_referencia_uuid'] ?? null,
+                'nome' => $pac['cuidador_referencia_nome'] ?? 'Cuidador referência',
+                'cor' => $pac['cuidador_referencia_cor'] ?? '#0f766e',
+            ];
+        }
+
+        return [];
+    }
+
+    private function normalizarContrato(string $valor): string
+    {
+        $v = strtolower(trim($valor));
+        if (str_contains($v, '24')) return '24h';
+        if (str_contains($v, '8')) return '8h';
+        if (str_contains($v, '6')) return '6h';
+        return '12h';
+    }
+
+    private function turnosPorContrato(string $tipoContrato): array
+    {
+        return match ($tipoContrato) {
+            '24h' => [
+                ['codigo' => 'diurno', 'label' => 'Diurno 07h-19h', 'inicio' => '07:00', 'fim' => '19:00', 'icone' => 'ti-sun'],
+                ['codigo' => 'noturno', 'label' => 'Noturno 19h-07h', 'inicio' => '19:00', 'fim' => '07:00', 'icone' => 'ti-moon'],
+            ],
+            '8h' => [
+                ['codigo' => 'personalizado', 'label' => 'Turno 08h-16h', 'inicio' => '08:00', 'fim' => '16:00', 'icone' => 'ti-clock'],
+            ],
+            '6h' => [
+                ['codigo' => 'personalizado', 'label' => 'Turno 08h-14h', 'inicio' => '08:00', 'fim' => '14:00', 'icone' => 'ti-clock'],
+            ],
+            default => [
+                ['codigo' => 'diurno', 'label' => 'Diurno 07h-19h', 'inicio' => '07:00', 'fim' => '19:00', 'icone' => 'ti-sun'],
+            ],
+        };
+    }
+
+    private function turnoMetaPorHorario(string $inicio, string $fim, ?string $tipoPlantao = null): array
+    {
+        $hi = strlen($inicio) >= 16 ? substr($inicio, 11, 5) : substr($inicio, 0, 5);
+        $hf = strlen($fim) >= 16 ? substr($fim, 11, 5) : substr($fim, 0, 5);
+
+        if ($tipoPlantao === '24h') {
+            return ['codigo' => '24h', 'label' => '24 horas', 'inicio' => $hi ?: '07:00', 'fim' => $hf ?: '07:00', 'icone' => 'ti-clock-24'];
+        }
+
+        if ($hi === '19:00') {
+            return ['codigo' => 'noturno', 'label' => 'Noturno 19h-07h', 'inicio' => '19:00', 'fim' => '07:00', 'icone' => 'ti-moon'];
+        }
+
+        if ($hi === '07:00' && $hf === '19:00') {
+            return ['codigo' => 'diurno', 'label' => 'Diurno 07h-19h', 'inicio' => '07:00', 'fim' => '19:00', 'icone' => 'ti-sun'];
+        }
+
+        $label = 'Turno ' . ($hi ?: '--:--') . '-' . ($hf ?: '--:--');
+        return ['codigo' => 'personalizado', 'label' => $label, 'inicio' => $hi ?: '07:00', 'fim' => $hf ?: '19:00', 'icone' => 'ti-clock'];
+    }
+
     // =========================================================
     // POST /escala/salvar — Cria ou atualiza um plantão avulso
     // =========================================================
@@ -487,7 +632,8 @@ class EscalaController extends BaseController
             $conflito = $this->escalaOcorrencia->conflito(
                 $cuidador['id'],
                 $inicio,
-                $fim
+                $fim,
+                $escalaId
             );
 
             if ($conflito) {

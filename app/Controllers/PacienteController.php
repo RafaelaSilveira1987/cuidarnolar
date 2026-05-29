@@ -3,9 +3,12 @@
 namespace App\Controllers;
 
 use App\Models\Anamnese;
+use App\Models\ContratoPaciente;
+use App\Models\Escala;
 use App\Models\Historico;
 use App\Models\MedicacaoPaciente;
 use App\Models\Paciente;
+use App\Models\Responsavel;
 
 class PacienteController extends ResourceController
 {
@@ -18,7 +21,7 @@ class PacienteController extends ResourceController
         'id'               => '#',
         'nome_completo'    => 'Nome',
         'cpf'              => 'CPF',
-        'responsavel_nome' => 'Responsavel',
+        'responsavel_nome' => 'Responsável',
         'cuidador_nome'    => 'Cuidador',
         'status'           => 'Status',
     ];
@@ -51,35 +54,47 @@ class PacienteController extends ResourceController
     public function show(string $id): void
     {
         $model = $this->pacienteModel();
-        $record = $model->findForShow((int) $id);
+        $record = $this->resolvePaciente($id);
 
         if (!$record) {
             http_response_code(404);
-            $this->view('errors/404', ['message' => 'Paciente nao encontrado.'], 'layouts/blank');
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
             return;
         }
 
         $record['idade_calculada'] = $this->calcularIdade($record['data_nascimento'] ?? '');
+        $record['idade'] = $record['idade_calculada'];
 
         $aba = (string) $this->input('aba', 'cadastro');
-        $abasValidas = ['cadastro', 'anamnese', 'historico', 'plano', 'plantao', 'medicacoes'];
+        $abasValidas = ['cadastro', 'responsaveis', 'anamnese', 'historico', 'plano', 'plantao', 'medicacoes', 'contrato_escala'];
 
         if (!in_array($aba, $abasValidas, true)) {
             $aba = 'cadastro';
         }
 
         $pacienteId = (int) $record['id'];
+        $responsaveis = (new Responsavel())->listByPacienteId($pacienteId);
+        $contratoModel = new ContratoPaciente();
+        $contratoAtivo = $contratoModel->contratoAtivoPorPaciente($pacienteId);
+        $escalaModel = new Escala();
 
         $this->view('pacientes/show', [
-            'pageTitle'  => $this->singularTitle,
-            'title'      => $this->singularTitle,
-            'routeBase'  => $this->routeBase,
-            'record'     => $record,
-            'fields'     => $this->detailFields,
-            'aba'        => $aba,
-            'anamneses'  => (new Anamnese())->listByPacienteId($pacienteId),
-            'historicos' => (new Historico())->listByPacienteId($pacienteId),
-            'medicacoes' => (new MedicacaoPaciente())->listByPacienteId($pacienteId),
+            'pageTitle'    => 'Paciente — ' . ($record['nome_completo'] ?? ''),
+            'title'        => 'Paciente — ' . ($record['nome_completo'] ?? ''),
+            'routeBase'    => $this->routeBase,
+            'record'       => $record,
+            'paciente'     => $record,
+            'fields'       => $this->detailFields,
+            'aba'          => $aba,
+            'responsaveis' => $responsaveis,
+            'anamneses'    => (new Anamnese())->listByPacienteId($pacienteId),
+            'historicos'   => (new Historico())->listByPacienteId($pacienteId),
+            'medicacoes'   => (new MedicacaoPaciente())->listByPacienteId($pacienteId),
+            'contratoAtivo' => $contratoAtivo ?: [],
+            'contratosPaciente' => $contratoModel->historicoPorPaciente($pacienteId),
+            'tipoCoberturaSugerido' => $contratoModel->inferirTipoCobertura($contratoAtivo ?: null),
+            'escalaResumo' => $escalaModel->resumoPorPaciente($pacienteId),
+            'cuidadoresEscalaOptions' => $escalaModel->listaCuidadores(),
         ]);
     }
 
@@ -101,31 +116,34 @@ class PacienteController extends ResourceController
         $id = $this->pacienteModel()->createPaciente($data);
         (new MedicacaoPaciente())->salvarListaPaciente($id, $this->medicacoesInput());
 
+        $novoPaciente = $this->pacienteModel()->findForShow($id);
+        $resourceKey = $novoPaciente['uuid'] ?? $id;
+
         $this->flash('success', 'Paciente cadastrado com sucesso.');
-        $this->redirect('/pacientes/' . $id);
+        $this->redirect('/pacientes/' . rawurlencode((string)$resourceKey));
     }
 
     public function edit(string $id): void
     {
-        $paciente = $this->pacienteModel()->findForShow((int) $id);
+        $paciente = $this->resolvePaciente($id);
 
         if (!$paciente) {
             http_response_code(404);
-            $this->view('errors/404', ['message' => 'Paciente nao encontrado.'], 'layouts/blank');
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
             return;
         }
 
-        $this->renderPacienteForm($paciente, [], 'Editar Paciente', (int) $id);
+        $this->renderPacienteForm($paciente, [], 'Editar Paciente', (int) $paciente['id']);
     }
 
     public function update(string $id): void
     {
         $model = $this->pacienteModel();
-        $paciente = $model->findForShow((int) $id);
+        $paciente = $this->resolvePaciente($id);
 
         if (!$paciente) {
             http_response_code(404);
-            $this->view('errors/404', ['message' => 'Paciente nao encontrado.'], 'layouts/blank');
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
             return;
         }
 
@@ -133,30 +151,30 @@ class PacienteController extends ResourceController
         $errors = $this->validatePaciente($data);
 
         if ($errors !== []) {
-            $this->renderPacienteForm(array_merge($paciente, $data), $errors, 'Editar Paciente', (int) $id);
+            $this->renderPacienteForm(array_merge($paciente, $data), $errors, 'Editar Paciente', (int) $paciente['id']);
             return;
         }
 
-        $pacienteId = (int) $id;
+        $pacienteId = (int) $paciente['id'];
         $model->updatePaciente($pacienteId, $data);
         (new MedicacaoPaciente())->salvarListaPaciente($pacienteId, $this->medicacoesInput());
 
         $this->flash('success', 'Paciente atualizado com sucesso.');
-        $this->redirect('/pacientes/' . $id);
+        $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $pacienteId)));
     }
 
     public function inativar(string $id): void
     {
         $model = $this->pacienteModel();
-        $paciente = $model->findForShow((int) $id);
+        $paciente = $this->resolvePaciente($id);
 
         if (!$paciente) {
             http_response_code(404);
-            $this->view('errors/404', ['message' => 'Paciente nao encontrado.'], 'layouts/blank');
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
             return;
         }
 
-        $model->inativar((int) $id, (string) $this->input('motivo_inativacao', ''));
+        $model->inativar((int) $paciente['id'], (string) $this->input('motivo_inativacao', ''));
         $this->flash('success', 'Paciente inativado com sucesso.');
         $this->redirect('/pacientes');
     }
@@ -178,7 +196,7 @@ class PacienteController extends ResourceController
             'cuidadores' => $model->cuidadoresOptions(),
             'medicacoes' => $id ? (new MedicacaoPaciente())->listByPacienteId($id) : [],
             'medicacaoOptions' => (new MedicacaoPaciente())->formOptions(),
-            'action' => $id ? "/pacientes/{$id}" : '/pacientes',
+            'action' => $id ? '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) : '/pacientes',
             'isEdit' => $id !== null,
         ]);
     }
@@ -218,10 +236,6 @@ class PacienteController extends ResourceController
             'email' => $this->input('email', ''),
             'plano_saude' => $this->input('plano_saude', ''),
             'responsavel_id' => $this->input('responsavel_id', ''),
-            'responsavel_nome_texto' => $this->input('responsavel_nome_texto', ''),
-            'responsavel_parentesco' => $this->input('responsavel_parentesco', ''),
-            'responsavel_telefone' => $this->input('responsavel_telefone', ''),
-            'responsavel_email' => $this->input('responsavel_email', ''),
             'cuidador_id' => $this->input('cuidador_id', ''),
             'anamnese_id' => $this->input('anamnese_id', ''),
             'diagnostico' => $this->input('diagnostico', ''),
@@ -265,6 +279,59 @@ class PacienteController extends ResourceController
         ];
     }
 
+
+    public function salvarEscalaBase(string $id): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        $cuidadorIds = $_POST['cuidador_ids'] ?? [];
+        if (!is_array($cuidadorIds)) {
+            $cuidadorIds = [];
+        }
+
+        $contratoModel = new ContratoPaciente();
+        $contratoModel->salvarAtivoPaciente((int)$paciente['id'], [
+            'tipo_servico' => $this->input('contrato_tipo_servico', ''),
+            'valor_mensal' => $this->input('contrato_valor_mensal', '0'),
+            'dia_vencimento' => $this->input('contrato_dia_vencimento', '10'),
+            'forma_pagamento' => $this->input('contrato_forma_pagamento', ''),
+            'vigencia_inicio' => $this->input('contrato_vigencia_inicio', date('Y-m-d')),
+            'vigencia_fim' => $this->input('contrato_vigencia_fim', ''),
+            'status' => $this->input('contrato_status', 'Ativo'),
+            'observacoes' => $this->input('contrato_observacoes', ''),
+        ]);
+
+        $data = [
+            'nome' => $this->input('nome', 'Escala base'),
+            'tipo_cobertura' => $this->input('tipo_cobertura', '12h'),
+            'hora_inicio' => $this->input('hora_inicio', '07:00'),
+            'hora_fim' => $this->input('hora_fim', '19:00'),
+            'tipo_atendimento' => $this->input('tipo_atendimento', 'domiciliar'),
+            'local' => $this->input('local', ''),
+            'recorrente' => $this->input('recorrente', 'sim'),
+            'domingo' => $this->input('domingo', ''),
+            'segunda' => $this->input('segunda', ''),
+            'terca' => $this->input('terca', ''),
+            'quarta' => $this->input('quarta', ''),
+            'quinta' => $this->input('quinta', ''),
+            'sexta' => $this->input('sexta', ''),
+            'sabado' => $this->input('sabado', ''),
+            'revezamento_automatico' => $this->input('revezamento_automatico', ''),
+            'observacoes' => $this->input('observacoes', ''),
+        ];
+
+        (new Escala())->salvarBasePaciente((int)$paciente['id'], $data, $cuidadorIds);
+
+        $this->flash('success', 'Contrato e escala atualizados com sucesso.');
+        $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=contrato_escala');
+    }
+
     private function medicacoesInput(): array
     {
         $itens = $_POST['medicacoes_continuas'] ?? [];
@@ -282,6 +349,22 @@ class PacienteController extends ResourceController
         } catch (\Throwable) {
             return '';
         }
+    }
+
+
+    private function resolvePaciente(string $id): array|false
+    {
+        $model = $this->pacienteModel();
+
+        if (ctype_digit($id)) {
+            return $model->findForShow((int) $id);
+        }
+
+        if (method_exists($model, 'findForShowByUuid')) {
+            return $model->findForShowByUuid($id);
+        }
+
+        return false;
     }
 
     private function pacienteModel(): Paciente

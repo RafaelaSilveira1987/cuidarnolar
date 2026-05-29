@@ -29,6 +29,7 @@ class EscalaSubstituicao extends BaseModuleModel
             p.nome_completo           AS paciente_nome,
             c.nome_completo           AS colaborador_original_nome,
             sub.id                    AS substituto_id,
+            sub.uuid                  AS substituto_uuid,
             sub.nome_completo         AS substituto_nome
         FROM tb_escala_substituicoes s
         INNER JOIN tb_escala_ocorrencias eo ON eo.id  = s.ocorrencia_id

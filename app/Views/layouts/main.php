@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="<?= url('/assets/css/app.css') ?>">
     <link rel="stylesheet" href="<?= url('/assets/css/financeiro.css') ?>">
     <link rel="stylesheet" href="<?= url('/assets/css/relatorio_plantao.css') ?>">
+    <link rel="stylesheet" href="<?= url('/assets/css/responsaveis_paciente_patch.css') ?>">
+    <link rel="stylesheet" href="<?= url('/assets/css/agendamentos.css') ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
 

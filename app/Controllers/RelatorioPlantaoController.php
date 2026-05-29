@@ -119,14 +119,6 @@ class RelatorioPlantaoController extends BaseController
             $medicacoes = $this->extrairMedicacoesPost($_POST['medicacoes'] ?? []);
             $relatorioModel->salvarMedicacoesPlantao($relatorioId, $medicacoes);
 
-            $novoRelatorio = $relatorioModel->buscarPorIdCompleto($relatorioId);
-
-            if ($novoRelatorio && !empty($novoRelatorio['uuid'])) {
-                $this->redirect(
-                    BASE_URL . '/relatorio-plantao/plantao/' . rawurlencode($novoRelatorio['uuid'])
-                );
-            }
-
             $this->redirect(
                 BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode($pacienteUuid)
             );
@@ -139,6 +131,17 @@ class RelatorioPlantaoController extends BaseController
                 BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode($pacienteUuid) . '/novo'
             );
         }
+
+        if (!$paciente) {
+            throw new \RuntimeException('Paciente não encontrado.');
+        }
+
+        $pacienteModel->garantirProntuario((int)$paciente['id']);
+
+        $dados = $this->normalizarPayload($_POST);
+        $dados['paciente_id'] = (int)$paciente['id'];
+        $dados['status'] = ($_POST['acao'] ?? '') === 'assinar' ? 'finalizado' : 'rascunho';
+        $dados['assinado'] = ($_POST['acao'] ?? '') === 'assinar' ? 1 : 0;
     }
 
     private function extrairMedicacoesPost(array $raw): array
@@ -272,6 +275,13 @@ class RelatorioPlantaoController extends BaseController
             'data_fim' => !empty($_POST['data_fim'])
                 ? str_replace('T', ' ', $_POST['data_fim']) . ':00'
                 : null,
+            'data_nascimento' => !empty($_POST['data_nascimento'])
+                ? trim((string)$_POST['data_nascimento'])
+                : null,
+            'internacao' => trim((string)($_POST['internacao'] ?? '')),
+            'tipo_local' => trim((string)($_POST['tipo_local'] ?? '')),
+            'quarto' => trim((string)($_POST['quarto'] ?? '')),
+            'nome_acompanhante' => trim((string)($_POST['nome_acompanhante'] ?? '')),
 
             // Status
             'status' => ($_POST['acao'] ?? '') === 'assinar' ? 'finalizado' : trim((string)($_POST['status'] ?? 'rascunho')),
@@ -281,6 +291,7 @@ class RelatorioPlantaoController extends BaseController
             'fc' => trim((string)($_POST['fc'] ?? '')),
             'temperatura' => trim((string)($_POST['temperatura'] ?? '')),
             'spo2' => trim((string)($_POST['spo2'] ?? '')),
+            'frequencia_respiratoria' => trim((string)($_POST['frequencia_respiratoria'] ?? '')),
             'hgt' => trim((string)($_POST['hgt'] ?? '')),
 
             // Evolução de enfermagem
@@ -304,6 +315,15 @@ class RelatorioPlantaoController extends BaseController
                 ?? $_POST['observacoes_gerais']
                 ?? ''
             )),
+            'estado_geral' => trim((string)($_POST['estado_geral'] ?? '')),
+            'queixas_referidas' => $_POST['queixas_referidas'] ?? null,
+            'exame_fisico' => $_POST['exame_fisico'] ?? null,
+            'pele_mucosas' => trim((string)($_POST['pele_mucosas'] ?? '')),
+            'visita_medica' => $_POST['visita_medica'] ?? null,
+            'entrada_saida_profissionais' => $_POST['entrada_saida_profissionais'] ?? null,
+            'entrada_saida_familiares' => $_POST['entrada_saida_familiares'] ?? null,
+            'plantao_entregue_para' => trim((string)($_POST['plantao_entregue_para'] ?? '')),
+            'peso' => trim((string)($_POST['peso'] ?? '')),
 
             // Campos adicionais (preservados se existirem)
             'estado_paciente' => trim((string)(
@@ -351,10 +371,13 @@ class RelatorioPlantaoController extends BaseController
             )),
 
             'diurese' => $_POST['diurese'] ?? null,
+            'urina_horarios' => $_POST['urina_horarios'] ?? [],
 
             'evacuacao' => $_POST['evacuacao'] ?? null,
+            'fezes_horarios' => $_POST['fezes_horarios'] ?? [],
 
             'dispositivos' => $_POST['dispositivos'] ?? [],
+            'hidratacao_registros' => $_POST['hidratacao_registros'] ?? [],
 
             'alimentacao_via' => $_POST['alimentacao_via'] ?? null,
         ];
@@ -369,13 +392,16 @@ class RelatorioPlantaoController extends BaseController
             // Sucesso
             $_SESSION['success'] = 'Relatório atualizado com sucesso.';
 
-            // Redireciona para visualização
-            header(
-                'Location: ' .
-                    BASE_URL .
-                    '/relatorio-plantao/plantao/' .
-                    rawurlencode($uuid)
-            );
+            $pacienteModel = new Paciente();
+            $pacienteAtual = $pacienteModel->buscarPorId((int)($relatorio['paciente_id'] ?? 0));
+            $pacienteUuid  = (string)($pacienteAtual['uuid'] ?? '');
+
+            if ($pacienteUuid !== '') {
+                header('Location: ' . BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode($pacienteUuid));
+                exit;
+            }
+
+            header('Location: ' . BASE_URL . '/relatorio-plantao');
             exit;
         } catch (\Throwable $e) {
             // Log técnico
@@ -416,9 +442,18 @@ class RelatorioPlantaoController extends BaseController
             'cuidador_id' => $cuidadorId ?: null,
             'data_inicio' => $dataInicio,
             'data_fim' => $dataFim,
+            'data_nascimento' => $this->stringValue($req['data_nascimento'] ?? $base['data_nascimento'] ?? null),
+            'internacao' => trim((string)($req['internacao'] ?? ($base['internacao'] ?? ''))),
+            'tipo_local' => $this->stringValue($req['tipo_local'] ?? $base['tipo_local'] ?? null),
+            'quarto' => $this->stringValue($req['quarto'] ?? $base['quarto'] ?? null),
+            'nome_acompanhante' => $this->stringValue($req['nome_acompanhante'] ?? $base['nome_acompanhante'] ?? null),
             'turno' => $this->stringValue($req['turno'] ?? $base['turno'] ?? null),
             'evolucao' => trim((string)($req['evolucao'] ?? ($base['evolucao'] ?? ''))),
             'estado_paciente' => trim((string)($req['estado_paciente'] ?? ($base['estado_paciente'] ?? ''))),
+            'estado_geral' => $this->stringValue($req['estado_geral'] ?? $base['estado_geral'] ?? null),
+            'queixas_referidas' => $this->toJsonValue($req['queixas_referidas'] ?? ($base['queixas_referidas'] ?? null)),
+            'exame_fisico' => $this->toJsonValue($req['exame_fisico'] ?? ($base['exame_fisico'] ?? null)),
+            'pele_mucosas' => $this->stringValue($req['pele_mucosas'] ?? $base['pele_mucosas'] ?? null),
             'alimentacao' => $this->stringValue($req['alimentacao'] ?? ($base['alimentacao'] ?? null)),
             'eliminacoes' => $this->toJsonValue($req['eliminacoes'] ?? ($base['eliminacoes'] ?? [])),
             'medicacoes' => $this->toJsonValue($req['medicacoes'] ?? ($base['medicacoes'] ?? [])),
@@ -426,9 +461,15 @@ class RelatorioPlantaoController extends BaseController
                 ? $this->toJsonValue([])
                 : $this->toJsonValue($req['intercorrencias'] ?? ($base['intercorrencias'] ?? [])),
             'observacoes_gerais' => trim((string)($req['observacoes_gerais'] ?? ($base['observacoes_gerais'] ?? ''))),
+            'visita_medica' => $this->toJsonValue($req['visita_medica'] ?? ($base['visita_medica'] ?? null)),
+            'entrada_saida_profissionais' => $this->toJsonValue($req['entrada_saida_profissionais'] ?? ($base['entrada_saida_profissionais'] ?? null)),
+            'entrada_saida_familiares' => $this->toJsonValue($req['entrada_saida_familiares'] ?? ($base['entrada_saida_familiares'] ?? null)),
+            'plantao_entregue_para' => $this->stringValue($req['plantao_entregue_para'] ?? ($base['plantao_entregue_para'] ?? null)),
+            'peso' => $this->stringValue($req['peso'] ?? ($base['peso'] ?? null)),
             'consciencia' => $this->stringValue($req['consciencia'] ?? ($base['consciencia'] ?? null)),
             'nivel_dor' => (int)($req['nivel_dor'] ?? ($base['nivel_dor'] ?? 0)),
             'hidratacao_ml' => (int)($req['hidratacao_ml'] ?? ($base['hidratacao_ml'] ?? 0)),
+            'hidratacao_registros' => $this->toJsonValue($req['hidratacao_registros'] ?? ($base['hidratacao_registros'] ?? [])),
             'higiene' => $this->stringValue($req['higiene'] ?? ($base['higiene'] ?? null)),
             'sono' => $this->stringValue($req['sono'] ?? ($base['sono'] ?? null)),
             'decubito' => $this->toJsonValue($req['decubito'] ?? ($base['decubito'] ?? [])),
@@ -436,8 +477,13 @@ class RelatorioPlantaoController extends BaseController
             'fc' => trim((string)($req['fc'] ?? ($base['fc'] ?? ''))),
             'temperatura' => trim((string)($req['temperatura'] ?? ($base['temperatura'] ?? ''))),
             'spo2' => trim((string)($req['spo2'] ?? ($base['spo2'] ?? ''))),
+            'frequencia_respiratoria' => trim((string)($req['frequencia_respiratoria'] ?? ($base['frequencia_respiratoria'] ?? ''))),
             'hgt' => trim((string)($req['hgt'] ?? ($base['hgt'] ?? ''))),
             'observacao_sv' => trim((string)($req['observacao_sv'] ?? ($base['observacao_sv'] ?? ''))),
+            'urina_horarios' => $this->toJsonValue($req['urina_horarios'] ?? ($base['urina_horarios'] ?? [])),
+            'fezes_horarios' => $this->toJsonValue($req['fezes_horarios'] ?? ($base['fezes_horarios'] ?? [])),
+            'dispositivos' => $this->toJsonValue($req['dispositivos'] ?? ($base['dispositivos'] ?? [])),
+            'alimentacao_via' => $this->stringValue($req['alimentacao_via'] ?? ($base['alimentacao_via'] ?? null)),
         ];
     }
 
@@ -631,17 +677,39 @@ class RelatorioPlantaoController extends BaseController
     }
 
     /**
-     * Exibe um relatório individual em modo leitura.
-     *
-     * Rota:
-     * GET /relatorio-plantao/plantao/{uuid}
+     * Compatibilidade com links antigos.
+     * A visualização oficial dos relatórios agora fica dentro do cadastro do paciente.
      */
     public function show(string $uuid): void
     {
         $model = new RelatorioPlantao();
-
-        // Busca pelo UUID
         $relatorio = $model->buscarPorUuid($uuid);
+
+        if (!$relatorio || empty($relatorio['paciente_id'])) {
+            $_SESSION['error'] = 'Relatório não encontrado.';
+            header('Location: ' . BASE_URL . '/relatorio-plantao');
+            exit;
+        }
+
+        $pacienteModel = new Paciente();
+        $paciente = $pacienteModel->buscarPorId((int)$relatorio['paciente_id']);
+
+        if (!$paciente || empty($paciente['uuid'])) {
+            $_SESSION['error'] = 'Paciente do relatório não encontrado.';
+            header('Location: ' . BASE_URL . '/relatorio-plantao');
+            exit;
+        }
+
+        header('Location: ' . BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode((string)$paciente['uuid']));
+        exit;
+    }
+
+    public function generatePdf(string $uuid): void
+    {
+        $relatorioModel = new RelatorioPlantao();
+        $pacienteModel  = new Paciente();
+
+        $relatorio = $relatorioModel->buscarPorUuid($uuid);
 
         if (!$relatorio) {
             $_SESSION['error'] = 'Relatório não encontrado.';
@@ -649,43 +717,43 @@ class RelatorioPlantaoController extends BaseController
             exit;
         }
 
-        // Carregar dados do paciente
-        $paciente = [];
-        if (!empty($relatorio['paciente_id'])) {
-            $pacienteModel = new Paciente();
-            $pacienteRaw = $pacienteModel->buscarPorId((int)$relatorio['paciente_id']);
-            $paciente = $this->normalizarPaciente(
-                $pacienteRaw,
-                $pacienteModel,
-                (int)$relatorio['paciente_id']
-            );
+        $pacienteId = (int)($relatorio['paciente_id'] ?? 0);
+
+        $paciente = $pacienteId > 0
+            ? $pacienteModel->buscarPorId($pacienteId)
+            : [];
+
+        if (!$paciente) {
+            $paciente = [];
         }
 
-        // Carregar dados do cuidador (opcional)
-        $cuidador = [];
+        ob_start();
 
-        if (!empty($relatorio['cuidador_id'])) {
-            $cuidadorModel = new Cuidador();
+        require dirname(__DIR__) . '/Views/relatorio_plantao/pdf.php';
 
-            // O seu model já possui o método all()
-            $listaCuidadores = $cuidadorModel->all();
+        $html = ob_get_clean();
 
-            foreach ($listaCuidadores as $item) {
-                if ((int)($item['id'] ?? 0) === (int)$relatorio['cuidador_id']) {
-                    $cuidador = [
-                        'nome'     => $item['nome_completo'] ?? $item['nome'] ?? '',
-                        'registro' => $item['registro'] ?? $item['coren'] ?? '',
-                    ];
-                    break;
-                }
-            }
-        }
-        // Renderizar view de visualização completa
-        $this->view('relatorio_plantao/show', [
-            'pageTitle' => 'Relatório de Plantão',
-            'relatorio' => $relatorio,
-            'paciente'  => $paciente,
-            'cuidador'  => $cuidador,
+        $dompdf = new \Dompdf\Dompdf([
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'DejaVu Sans',
+        ]);
+
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $nomePaciente = $paciente['nome_completo']
+            ?? $relatorio['paciente_nome']
+            ?? 'paciente';
+
+        $dataRelatorio = !empty($relatorio['data_inicio'])
+            ? date('d-m-Y', strtotime((string)$relatorio['data_inicio']))
+            : date('d-m-Y');
+
+        $filename = 'relatorio-plantao-' . preg_replace('/[^a-zA-Z0-9_-]/', '-', strtolower($nomePaciente)) . '-' . $dataRelatorio . '.pdf';
+
+        $dompdf->stream($filename, [
+            'Attachment' => false,
         ]);
     }
 }

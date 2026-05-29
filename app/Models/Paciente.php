@@ -35,10 +35,15 @@ class Paciente extends BaseModuleModel
         return $this->rawFirst($this->baseSelect() . ' WHERE p.id = :id', [':id' => $id]);
     }
 
+    public function findForShowByUuid(string $uuid): array|false
+    {
+        return $this->rawFirst($this->baseSelect() . ' WHERE p.uuid = :uuid', [':uuid' => $uuid]);
+    }
+
     public function responsaveisOptions(): array
     {
         return $this->rawAll(
-            "SELECT id, nome_completo
+            "SELECT id, uuid, nome_completo, cpf, telefone, email, grau_parentesco
              FROM tb_responsavel
              WHERE status = 'Ativo'
              ORDER BY nome_completo ASC"
@@ -75,12 +80,26 @@ class Paciente extends BaseModuleModel
 
     public function pacientesComRelatorio(): array
     {
-        return $this->query("
-            SELECT DISTINCT p.id, p.uuid, p.nome_completo, p.status, p.diagnostico
-            FROM tb_pacientes p
-            INNER JOIN tb_relatorio_plantao rp ON rp.paciente_id = p.id
-            ORDER BY p.nome_completo ASC
-        ")->fetchAll();
+        $sql = "
+        SELECT
+            p.id,
+            p.uuid,
+            p.nome_completo,
+            p.prontuario,
+            COUNT(rp.id) AS total_relatorios,
+            MAX(rp.data_inicio) AS ultimo_relatorio_data
+        FROM tb_pacientes p
+        INNER JOIN tb_relatorio_plantao rp
+            ON rp.paciente_id = p.id
+        GROUP BY
+            p.id,
+            p.uuid,
+            p.nome_completo,
+            p.prontuario
+        ORDER BY p.nome_completo ASC
+    ";
+
+        return $this->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public function buscarAnamnese(int $pacienteId): ?array
@@ -171,14 +190,14 @@ class Paciente extends BaseModuleModel
              FROM tb_pacientes p
              LEFT JOIN tb_responsavel r ON r.id = p.responsavel_id
              LEFT JOIN tb_cuidador c ON c.id = p.cuidador_id'
-            . $where,
+                . $where,
             $params
         )->fetchColumn();
 
         $data = $this->query(
             $this->baseSelect()
-            . $where
-            . ' ORDER BY p.nome_completo ASC LIMIT :limit OFFSET :offset',
+                . $where
+                . ' ORDER BY p.nome_completo ASC LIMIT :limit OFFSET :offset',
             $params + [':limit' => $perPage, ':offset' => $offset]
         )->fetchAll();
 
@@ -207,10 +226,6 @@ class Paciente extends BaseModuleModel
             'email' => $this->nullableString($data['email'] ?? null),
             'plano_saude' => $this->nullableString($data['plano_saude'] ?? null),
             'responsavel_id' => $this->nullableInt($data['responsavel_id'] ?? null),
-            'responsavel_nome_texto' => $this->nullableString($data['responsavel_nome_texto'] ?? null),
-            'responsavel_parentesco' => $this->nullableString($data['responsavel_parentesco'] ?? null),
-            'responsavel_telefone' => $this->nullableString($data['responsavel_telefone'] ?? null),
-            'responsavel_email' => $this->nullableString($data['responsavel_email'] ?? null),
             'cuidador_id' => $this->nullableInt($data['cuidador_id'] ?? null),
             'anamnese_id' => $this->nullableInt($data['anamnese_id'] ?? null),
             'diagnostico' => $this->nullableString($data['diagnostico'] ?? null),
@@ -322,7 +337,15 @@ class Paciente extends BaseModuleModel
         return "
             SELECT
                 p.*,
+                r.uuid AS responsavel_uuid,
                 r.nome_completo AS responsavel_nome,
+                r.cpf AS responsavel_cpf,
+                r.email AS responsavel_email,
+                r.telefone AS responsavel_telefone,
+                r.data_nascimento AS responsavel_data_nascimento,
+                r.grau_parentesco AS responsavel_parentesco,
+                r.status AS responsavel_status,
+                CONCAT_WS(', ', NULLIF(CONCAT_WS(' ', r.endereco, r.numero), ''), r.bairro, NULLIF(CONCAT_WS('/', r.cidade, r.estado), '/')) AS responsavel_endereco_completo,
                 c.nome_completo AS cuidador_nome
             FROM tb_pacientes p
             LEFT JOIN tb_responsavel r ON r.id = p.responsavel_id

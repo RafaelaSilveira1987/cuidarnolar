@@ -17,6 +17,7 @@ $router->get('/pacientes/{uuid}', 'PacienteController@show', ['auth']);
 $router->get('/pacientes/{uuid}/editar', 'PacienteController@edit', ['auth']);
 $router->post('/pacientes/{uuid}', 'PacienteController@update', ['auth', 'csrf']);
 $router->post('/pacientes/{uuid}/inativar', 'PacienteController@inativar', ['auth', 'csrf']);
+$router->post('/pacientes/{uuid}/escala-base', 'PacienteController@salvarEscalaBase', ['auth', 'csrf']);
 
 /*
 |--------------------------------------------------------------------------
@@ -95,22 +96,21 @@ $router->get('/financeiro/{uuid}/editar', 'FinanceiroController@edit', ['auth'])
 $router->post('/financeiro/{uuid}', 'FinanceiroController@update', ['auth', 'csrf']);
 
 $router->get('/relatorio-plantao', 'RelatorioPlantaoController@index', ['auth']);
-$router->get('/relatorio-plantao/novo', 'RelatorioPlantaoController@create', ['auth']);
-$router->get('/relatorio-plantao/paciente/{uuid}/novo', 'RelatorioPlantaoController@create', ['auth']);
+
+// O relatório deve nascer vinculado ao paciente.
 $router->get('/relatorio-plantao/paciente/{uuid}', 'RelatorioPlantaoController@paciente', ['auth']);
+$router->get('/relatorio-plantao/paciente/{uuid}/novo', 'RelatorioPlantaoController@create', ['auth']);
+$router->post('/relatorio-plantao/paciente/{uuid}/store', 'RelatorioPlantaoController@store', ['auth', 'csrf']);
+
+// Compatibilidade com link antigo usado em algumas telas.
 $router->get('/relatorios-plantao/{uuid}', 'RelatorioPlantaoController@paciente', ['auth']);
 
-// routes.php
-$router->post('/relatorio-plantao/paciente/{uuid}/store', 'RelatorioPlantaoController@store', ['auth', 'csrf']);
-$router->post('/relatorio-plantao', 'RelatorioPlantaoController@store', ['auth', 'csrf']);
-
-/* VISUALIZAR RELATÓRIO */
-$router->get('/relatorio-plantao/plantao/{uuid}', 'RelatorioPlantaoController@show', ['auth']);
-
-/* EDITAR RELATÓRIO */
+// A visualização principal fica dentro do paciente; show() apenas redireciona.
+$router->get('/relatorio-plantao/plantao/{uuid}/pdf', 'RelatorioPlantaoController@generatePdf', ['auth']);
 $router->get('/relatorio-plantao/plantao/{uuid}/editar', 'RelatorioPlantaoController@edit', ['auth']);
 $router->post('/relatorio-plantao/plantao/{uuid}/atualizar', 'RelatorioPlantaoController@update', ['auth', 'csrf']);
 $router->post('/relatorio-plantao/update/{uuid}', 'RelatorioPlantaoController@update', ['auth', 'csrf']);
+$router->get('/relatorio-plantao/plantao/{uuid}', 'RelatorioPlantaoController@show', ['auth']);
 
 /*Escalas*/
 $router->get('/escala', 'EscalaController@index', ['auth']);
@@ -119,5 +119,6 @@ $router->post('/escala/substituir', 'EscalaController@substituir', ['auth', 'csr
 $router->get('/escala/paciente/{uuid}', 'EscalaController@paciente', ['auth']);
 $router->get('/escala/colaborador/{uuid}', 'EscalaController@colaborador', ['auth']);
 $router->post('/escala/excluir', 'EscalaController@excluir', ['auth', 'csrf']);
+
 
 return $router;

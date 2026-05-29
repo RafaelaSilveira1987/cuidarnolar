@@ -19,6 +19,11 @@ class RelatorioPlantao extends BaseModel
         'cuidador_id',
         'data_inicio',
         'data_fim',
+        'data_nascimento',
+        'internacao',
+        'tipo_local',
+        'quarto',
+        'nome_acompanhante',
         'evolucao',
         'assinado',
         'estado_paciente',
@@ -31,14 +36,27 @@ class RelatorioPlantao extends BaseModel
         'consciencia',
         'nivel_dor',
         'hidratacao_ml',
+        'hidratacao_registros',
         'higiene',
         'sono',
         'decubito',
+        'estado_geral',
+        'queixas_referidas',
+        'exame_fisico',
+        'pele_mucosas',
+        'visita_medica',
+        'entrada_saida_profissionais',
+        'entrada_saida_familiares',
+        'plantao_entregue_para',
+        'peso',
         'pa',
         'fc',
         'temperatura',
         'spo2',
+        'frequencia_respiratoria',
         'hgt',
+        'urina_horarios',
+        'fezes_horarios',
         'created_at',
         'updated_at',
     ];
@@ -52,6 +70,7 @@ class RelatorioPlantao extends BaseModel
                 COALESCE(rp.fc, sv.fc) AS fc,
                 COALESCE(rp.temperatura, sv.temperatura) AS temperatura,
                 COALESCE(rp.spo2, sv.spo2) AS spo2,
+                COALESCE(rp.frequencia_respiratoria, sv.frequencia_respiratoria) AS frequencia_respiratoria,
                 COALESCE(rp.hgt, sv.hgt) AS hgt,
                 COALESCE(sv.observacao, '') AS observacao_sv
             FROM tb_relatorio_plantao rp
@@ -94,6 +113,7 @@ class RelatorioPlantao extends BaseModel
             COALESCE(rp.fc, sv.fc) AS fc,
             COALESCE(rp.temperatura, sv.temperatura) AS temperatura,
             COALESCE(rp.spo2, sv.spo2) AS spo2,
+            COALESCE(rp.frequencia_respiratoria, sv.frequencia_respiratoria) AS frequencia_respiratoria,
             COALESCE(rp.hgt, sv.hgt) AS hgt,
             sv.observacao AS observacao_sv
 
@@ -116,10 +136,59 @@ class RelatorioPlantao extends BaseModel
     ";
 
         $stmt = $this->db->prepare($sql);
-
         $stmt->execute([$uuid]);
 
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        $relatorio = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        if (!$relatorio) {
+            return null;
+        }
+
+        return $this->normalizarRelatorioParaShow($relatorio);
+    }
+
+    private function normalizarRelatorioParaShow(array $relatorio): array
+    {
+        $defaults = [
+            'frequencia_respiratoria'     => null,
+            'estado_geral'                => null,
+            'queixas_referidas'           => null,
+            'exame_fisico'                => null,
+            'pele_mucosas'                => null,
+            'visita_medica'               => null,
+            'entrada_saida_profissionais' => null,
+            'entrada_saida_familiares'    => null,
+            'plantao_entregue_para'       => null,
+            'peso'                        => null,
+            'observacoes_gerais'          => null,
+            'medicacoes'                  => null,
+        ];
+
+        $relatorio = array_merge($defaults, $relatorio);
+
+        if (empty($relatorio['medicacoes']) && !empty($relatorio['id'])) {
+            $medicacoesPlantao = $this->buscarMedicacoesPlantao((int)$relatorio['id']);
+            if (!empty($medicacoesPlantao)) {
+                $relatorio['medicacoes'] = json_encode($medicacoesPlantao, JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        if (empty($relatorio['observacoes_gerais']) && !empty($relatorio['observacao_sv'])) {
+            $relatorio['observacoes_gerais'] = (string)$relatorio['observacao_sv'];
+        }
+
+        return $relatorio;
+    }
+
+    private function buscarMedicacoesPlantao(int $plantaoId): array
+    {
+        $sql = "
+            SELECT medicamento, via, horario, status, observacao
+            FROM tb_medicacoes_plantao
+            WHERE plantao_id = :plantao_id
+            ORDER BY id ASC
+        ";
+
+        return $this->query($sql, [':plantao_id' => $plantaoId])->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function buscarPorIdCompleto(int $id): array|false
@@ -131,6 +200,7 @@ class RelatorioPlantao extends BaseModel
                 COALESCE(rp.fc, sv.fc) AS fc,
                 COALESCE(rp.temperatura, sv.temperatura) AS temperatura,
                 COALESCE(rp.spo2, sv.spo2) AS spo2,
+                COALESCE(rp.frequencia_respiratoria, sv.frequencia_respiratoria) AS frequencia_respiratoria,
                 COALESCE(rp.hgt, sv.hgt) AS hgt,
                 COALESCE(sv.observacao, '') AS observacao_sv
             FROM tb_relatorio_plantao rp
@@ -194,6 +264,11 @@ class RelatorioPlantao extends BaseModel
                     cuidador_id,
                     data_inicio,
                     data_fim,
+                    data_nascimento,
+                    internacao,
+                    tipo_local,
+                    quarto,
+                    nome_acompanhante,
                     turno,
                     evolucao,
                     assinado,
@@ -207,16 +282,29 @@ class RelatorioPlantao extends BaseModel
                     consciencia,
                     nivel_dor,
                     hidratacao_ml,
+                    hidratacao_registros,
                     higiene,
                     sono,
                     decubito,
+                    estado_geral,
+                    queixas_referidas,
+                    exame_fisico,
+                    pele_mucosas,
+                    visita_medica,
+                    entrada_saida_profissionais,
+                    entrada_saida_familiares,
+                    plantao_entregue_para,
+                    peso,
                     pa,
                     fc,
                     temperatura,
                     spo2,
+                    frequencia_respiratoria,
                     hgt,
                     diurese,
+                    urina_horarios,
                     evacuacao,
+                    fezes_horarios,
                     dispositivos,
                     alimentacao_via,
                     created_at,
@@ -226,6 +314,11 @@ class RelatorioPlantao extends BaseModel
                     :cuidador_id,
                     :data_inicio,
                     :data_fim,
+                    :data_nascimento,
+                    :internacao,
+                    :tipo_local,
+                    :quarto,
+                    :nome_acompanhante,
                     :turno,
                     :evolucao,
                     :assinado,
@@ -239,16 +332,29 @@ class RelatorioPlantao extends BaseModel
                     :consciencia,
                     :nivel_dor,
                     :hidratacao_ml,
+                    :hidratacao_registros,
                     :higiene,
                     :sono,
                     :decubito,
+                    :estado_geral,
+                    :queixas_referidas,
+                    :exame_fisico,
+                    :pele_mucosas,
+                    :visita_medica,
+                    :entrada_saida_profissionais,
+                    :entrada_saida_familiares,
+                    :plantao_entregue_para,
+                    :peso,
                     :pa,
                     :fc,
                     :temperatura,
                     :spo2,
+                    :frequencia_respiratoria,
                     :hgt,
                     :diurese,
+                    :urina_horarios,
                     :evacuacao,
+                    :fezes_horarios,
                     :dispositivos,
                     :alimentacao_via,
                     NOW(),
@@ -288,6 +394,11 @@ class RelatorioPlantao extends BaseModel
                     cuidador_id = :cuidador_id,
                     data_inicio = :data_inicio,
                     data_fim = :data_fim,
+                    data_nascimento = :data_nascimento,
+                    internacao = :internacao,
+                    tipo_local = :tipo_local,
+                    quarto = :quarto,
+                    nome_acompanhante = :nome_acompanhante,
                     turno = :turno,
                     evolucao = :evolucao,
                     assinado = :assinado,
@@ -301,16 +412,29 @@ class RelatorioPlantao extends BaseModel
                     consciencia = :consciencia,
                     nivel_dor = :nivel_dor,
                     hidratacao_ml = :hidratacao_ml,
+                    hidratacao_registros = :hidratacao_registros,
                     higiene = :higiene,
                     sono = :sono,
                     decubito = :decubito,
+                    estado_geral = :estado_geral,
+                    queixas_referidas = :queixas_referidas,
+                    exame_fisico = :exame_fisico,
+                    pele_mucosas = :pele_mucosas,
+                    visita_medica = :visita_medica,
+                    entrada_saida_profissionais = :entrada_saida_profissionais,
+                    entrada_saida_familiares = :entrada_saida_familiares,
+                    plantao_entregue_para = :plantao_entregue_para,
+                    peso = :peso,
                     pa = :pa,
                     fc = :fc,
                     temperatura = :temperatura,
                     spo2 = :spo2,
+                    frequencia_respiratoria = :frequencia_respiratoria,
                     hgt = :hgt,
                     diurese = :diurese,
+                    urina_horarios = :urina_horarios,
                     evacuacao = :evacuacao,
+                    fezes_horarios = :fezes_horarios,
                     dispositivos = :dispositivos,
                     alimentacao_via = :alimentacao_via,
                     updated_at = NOW()
@@ -354,17 +478,29 @@ class RelatorioPlantao extends BaseModel
 
         return [
             ':paciente_id'       => (int) ($dados['paciente_id'] ?? 0),
-            ':cuidador_id'       => !empty($dados['cuidador_id'])
-                ? (int) $dados['cuidador_id']
-                : null,
+            ':cuidador_id'       => !empty($dados['cuidador_id']) ? (int) $dados['cuidador_id'] : null,
             ':data_inicio'       => $this->normalizarDatetime($dados['data_inicio'] ?? null),
             ':data_fim'          => $this->normalizarDatetime($dados['data_fim'] ?? null),
-            ':turno' => $this->stringOrNull($dados['turno'] ?? null),
+            ':data_nascimento'   => $this->stringOrNull($dados['data_nascimento'] ?? null),
+            ':internacao'        => $this->stringOrNull($dados['internacao'] ?? null),
+            ':tipo_local'        => $this->stringOrNull($dados['tipo_local'] ?? null),
+            ':quarto'            => $this->stringOrNull($dados['quarto'] ?? null),
+            ':nome_acompanhante' => $this->stringOrNull($dados['nome_acompanhante'] ?? null),
+            ':turno'             => $this->stringOrNull($dados['turno'] ?? null),
             ':evolucao'          => $this->stringOrNull($evolucao),
             ':assinado'          => (int) ($dados['assinado'] ?? 0),
             ':estado_paciente'   => $this->stringOrNull($dados['estado_paciente'] ?? null),
+            ':estado_geral'      => $this->stringOrNull($dados['estado_geral'] ?? null),
+            ':queixas_referidas' => $this->jsonOrString($dados['queixas_referidas'] ?? null),
+            ':exame_fisico'      => $this->jsonOrString($dados['exame_fisico'] ?? null),
+            ':pele_mucosas'      => $this->stringOrNull($dados['pele_mucosas'] ?? null),
             ':alimentacao'       => $this->jsonOrString($dados['alimentacao'] ?? null),
+            ':alimentacao_via'   => $this->stringOrNull($dados['alimentacao_via'] ?? null),
             ':eliminacoes'       => $this->jsonOrString($dados['eliminacoes'] ?? null),
+            ':diurese'           => $this->jsonOrString($dados['diurese'] ?? null),
+            ':urina_horarios'    => $this->jsonOrString($dados['urina_horarios'] ?? null),
+            ':evacuacao'         => $this->jsonOrString($dados['evacuacao'] ?? null),
+            ':fezes_horarios'    => $this->jsonOrString($dados['fezes_horarios'] ?? null),
             ':medicacoes'        => $this->jsonOrString($dados['medicacoes'] ?? null),
             ':intercorrencias'   => $this->jsonOrString($dados['intercorrencias'] ?? null),
             ':status'            => $this->stringOrNull($dados['status'] ?? 'rascunho') ?? 'rascunho',
@@ -372,19 +508,22 @@ class RelatorioPlantao extends BaseModel
             ':consciencia'       => $this->stringOrNull($dados['consciencia'] ?? null),
             ':nivel_dor'         => $this->intOrNull($dados['nivel_dor'] ?? null),
             ':hidratacao_ml'     => $this->intOrNull($dados['hidratacao_ml'] ?? null),
+            ':hidratacao_registros' => $this->jsonOrString($dados['hidratacao_registros'] ?? null),
             ':higiene'           => $this->jsonOrString($dados['higiene'] ?? null),
             ':sono'              => $this->jsonOrString($dados['sono'] ?? null),
             ':decubito'          => $this->jsonOrString($dados['decubito'] ?? null),
+            ':dispositivos'      => $this->jsonOrString($dados['dispositivos'] ?? null),
+            ':visita_medica'     => $this->jsonOrString($dados['visita_medica'] ?? null),
+            ':entrada_saida_profissionais' => $this->jsonOrString($dados['entrada_saida_profissionais'] ?? null),
+            ':entrada_saida_familiares' => $this->jsonOrString($dados['entrada_saida_familiares'] ?? null),
+            ':plantao_entregue_para' => $this->stringOrNull($dados['plantao_entregue_para'] ?? null),
+            ':peso'              => $this->stringOrNull($dados['peso'] ?? null),
             ':pa'                => $this->stringOrNull($dados['pa'] ?? null),
             ':fc'                => $this->stringOrNull($dados['fc'] ?? null),
             ':temperatura'       => $this->stringOrNull($dados['temperatura'] ?? null),
             ':spo2'              => $this->stringOrNull($dados['spo2'] ?? null),
+            ':frequencia_respiratoria' => $this->stringOrNull($dados['frequencia_respiratoria'] ?? null),
             ':hgt'               => $this->stringOrNull($dados['hgt'] ?? null),
-            // Nos parâmetros adicionais:
-            ':diurese'          => $this->jsonOrString($dados['diurese']         ?? null),
-            ':evacuacao'        => $this->jsonOrString($dados['evacuacao']        ?? null),
-            ':dispositivos'     => $this->jsonOrString($dados['dispositivos']     ?? null),
-            ':alimentacao_via'  => $this->stringOrNull($dados['alimentacao_via']  ?? null),
         ];
     }
 
@@ -401,6 +540,7 @@ class RelatorioPlantao extends BaseModel
             ':fc'           => $this->stringOrNull($dados['fc'] ?? null),
             ':temperatura'  => $this->stringOrNull($dados['temperatura'] ?? null),
             ':spo2'         => $this->stringOrNull($dados['spo2'] ?? null),
+            ':frequencia_respiratoria' => $this->stringOrNull($dados['frequencia_respiratoria'] ?? null),
             ':hgt'          => $this->stringOrNull($dados['hgt'] ?? null),
             ':observacao'   => $this->stringOrNull($dados['observacao_sv'] ?? null),
         ];
@@ -413,6 +553,7 @@ class RelatorioPlantao extends BaseModel
                     fc = :fc,
                     temperatura = :temperatura,
                     spo2 = :spo2,
+                    frequencia_respiratoria = :frequencia_respiratoria,
                     hgt = :hgt,
                     observacao = :observacao
                 WHERE relatorio_id = :relatorio_id
@@ -428,6 +569,7 @@ class RelatorioPlantao extends BaseModel
                 fc,
                 temperatura,
                 spo2,
+                frequencia_respiratoria,
                 hgt,
                 observacao
             ) VALUES (
@@ -436,6 +578,7 @@ class RelatorioPlantao extends BaseModel
                 :fc,
                 :temperatura,
                 :spo2,
+                :frequencia_respiratoria,
                 :hgt,
                 :observacao
             )
@@ -531,5 +674,106 @@ class RelatorioPlantao extends BaseModel
         }
 
         return (string) $value;
+    }
+
+    public function listarPorPaciente(int $pacienteId): array
+    {
+        $sql = "
+        SELECT *
+        FROM tb_relatorio_plantao
+        WHERE paciente_id = :paciente_id
+        ORDER BY data_inicio DESC
+    ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->bindValue(':paciente_id', $pacienteId, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function listarPacientesComUltimoRelatorio(): array
+    {
+        $sql = "
+        SELECT
+            p.*,
+
+            (
+                SELECT rp.uuid
+                FROM tb_relatorio_plantao rp
+                WHERE rp.paciente_id = p.id
+                ORDER BY rp.data_inicio DESC
+                LIMIT 1
+            ) AS ultimo_relatorio_uuid
+
+        FROM tb_pacientes p
+
+        WHERE EXISTS (
+            SELECT 1
+            FROM tb_relatorio_plantao rp2
+            WHERE rp2.paciente_id = p.id
+        )
+
+        ORDER BY p.nome_completo ASC
+    ";
+
+        $stmt = $this->db->query($sql);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function gerarNumeroProntuario(): string
+    {
+        $ano = (int)date('Y');
+
+        $stmt = $this->db->prepare("
+        INSERT INTO tb_prontuario_sequencia (ano)
+        VALUES (:ano)
+    ");
+
+        $stmt->execute([
+            ':ano' => $ano,
+        ]);
+
+        $sequencial = (int)$this->db->lastInsertId();
+
+        return sprintf('PRT-%d-%06d', $ano, $sequencial);
+    }
+
+    public function garantirProntuario(int $pacienteId): ?string
+    {
+        $stmt = $this->db->prepare("
+        SELECT prontuario
+        FROM tb_pacientes
+        WHERE id = :id
+        LIMIT 1
+    ");
+
+        $stmt->execute([
+            ':id' => $pacienteId,
+        ]);
+
+        $atual = $stmt->fetchColumn();
+
+        if (!empty($atual)) {
+            return (string)$atual;
+        }
+
+        $novoProntuario = $this->gerarNumeroProntuario();
+
+        $update = $this->db->prepare("
+        UPDATE tb_pacientes
+        SET prontuario = :prontuario
+        WHERE id = :id
+    ");
+
+        $update->execute([
+            ':prontuario' => $novoProntuario,
+            ':id' => $pacienteId,
+        ]);
+
+        return $novoProntuario;
     }
 }

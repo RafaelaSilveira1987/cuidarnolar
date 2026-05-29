@@ -1,0 +1,531 @@
+-- --------------------------------------------------------
+-- Servidor:                     127.0.0.1
+-- Versão do servidor:           8.4.7 - MySQL Community Server - GPL
+-- OS do Servidor:               Win64
+-- HeidiSQL Versão:              12.11.0.7065
+-- --------------------------------------------------------
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET NAMES utf8 */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+
+-- Copiando estrutura do banco de dados para cuidar_no_lar
+CREATE DATABASE IF NOT EXISTS `cuidar_no_lar` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `cuidar_no_lar`;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_anamnese
+CREATE TABLE IF NOT EXISTS `tb_anamnese` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `data_anamnese` date NOT NULL,
+  `patologia` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `diagnostico_principal` varchar(255) DEFAULT NULL,
+  `cid_principal` varchar(20) DEFAULT NULL,
+  `motivo_homecare` text,
+  `observacoes_clinicas` text,
+  `usa_sonda` enum('Sim','Não') DEFAULT 'Não',
+  `tipo_sonda` varchar(100) DEFAULT NULL,
+  `usa_gastrostomia` enum('Sim','Não') DEFAULT 'Não',
+  `usa_traqueostomia` enum('Sim','Não') DEFAULT 'Não',
+  `usa_oxigenio` enum('Sim','Não') DEFAULT 'Não',
+  `fluxo_oxigenio` varchar(50) DEFAULT NULL,
+  `usa_colostomia` enum('Sim','Não') DEFAULT 'Não',
+  `usa_cateter_vesical` enum('Sim','Não') DEFAULT 'Não',
+  `usa_picc` enum('Sim','Não') DEFAULT 'Não',
+  `sintomas` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `sequelas` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `historia_medica` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `cirurgia` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `protese` enum('Sim','Não') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `acamado` enum('Sim','Não') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `hipertensao` enum('Sim','Não') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `diabetes` enum('Sim','Não') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `alergia` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `estilo_de_vida` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `dieta` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `medicacao_continua` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `sono` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `visao` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `audicao` varchar(50) DEFAULT NULL,
+  `incontinencia` enum('Sim','Não') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `demencia` enum('Sim','Não') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `cognicao` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `coordenacao_motora` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `humor` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `problemas_locomocao` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `medico` varchar(30) DEFAULT NULL,
+  `status` enum('completa','pendente','em revisão') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_anamnese_uuid` (`uuid`),
+  KEY `paciente_id` (`paciente_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_anamnese: 5 rows
+/*!40000 ALTER TABLE `tb_anamnese` DISABLE KEYS */;
+INSERT INTO `tb_anamnese` (`id`, `uuid`, `paciente_id`, `data_anamnese`, `patologia`, `diagnostico_principal`, `cid_principal`, `motivo_homecare`, `observacoes_clinicas`, `usa_sonda`, `tipo_sonda`, `usa_gastrostomia`, `usa_traqueostomia`, `usa_oxigenio`, `fluxo_oxigenio`, `usa_colostomia`, `usa_cateter_vesical`, `usa_picc`, `sintomas`, `sequelas`, `historia_medica`, `cirurgia`, `protese`, `acamado`, `hipertensao`, `diabetes`, `alergia`, `estilo_de_vida`, `dieta`, `medicacao_continua`, `sono`, `visao`, `audicao`, `incontinencia`, `demencia`, `cognicao`, `coordenacao_motora`, `humor`, `problemas_locomocao`, `medico`, `status`) VALUES
+	(2, '6abcad6a-52ac-11f1-a16a-089798669242', 1, '2024-10-15', 'Diabetes', NULL, NULL, NULL, NULL, 'Não', NULL, 'Não', 'Não', 'Não', NULL, 'Não', 'Não', 'Não', 'Nenhum', 'Nenhum', 'Nenhum', 'Não', 'Não', 'Não', 'Sim', 'Sim', 'Não', 'Nenhum', 'Nenhum', 'Nenhum', 'Nenhum', 'Nenhum', 'Nenhum', 'Sim', 'Sim', 'Nenhum', 'Nenhum', 'Nenhum', 'Não', 'Dra Thais', 'pendente'),
+	(3, '6abcbd24-52ac-11f1-a16a-089798669242', 2, '2024-10-20', 'Saúde', NULL, NULL, NULL, NULL, 'Não', NULL, 'Não', 'Não', 'Não', NULL, 'Não', 'Não', 'Não', 'Gripe', 'Não anda', 'Nenhum', 'Não', 'Não', 'Sim', 'Sim', 'Sim', 'Nenhuma', 'Normal', 'Normal', 'Nenhuma', 'Desrregulado', 'Normal', 'Normal', 'Sim', 'Sim', 'Normal', 'Normal', 'Normal', 'Normal', 'Dr. Ricardo', 'em revisão'),
+	(6, '6abcc067-52ac-11f1-a16a-089798669242', 2, '2024-12-16', 'Corrigida', NULL, NULL, NULL, NULL, 'Não', NULL, 'Não', 'Não', 'Não', NULL, 'Não', 'Não', 'Não', 'Teste', 'Funcionando', 'Teste', 'Teste', 'Não', 'Sim', 'Não', 'Sim', 'Teste', 'Teste', 'Teste', 'Teste', 'Teste', 'Teste', 'Teste', 'Sim', 'Sim', 'Teste', 'Teste', 'Teste', 'não', 'Dr. Carlos', 'em revisão'),
+	(25, '6abccdaf-52ac-11f1-a16a-089798669242', 10, '2026-05-13', NULL, NULL, NULL, NULL, NULL, 'Não', NULL, 'Não', 'Não', 'Não', NULL, 'Não', 'Não', 'Não', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'pendente'),
+	(26, 'df4e5669-53e2-11f1-a16a-089798669242', 8, '2026-05-14', 'Infecção urinária', NULL, NULL, NULL, NULL, 'Não', NULL, 'Não', 'Não', 'Não', NULL, 'Não', 'Não', 'Não', 'Febre, sonolência, dor ao urinar', 'Sepse', 'Paciente com histórico normal', 'Nenhuma', 'Não', 'Não', 'Sim', 'Não', 'Nenhuma', 'Sedentária', 'Nenhuma', 'Sinvastatina 20mg - 1x a noite', 'Normal', 'Normal', 'Prejudicada em 30%', 'Sim', 'Não', 'Normal', 'Normal', 'Relativo', 'Nenhum', 'Dra Vanusa', 'completa');
+/*!40000 ALTER TABLE `tb_anamnese` ENABLE KEYS */;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_cuidador
+CREATE TABLE IF NOT EXISTS `tb_cuidador` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `nome_completo` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `endereco` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `numero` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `bairro` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `cidade` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `estado` char(2) NOT NULL,
+  `cep` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `cpf` varchar(14) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `email` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `rg` varchar(20) DEFAULT NULL,
+  `data_nascimento` date DEFAULT NULL,
+  `telefone` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `pix` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `especialidade` enum('Técnico de Enfermagem','Enfermeira','Cuidador','Acompanhante') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `status` enum('Ativo','Inativo','Standby') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT 'Ativo',
+  `contrato_horas` enum('6h','8h','12h','24h') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `motivo_inativacao` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cpf` (`cpf`),
+  UNIQUE KEY `uq_cuidador_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_cuidador: ~21 rows (aproximadamente)
+INSERT INTO `tb_cuidador` (`id`, `uuid`, `nome_completo`, `endereco`, `numero`, `bairro`, `cidade`, `estado`, `cep`, `cpf`, `email`, `rg`, `data_nascimento`, `telefone`, `pix`, `especialidade`, `status`, `contrato_horas`, `motivo_inativacao`) VALUES
+	(1, '6aff6b8a-52ac-11f1-a16a-089798669242', 'Kelly Cristina Raimundo', 'Rua Onofre de Barros', '162', 'Nossa Senhora de Fátima', 'Eugenópolis', 'MG', '36855-000', '076.470.487-75', '32999759589Kelly@gmail.com', '0000000', '1976-10-20', '(32) 99975-9589', '32999759589', 'Cuidador', 'Ativo', '24h', NULL),
+	(2, '6aff75c9-52ac-11f1-a16a-089798669242', 'Tereza Raquel Nonato Viana ', 'Rua Nova Muriaé bloco 8', '202', 'Nova Muriáe', 'Muriaé', 'MG', '36880-000', '131.225.716-41', 'terezaraquelnonatoviana@gmail.com', '0000000', '1995-12-26', '(22) 98136-5364', '13122571641', 'Cuidador', 'Ativo', '24h', NULL),
+	(3, '6aff7782-52ac-11f1-a16a-089798669242', 'Patrícia Lopes da Silva Fernante', 'Rua Lopo Cardoso', '341', 'Cardoso de Melo', 'Muriaé', 'MG', '36887-209', '036.718.376-59', 'patricialopessilva021@gmail.com', '0000000', '1980-02-21', '(32) 9830-0650', '03671837659', 'Cuidador', 'Standby', '24h', NULL),
+	(4, '6aff78dd-52ac-11f1-a16a-089798669242', 'Izabela Silva Souza', 'Rua Vereador Jacy Vargas', 'Lote 7', 'Centro', 'Pirapanema', 'MG', '36880-000', '106.602.956-36', 'izabelasilvasouza338@gmail.com', '0000000', '1994-03-14', '(32) 99833-6754', '32998336754', 'Cuidador', 'Ativo', '24h', NULL),
+	(5, '6aff7fe1-52ac-11f1-a16a-089798669242', 'Patrícia de Sales Silva ', 'Rua coronel pereira sobrinho', '405', 'Porto', 'Muriaé', 'MG', '36880-000', '023.086.676-05', 'patriciasales2105@gmail.com', '0000000', '1998-05-21', '(32) 99860-6301', '32998606301 ', 'Técnico de Enfermagem', 'Ativo', '24h', NULL),
+	(6, '6aff8577-52ac-11f1-a16a-089798669242', 'Mayara Cristina Gomes Santos', 'Rua Onofre de Barros - Fundos', '306', 'Centro', 'Eugenópolis', 'MG', '36880-000', '111.802.926-77', 'msgcristina@gmail.com', '0000000', '1992-02-17', '(32) 99999-9999', 'msgcristina@gmail.com', 'Técnico de Enfermagem', 'Ativo', '24h', NULL),
+	(7, '6aff8b1e-52ac-11f1-a16a-089798669242', 'Maria Carolina Tavares da Cunha', 'Rua: Professor Florestan Fernandes', '46', 'Chalé', 'Muriaé', 'MG', '36880-000', '152.312.427-05', 'mtavarescampbell@gmail.com', '0000000', '1994-08-09', '(32)98897-6793', '32988976793', 'Técnico de Enfermagem', 'Ativo', '24h', NULL),
+	(8, '6aff907b-52ac-11f1-a16a-089798669242', 'Vanusa Alves ', 'Rua Cornelio de Henriques de Almeida', '103 - 102', 'José Cirilo', 'Muriaé', 'MG', '36886-002', '056.571.246.26', 'vanusaag@gmail.com', '00.001.001-01', '1981-04-04', '(32) 98857-5765', '05657124626', 'Cuidador', 'Ativo', '24h', NULL),
+	(11, '6aff9261-52ac-11f1-a16a-089798669242', 'Silma Ana de Freitas', 'Rua Capitão Felisberto', '97', 'Barra', 'Muriaé', 'MG', '36886-000', '641.047.026-68', 'silmaanadefreitas23@gmail.com', '8-560.579', '1965-08-19', '(32) 00000-0000', 'silmaanadefreitas23@gmail.com', 'Cuidador', 'Inativo', '24h', 'Irresponsabilidade com comunicação e horário. Deixando paciente sozinha sem aviso em tempo hábil.'),
+	(12, '6aff9428-52ac-11f1-a16a-089798669242', 'Elisabeti Neves Filgueiras Batista', 'Rua Astrogildo Figueiredo Barros', '140', 'João XXIII', 'Muriaé', 'MG', '36886-000', '783.286.686-49', 'betineves699@gmail.com', '13.680.211', '1961-12-09', '(32) 99818-2560', '32998182560', 'Cuidador', 'Ativo', '24h', NULL),
+	(13, '6aff959b-52ac-11f1-a16a-089798669242', 'Crislayne Rafaela Filipe', 'Rua Itália ', 'S/N', 'São Cristóvão', 'Muriaé', 'MG', '36886-000', '062.186.676-85', 'crislayne.96@hotmail.com', 'MG-19.715.854', '1996-01-04', '(32) 00000-0000', '447fd681-ec80-45b5-871c-bddc6a599415', 'Cuidador', 'Ativo', '6h', NULL),
+	(31, '6aff9a31-52ac-11f1-a16a-089798669242', 'Maria Aparecida Oliveira Paiva', 'Av Juscelino Kubitschek - Apto 101', '199', 'Centro', 'Muriaé', 'MG', '36880-000', '684.978.906-63', 'mariaapaiva21@gmail.com', 'MG-6.956.381', '1967-04-16', '(32) 98853-4604', '(32) 98853-4604', 'Cuidador', 'Ativo', '24h', NULL),
+	(32, '6aff988f-52ac-11f1-a16a-089798669242', 'Lais Vicente da Silva', 'Fazenda Paula Neves', 'SN', 'Divisório', 'Muriaé', 'MG', '36880-000', '082.246.496-95', 'laisvicente93@gmail.com', '19.099.614', '1993-10-06', '(32) 99999-9999', 'laisvicente93@gmail.com', 'Cuidador', 'Ativo', '6h', NULL),
+	(33, '6aff96ec-52ac-11f1-a16a-089798669242', 'Simone Cristina da Silva', 'Rua Simeão Féres', '50', 'Barra', 'Muriaé', 'MG', '36886-000', '026.969-766-78', 'simone.thebestvip@gmail.com', 'MG-7.306.747', '1977-05-25', '(32) 98859-2572', '(32) 98859-2572', 'Acompanhante', 'Ativo', '24h', NULL),
+	(59, '6affa36d-52ac-11f1-a16a-089798669242', 'Rafaela Silveira', 'R Cornélio Henriques de Almeida', '103 ', 'José Cirilo', 'Muriaé', 'MG', '36886002', '11803473746', 'rafaela.frontend@gmail.com', '20.131.858-1', '1987-04-12', '32999906354', 'rafaelasilveira1987@gmail.com', 'Acompanhante', 'Ativo', '8h', ''),
+	(61, '6aff9e9b-52ac-11f1-a16a-089798669242', 'Gessimar Cristiane Cerqueira de Oliveira ', 'Rua Aberto José Ferreira', '12', 'São Vicente de Paula', 'Muriaé', 'MG', '36880080', '03674829673', 'cerqueiragessimar@gmail.com', '10.136.145', '1978-07-24', '32998017584', '(32) 99801-7584', 'Técnico de Enfermagem', 'Ativo', '12h', NULL),
+	(62, '6affa69f-52ac-11f1-a16a-089798669242', 'Thalyta Vitória de Souza Silva ', 'Rua Independência', '373', 'Santo Antônio', 'Muriaé', 'MG', '36881126', '70363839682', 'vtrthalyta4@gmail.com', '22.238.589', '2005-03-23', '32999999999', 'vtrthalyta4@gmail.com', 'Cuidador', 'Ativo', '12h', NULL),
+	(63, '6affa932-52ac-11f1-a16a-089798669242', 'Myrian da Conceição Pinto de Almeida', 'Rua Santo Antônio', '301', 'Santo Antônio', 'Muriaé', 'MG', '36881110', '06026233679', 'Almeidamyriam24@gmail.com', '13.400.727', '1982-11-20', '32988888888', '06026233679', 'Cuidador', 'Ativo', '12h', NULL),
+	(64, '6affabce-52ac-11f1-a16a-089798669242', 'Joelma Marques de Campos', 'Rua Mário Martins', '65', 'Cardoso de Melo', 'Muriaé', 'MG', '36887243', '07120610708', 'joelmamarquesandrade1@gmail.com', '16.082.260', '1977-12-02', '32977777777', '79a5fc3d-75c2-4eda-9e36-f96441eb54f5', 'Cuidador', 'Ativo', '12h', NULL),
+	(66, '6affaebe-52ac-11f1-a16a-089798669242', 'Hyllary Carvalho e Paiva', 'Rua Maria José da Rocha', '23', 'Planalto', 'Muriaé', 'MG', '36883157', '12958678695', 'paivahyllary@gmail.com', '19.957.877', '2002-05-09', '32998713122', '32998713122', 'Cuidador', 'Ativo', '12h', NULL),
+	(67, '6affb19d-52ac-11f1-a16a-089798669242', ' este Cuidador MVC', 'Rua  este', NULL, NULL, 'Juiz de Fora', 'MG', '36000-000', '000.000.000-02', NULL, NULL, NULL, NULL, NULL, 'Cuidador', 'Inativo', NULL, 'Inativado pelo painel MVC');
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_diarioidoso
+CREATE TABLE IF NOT EXISTS `tb_diarioidoso` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `visita_mensal` datetime DEFAULT (now()),
+  `oxigenio` int DEFAULT NULL,
+  `frequencia_cardiaca` int DEFAULT NULL,
+  `temperatura` decimal(3,1) DEFAULT NULL,
+  `pressao_arterial` varchar(10) DEFAULT NULL,
+  `frequencia_respiratoria` int DEFAULT NULL,
+  `hgt` decimal(6,2) DEFAULT NULL,
+  `dor` int DEFAULT NULL,
+  `peso` decimal(5,1) DEFAULT NULL,
+  `altura` decimal(3,2) DEFAULT NULL,
+  `historico_id` int DEFAULT NULL,
+  `observacao` varchar(250) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_diarioidoso_uuid` (`uuid`),
+  KEY `paciente_id` (`paciente_id`),
+  KEY `historico_id` (`historico_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_diarioidoso: 8 rows
+/*!40000 ALTER TABLE `tb_diarioidoso` DISABLE KEYS */;
+INSERT INTO `tb_diarioidoso` (`id`, `uuid`, `paciente_id`, `visita_mensal`, `oxigenio`, `frequencia_cardiaca`, `temperatura`, `pressao_arterial`, `frequencia_respiratoria`, `hgt`, `dor`, `peso`, `altura`, `historico_id`, `observacao`) VALUES
+	(1, '6b1486ba-52ac-11f1-a16a-089798669242', 1, '2024-12-02 00:00:00', 98, 90, 35.0, '130/98', 50, 120.00, 5, 47.0, 1.60, 1, NULL),
+	(3, '6b1492e1-52ac-11f1-a16a-089798669242', 2, '2024-12-10 00:00:00', 99, 78, 36.1, '149/87', 19, 127.00, 2, 52.0, 1.50, 2, 'Paciente no dia da medição havia acabado de tomar café da tarde'),
+	(4, '6b14a0fd-52ac-11f1-a16a-089798669242', 2, '2024-11-25 00:00:00', 96, 91, 35.4, '1.59', 2, 1.59, 2, 52.0, 1.50, NULL, NULL),
+	(6, '6b14a3ad-52ac-11f1-a16a-089798669242', 1, '2024-12-19 00:00:00', 97, 72, 35.3, '110/70', 16, 144.00, 6, 52.0, 1.50, NULL, NULL),
+	(7, '6b14a628-52ac-11f1-a16a-089798669242', 1, '2025-02-07 00:00:00', 96, 75, 36.5, '120/70', 16, 143.00, 8, 52.0, 1.50, NULL, NULL),
+	(8, '6b14a8d3-52ac-11f1-a16a-089798669242', 8, '2025-04-25 00:00:00', 98, 87, 36.4, '12/8', 15, 119.00, 7, 83.0, 9.99, NULL, 'Rotina'),
+	(9, '6b14ab87-52ac-11f1-a16a-089798669242', 1, '2025-04-30 00:00:00', 97, 72, 35.3, '120/70', 14, 120.00, 9, 40.0, 9.99, NULL, 'N/A'),
+	(10, '6b14ae1a-52ac-11f1-a16a-089798669242', 10, '2026-05-13 10:00:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ' este');
+/*!40000 ALTER TABLE `tb_diarioidoso` ENABLE KEYS */;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_dispositivos_paciente
+CREATE TABLE IF NOT EXISTS `tb_dispositivos_paciente` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `tipo` enum('Sonda Nasogástrica','Sonda Nasoenteral','Gastrostomia','Traqueostomia','Oxigênio','Cateter Vesical','Colostomia','PICC','Port-a-Cath','Outros') NOT NULL,
+  `descricao` varchar(255) DEFAULT NULL,
+  `data_insercao` date DEFAULT NULL,
+  `data_retirada` date DEFAULT NULL,
+  `protocolo_cuidado` text,
+  `status` enum('Ativo','Inativo') DEFAULT 'Ativo',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_dispositivos_uuid` (`uuid`),
+  KEY `idx_dispositivos_paciente` (`paciente_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_dispositivos_paciente: 0 rows
+/*!40000 ALTER TABLE `tb_dispositivos_paciente` DISABLE KEYS */;
+/*!40000 ALTER TABLE `tb_dispositivos_paciente` ENABLE KEYS */;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_eventos
+CREATE TABLE IF NOT EXISTS `tb_eventos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL DEFAULT '0',
+  `titulo` varchar(255) NOT NULL,
+  `descricao` text,
+  `data_evento` datetime NOT NULL,
+  `cuidador_id` int DEFAULT NULL,
+  `status` enum('Pendente','Concluído') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_eventos_uuid` (`uuid`),
+  KEY `paciente_id` (`paciente_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=82 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_eventos: 17 rows
+/*!40000 ALTER TABLE `tb_eventos` DISABLE KEYS */;
+INSERT INTO `tb_eventos` (`id`, `uuid`, `paciente_id`, `titulo`, `descricao`, `data_evento`, `cuidador_id`, `status`) VALUES
+	(4, '6b270491-52ac-11f1-a16a-089798669242', 1, 'Visita Mensal', 'Aferição de sinais vitais (rotina).', '2025-02-07 17:30:00', NULL, 'Concluído'),
+	(5, '6b271060-52ac-11f1-a16a-089798669242', 0, 'Entrevista', 'Café com Jô - Alinhamento para parceria', '2025-02-13 15:00:00', NULL, 'Concluído'),
+	(6, '6b27134a-52ac-11f1-a16a-089798669242', 0, 'Entrevista', 'Café com Sônia - Alinhamento para parceria', '2025-02-19 17:00:00', NULL, 'Concluído'),
+	(7, '6b271601-52ac-11f1-a16a-089798669242', 0, 'Entrevista', 'Café com Maria Lúcia - Alinhamento para parceria', '2025-02-13 16:00:00', NULL, 'Concluído'),
+	(8, '6b2718ab-52ac-11f1-a16a-089798669242', 0, 'Entrevista', 'Café com Cyntia - Alinhamento para parceria', '2025-02-19 15:00:00', NULL, 'Concluído'),
+	(67, '6b2728b5-52ac-11f1-a16a-089798669242', 0, 'Café', 'Entrevista com: Teste - Alinhamento', '2025-04-16 10:00:00', NULL, 'Pendente'),
+	(68, '6b272b75-52ac-11f1-a16a-089798669242', 0, 'Café', 'Entrevista com: Rafaela - Teste', '2025-04-24 14:00:00', NULL, 'Concluído'),
+	(69, '6b2725f7-52ac-11f1-a16a-089798669242', 0, 'ALINHAMENTO', 'CAFÉ Com Rafa- ', '2025-04-28 09:00:00', NULL, 'Concluído'),
+	(70, '6b272327-52ac-11f1-a16a-089798669242', 0, 'Médico', 'Consulta DR Rogério - Consulta Dr. Rogério ', '2025-05-05 07:00:00', NULL, 'Concluído'),
+	(71, '6b272082-52ac-11f1-a16a-089798669242', 0, 'Ginecologista Rafa', 'Ginecologista Rafa', '2025-05-06 10:20:00', NULL, 'Concluído'),
+	(75, '6b271df7-52ac-11f1-a16a-089798669242', 0, 'Compromisso: ', 'Teste', '2025-05-16 10:00:00', NULL, 'Concluído'),
+	(76, '6b271b5e-52ac-11f1-a16a-089798669242', 0, 'Compromisso: ', 'Psiquiatra', '2025-05-22 13:00:00', NULL, 'Pendente'),
+	(77, '6b272e0d-52ac-11f1-a16a-089798669242', 0, 'Plantão José', NULL, '2026-04-23 07:00:00', 8, 'Pendente'),
+	(78, '6b2730c8-52ac-11f1-a16a-089798669242', 10, ' este Agenda', NULL, '2026-05-13 10:00:00', 67, 'Pendente'),
+	(79, '6b273397-52ac-11f1-a16a-089798669242', 1, ' este Concluido', NULL, '2026-05-13 10:00:00', NULL, 'Concluído'),
+	(80, '6b27364c-52ac-11f1-a16a-089798669242', 10, 'Visita técnica', 'Hospital São Paulo', '2026-05-20 10:00:00', 67, 'Pendente'),
+	(81, '6b2738f9-52ac-11f1-a16a-089798669242', 2, 'Plantão extra', NULL, '2026-05-15 12:00:00', NULL, 'Pendente');
+/*!40000 ALTER TABLE `tb_eventos` ENABLE KEYS */;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_historico
+CREATE TABLE IF NOT EXISTS `tb_historico` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `historico_familiar` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `historico_profissional` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `historico_medico` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `internacoes` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `necessidades` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `limitacoes` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `status` enum('Finalizado','Pendente') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT 'Pendente',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uq_historico_uuid` (`uuid`),
+  KEY `paciente_id` (`paciente_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_historico: 3 rows
+/*!40000 ALTER TABLE `tb_historico` DISABLE KEYS */;
+INSERT INTO `tb_historico` (`id`, `uuid`, `paciente_id`, `historico_familiar`, `historico_profissional`, `historico_medico`, `internacoes`, `necessidades`, `limitacoes`, `status`) VALUES
+	(1, '6bb19be6-52ac-11f1-a16a-089798669242', 1, 'Nenhum', 'Consulta de rotina', 'Padrão', 'Exames', 'Nenhuma', 'Nenhuma', 'Pendente'),
+	(2, '6bb1a48f-52ac-11f1-a16a-089798669242', 2, 'Paciente com alto ídice de disposição para doenças mentais.', 'Paciente sem histórico profissional, apenas hobbie de crochê.', 'Paciente com esquisofrenia, recém acometida por um AVC com sequelas no lado direito.', 'Sem detalhes sobre internações, apena registro de quando teve AVC.', 'Transferência de cama para cadeira, banho na cadei', 'Locomoção prejudicada devido AVC.', 'Finalizado'),
+	(3, '6bb1a6f9-52ac-11f1-a16a-089798669242', 10, NULL, NULL, NULL, NULL, NULL, NULL, 'Pendente');
+/*!40000 ALTER TABLE `tb_historico` ENABLE KEYS */;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_intercorrencias
+CREATE TABLE IF NOT EXISTS `tb_intercorrencias` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `plantao_id` int NOT NULL,
+  `descricao` text COLLATE utf8mb4_unicode_ci,
+  `gravidade` enum('leve','media','grave') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `horario` time DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_intercorrencias_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_intercorrencias: ~0 rows (aproximadamente)
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_medicacoes_paciente
+CREATE TABLE IF NOT EXISTS `tb_medicacoes_paciente` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `created_by` int DEFAULT NULL,
+  `nome_medicamento` varchar(150) NOT NULL,
+  `apresentacao` varchar(100) DEFAULT NULL,
+  `dosagem` varchar(100) DEFAULT NULL,
+  `via` enum('VO','EV','IM','SC','SL','Retal','Tópica','Inalatória','GTT','SNE','Gastrostomia') DEFAULT NULL,
+  `horarios` varchar(255) DEFAULT NULL,
+  `frequencia` varchar(100) DEFAULT NULL,
+  `data_inicio` date DEFAULT NULL,
+  `data_fim` date DEFAULT NULL,
+  `observacoes` text,
+  `status` enum('Ativo','Inativo') DEFAULT 'Ativo',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_medicacoes_uuid` (`uuid`),
+  KEY `idx_medicacoes_paciente` (`paciente_id`),
+  KEY `fk_medicacao_usuario` (`created_by`),
+  CONSTRAINT `fk_medicacao_usuario` FOREIGN KEY (`created_by`) REFERENCES `tb_usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_medicacoes_paciente: ~2 rows (aproximadamente)
+INSERT INTO `tb_medicacoes_paciente` (`id`, `uuid`, `paciente_id`, `created_by`, `nome_medicamento`, `apresentacao`, `dosagem`, `via`, `horarios`, `frequencia`, `data_inicio`, `data_fim`, `observacoes`, `status`, `created_at`, `updated_at`, `updated_by`) VALUES
+	(1, '4fdb434e-544a-11f1-a16a-089798669242', 8, 1, 'Desve', NULL, '200mg', 'VO', '09:00', '1x ao dia', NULL, NULL, NULL, 'Ativo', '2026-05-20 12:49:16', '2026-05-20 20:31:41', NULL),
+	(2, '4fdb986e-544a-11f1-a16a-089798669242', 8, 1, 'Lisden', NULL, '30mg', 'VO', '07:00', '1x ao dia', NULL, NULL, NULL, 'Ativo', '2026-05-20 12:49:16', '2026-05-20 20:31:41', NULL),
+	(3, '8135f11b-561c-11f1-a16a-089798669242', 11, 1, 'Simeticona', NULL, '1', 'VO', '20:00', 'Diário', NULL, NULL, NULL, 'Ativo', '2026-05-22 20:26:25', '2026-05-22 20:26:25', NULL);
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_medicacoes_plantao
+CREATE TABLE IF NOT EXISTS `tb_medicacoes_plantao` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `plantao_id` int NOT NULL,
+  `medicacao_paciente_id` int DEFAULT NULL,
+  `medicamento` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `via` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `horario` time DEFAULT NULL,
+  `status` enum('administrado','pendente','recusado') COLLATE utf8mb4_unicode_ci DEFAULT 'pendente',
+  `observacao` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_medicacoes_plantao_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_medicacoes_plantao: ~0 rows (aproximadamente)
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_pacientes
+CREATE TABLE IF NOT EXISTS `tb_pacientes` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `nome_completo` varchar(100) NOT NULL,
+  `diagnostico` varchar(255) DEFAULT NULL,
+  `cid_principal` varchar(20) DEFAULT NULL,
+  `diagnostico_principal` text,
+  `motivo_homecare` text,
+  `usa_sonda` enum('Sim','Não') DEFAULT 'Não',
+  `usa_oxigenio` enum('Sim','Não') DEFAULT 'Não',
+  `traqueostomia` enum('Sim','Não') DEFAULT 'Não',
+  `gastrostomia` enum('Sim','Não') DEFAULT 'Não',
+  `colostomia` enum('Sim','Não') DEFAULT 'Não',
+  `cateter_vesical` enum('Sim','Não') DEFAULT 'Não',
+  `observacoes_clinicas` text,
+  `data_nascimento` date DEFAULT NULL,
+  `cpf` varchar(14) DEFAULT NULL,
+  `rg` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
+  `cartao_nac_sus` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
+  `plano_saude` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci,
+  `responsavel_id` int DEFAULT NULL,
+  `cuidador_id` int DEFAULT NULL,
+  `anamnese_id` int DEFAULT NULL,
+  `status` enum('Ativo','Inativo') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT 'Ativo',
+  `motivo_inativacao` text,
+  `sexo` varchar(20) DEFAULT NULL,
+  `foto` varchar(255) DEFAULT NULL,
+  `endereco_completo` varchar(255) DEFAULT NULL,
+  `telefone_principal` varchar(30) DEFAULT NULL,
+  `telefone_secundario` varchar(30) DEFAULT NULL,
+  `email` varchar(120) DEFAULT NULL,
+  `responsavel_nome_texto` varchar(120) DEFAULT NULL,
+  `responsavel_parentesco` varchar(60) DEFAULT NULL,
+  `responsavel_telefone` varchar(30) DEFAULT NULL,
+  `responsavel_email` varchar(120) DEFAULT NULL,
+  `comorbidades` text,
+  `alergias` text,
+  `historico_cirurgico` text,
+  `tipo_sanguineo` varchar(5) DEFAULT NULL,
+  `peso` decimal(6,2) DEFAULT NULL,
+  `altura` decimal(4,2) DEFAULT NULL,
+  `dieta_tipo` varchar(120) DEFAULT NULL,
+  `dieta_restricao` text,
+  `alimentacao_via` varchar(80) DEFAULT NULL,
+  `sonda_vesical` varchar(10) DEFAULT NULL,
+  `incontinencia` varchar(120) DEFAULT NULL,
+  `mobilidade` varchar(80) DEFAULT NULL,
+  `estado_cognitivo_base` varchar(80) DEFAULT NULL,
+  `gtt` varchar(10) DEFAULT NULL,
+  `sne` varchar(10) DEFAULT NULL,
+  `cateter_venoso` varchar(10) DEFAULT NULL,
+  `picc` varchar(10) DEFAULT NULL,
+  `lesao_pressao` varchar(10) DEFAULT NULL,
+  `curativos` text,
+  `areas_risco` text,
+  `condutas_permanentes` text,
+  `convenio` varchar(120) DEFAULT NULL,
+  `numero_carteirinha` varchar(80) DEFAULT NULL,
+  `prescricao_medica` text,
+  `termos_assinados` text,
+  `cor_avatar` varchar(20) DEFAULT NULL,
+  `cor_avatar_t` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pacientes_uuid` (`uuid`),
+  KEY `responsavel_id` (`responsavel_id`),
+  KEY `cuidador_id` (`cuidador_id`),
+  KEY `anamnese_id` (`anamnese_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_pacientes: ~5 rows (aproximadamente)
+INSERT INTO `tb_pacientes` (`id`, `uuid`, `nome_completo`, `diagnostico`, `cid_principal`, `diagnostico_principal`, `motivo_homecare`, `usa_sonda`, `usa_oxigenio`, `traqueostomia`, `gastrostomia`, `colostomia`, `cateter_vesical`, `observacoes_clinicas`, `data_nascimento`, `cpf`, `rg`, `cartao_nac_sus`, `plano_saude`, `responsavel_id`, `cuidador_id`, `anamnese_id`, `status`, `motivo_inativacao`, `sexo`, `foto`, `endereco_completo`, `telefone_principal`, `telefone_secundario`, `email`, `responsavel_nome_texto`, `responsavel_parentesco`, `responsavel_telefone`, `responsavel_email`, `comorbidades`, `alergias`, `historico_cirurgico`, `tipo_sanguineo`, `peso`, `altura`, `dieta_tipo`, `dieta_restricao`, `alimentacao_via`, `sonda_vesical`, `incontinencia`, `mobilidade`, `estado_cognitivo_base`, `gtt`, `sne`, `cateter_venoso`, `picc`, `lesao_pressao`, `curativos`, `areas_risco`, `condutas_permanentes`, `convenio`, `numero_carteirinha`, `prescricao_medica`, `termos_assinados`, `cor_avatar`, `cor_avatar_t`) VALUES
+	(1, '6c0ec678-52ac-11f1-a16a-089798669242', 'Ormezinda Peres de Carvalho ', NULL, NULL, NULL, NULL, 'Não', 'Não', 'Não', 'Não', 'Não', 'Não', NULL, '1926-03-30', '423.836.506-25', NULL, NULL, NULL, 1, 3, 1, 'Ativo', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	(2, '6c0ed381-52ac-11f1-a16a-089798669242', 'Maria da Penha Martins', NULL, NULL, NULL, NULL, 'Não', 'Não', 'Não', 'Não', 'Não', 'Não', NULL, '1951-01-28', '335.489.947-68', NULL, NULL, NULL, 2, 8, 2, 'Ativo', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	(8, '6c0ed764-52ac-11f1-a16a-089798669242', 'Rafaela', 'Demência', 'I63.9', 'Paciente com demência', 'Auxílio no cotidiano no cuidado', 'Não', 'Não', 'Não', 'Não', 'Não', 'Não', NULL, '1987-04-12', '118.034.737-46', '20.131.858-1', '532 9871 4346', '12154677', 36, 8, NULL, 'Ativo', NULL, 'Feminino', NULL, 'Rua Cornelio Henriques de Almeida, 103 - apto 102', '32 998416669', '32 988575765', 'teste@rafa.com', 'Neide Maria', 'Mãe', NULL, NULL, 'Nenhuma', 'A pessoas', 'Nenhuma', 'O+', 86.00, 1.74, 'Come de tudo', 'Fechar a boca', 'VO', 'Nao', 'Urinária', 'Independente', 'Orientado', 'Nao', 'Nao', 'Nao', 'Nao', 'Nao', NULL, NULL, '["Aspiracao de vias aereas"]', NULL, NULL, 'Doidinha por natureza - cuidado que morde', NULL, NULL, NULL),
+	(9, '6c0edb0d-52ac-11f1-a16a-089798669242', 'Teste MVC Paciente Editado', NULL, NULL, NULL, NULL, 'Não', 'Não', 'Não', 'Não', 'Não', 'Não', NULL, '2026-05-13', '0000000000', '00000', '00000000000000000000', 'Unimed', 36, 59, NULL, 'Inativo', 'Teste rollback', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	(10, '6c0ee96d-52ac-11f1-a16a-089798669242', 'Teste Paciente MVC Rel', NULL, NULL, NULL, NULL, 'Não', 'Não', 'Não', 'Não', 'Não', 'Não', NULL, NULL, NULL, NULL, NULL, NULL, 42, 67, NULL, 'Ativo', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	(11, '8133a753-561c-11f1-a16a-089798669242', 'Sonia das Graças', 'Alzheimer', 'I63.9', 'Alzheimer', 'Não pode ficar sozinha, está fazendo arte.', 'Não', 'Não', 'Não', 'Não', 'Não', 'Não', NULL, '1950-06-20', '00011122233344', '2020020030', '1234567890', 'Não tem', 42, 8, NULL, 'Ativo', NULL, 'Feminino', NULL, 'Avenida JK, 431 - Centro - Muriaé', '32988414106', NULL, 'vovosoninha@gmail.com', 'Vanusa', 'Filha', '32988575765', 'vansua@teste.com.br', 'Pressão alta', 'Dipirona', 'Nenhum', 'O+', 50.00, 1.59, NULL, NULL, NULL, 'Nao', NULL, NULL, NULL, 'Nao', 'Nao', 'Nao', 'Nao', 'Nao', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_paciente_detalhes
+CREATE TABLE IF NOT EXISTS `tb_paciente_detalhes` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `paciente_id` int NOT NULL,
+  `endereco` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tipo_contrato` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cor_avatar` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cor_avatar_t` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacoes` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_paciente_detalhes` (`paciente_id`),
+  CONSTRAINT `fk_paciente_detalhes` FOREIGN KEY (`paciente_id`) REFERENCES `tb_pacientes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_paciente_detalhes: ~0 rows (aproximadamente)
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_plantoes
+CREATE TABLE IF NOT EXISTS `tb_plantoes` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `cuidador_id` int NOT NULL,
+  `data_inicio` datetime NOT NULL,
+  `data_fim` datetime NOT NULL,
+  `tipo_plantao` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` enum('em_andamento','finalizado','intercorrencia') COLLATE utf8mb4_unicode_ci DEFAULT 'em_andamento',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_plantoes_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_plantoes: ~0 rows (aproximadamente)
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_relatorio_plantao
+CREATE TABLE IF NOT EXISTS `tb_relatorio_plantao` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `paciente_id` int NOT NULL,
+  `cuidador_id` int DEFAULT NULL,
+  `turno` enum('plantao_6h','plantao_8h','plantao_12h','plantao_24h') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `data_inicio` datetime DEFAULT NULL,
+  `data_fim` datetime DEFAULT NULL,
+  `evolucao` longtext COLLATE utf8mb4_unicode_ci,
+  `assinado` tinyint DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `estado_paciente` longtext COLLATE utf8mb4_unicode_ci,
+  `alimentacao` longtext COLLATE utf8mb4_unicode_ci,
+  `alimentacao_via` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `eliminacoes` longtext COLLATE utf8mb4_unicode_ci,
+  `diurese` json DEFAULT NULL,
+  `evacuacao` json DEFAULT NULL,
+  `medicacoes` longtext COLLATE utf8mb4_unicode_ci,
+  `intercorrencias` longtext COLLATE utf8mb4_unicode_ci,
+  `status` enum('rascunho','finalizado','assinado') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacoes_gerais` longtext COLLATE utf8mb4_unicode_ci,
+  `consciencia` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nivel_dor` int DEFAULT NULL,
+  `hidratacao_ml` int DEFAULT NULL,
+  `higiene` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sono` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `decubito` text COLLATE utf8mb4_unicode_ci,
+  `dispositivos` json DEFAULT NULL,
+  `pa` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fc` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `temperatura` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `spo2` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `hgt` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_relatorio_plantao_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_relatorio_plantao: ~3 rows (aproximadamente)
+INSERT INTO `tb_relatorio_plantao` (`id`, `uuid`, `paciente_id`, `cuidador_id`, `turno`, `data_inicio`, `data_fim`, `evolucao`, `assinado`, `created_at`, `updated_at`, `estado_paciente`, `alimentacao`, `alimentacao_via`, `eliminacoes`, `diurese`, `evacuacao`, `medicacoes`, `intercorrencias`, `status`, `observacoes_gerais`, `consciencia`, `nivel_dor`, `hidratacao_ml`, `higiene`, `sono`, `decubito`, `dispositivos`, `pa`, `fc`, `temperatura`, `spo2`, `hgt`) VALUES
+	(1, '6c5b04ee-52ac-11f1-a16a-089798669242', 8, 8, NULL, '2026-05-16 07:00:00', '2026-05-16 19:00:00', 'dalçsjdsjfoej', 1, '2026-05-17 19:40:39', '2026-05-18 11:26:33', NULL, NULL, NULL, 'kljsajdjpo', NULL, NULL, 'kldsklak\r\nknaskfnp\r\nmldmejpo', 'Sem intercorrências.', 'finalizado', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	(8, '6c5b0a11-52ac-11f1-a16a-089798669242', 8, 8, NULL, '2026-05-16 19:00:00', '2026-05-16 07:00:00', 'sftreyety', 1, '2026-05-17 23:29:23', '2026-05-18 18:21:11', 'djfgidjgIAFGWER', 'Aceitou bem todas as refeições', NULL, '["Diurese normal","Evacuação normal"]', NULL, NULL, '[]', '[]', 'assinado', 'SHARREAHGREAH', NULL, 5, 2000, 'Troca de fraldas', 'Sono fragmentado', '[]', NULL, '12/8', '93', '39', '99', '150'),
+	(9, '6c5b0cb9-52ac-11f1-a16a-089798669242', 8, 8, NULL, '2026-05-17 07:00:00', '2026-05-17 19:00:00', 'Paciente em acompanhamento domiciliar por Demência.\r\nNível de consciência: Sonolento.\r\nSinais vitais: PA 139x82 mmHg, FC 83 bpm, Temp 36.7°C, SpO₂ 99%.\r\nRelata dor de intensidade moderada (4/10).\r\nHidratação oferecida: 2000 mL.\r\nMudanças de decúbito realizadas: D.D. para D.L.D., D.L.D. para D.L.E., Semi-fowler.\r\nSono: sono fragmentado.', 1, '2026-05-18 11:13:09', '2026-05-21 01:12:41', 'Paciente em recuperação AVC', NULL, NULL, '["Incontinencia urinaria"]', NULL, NULL, '[{"id":"1","status":"pendente","medicamento":"Desve","horario":"09:00"},{"id":"2","status":"pendente","medicamento":"Lisden","horario":"07:00"}]', NULL, 'finalizado', NULL, 'Sonolento', 4, 2000, 'Banho no leito', 'Sono fragmentado', '["D.D. para D.L.D.","D.L.D. para D.L.E.","Semi-fowler"]', NULL, '139x82', '83', '36.7', '99', '129');
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_responsavel
+CREATE TABLE IF NOT EXISTS `tb_responsavel` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL DEFAULT (uuid()),
+  `nome_completo` varchar(100) NOT NULL,
+  `endereco` varchar(255) NOT NULL,
+  `numero` varchar(10) DEFAULT NULL,
+  `bairro` varchar(50) DEFAULT NULL,
+  `cidade` varchar(50) NOT NULL,
+  `estado` char(2) NOT NULL,
+  `cep` varchar(10) DEFAULT NULL,
+  `cpf` varchar(14) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `data_nascimento` date DEFAULT NULL,
+  `telefone` varchar(20) DEFAULT NULL,
+  `grau_parentesco` varchar(50) DEFAULT NULL,
+  `status` enum('Ativo','Inativo') DEFAULT 'Ativo',
+  `motivo_inativacao` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cpf` (`cpf`),
+  UNIQUE KEY `uq_responsavel_uuid` (`uuid`)
+) ENGINE=MyISAM AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb3;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_responsavel: 4 rows
+/*!40000 ALTER TABLE `tb_responsavel` DISABLE KEYS */;
+INSERT INTO `tb_responsavel` (`id`, `uuid`, `nome_completo`, `endereco`, `numero`, `bairro`, `cidade`, `estado`, `cep`, `cpf`, `email`, `data_nascimento`, `telefone`, `grau_parentesco`, `status`, `motivo_inativacao`) VALUES
+	(1, '6c91506e-52ac-11f1-a16a-089798669242', 'Lucia Maria de Carvalho', 'Rua Dr. Wilson Amaral', '223', 'Dornelas', 'Muriaé', 'MG', '36880-000', '629.152.586-00', 'lulumcarvalhobani@gmail.com', '1949-06-06', '(32) 99830-6429 ', 'Filha', 'Ativo', NULL),
+	(2, '6c9159a6-52ac-11f1-a16a-089798669242', 'Márcia Cristina Martins Pereira Santos', 'Av Constantino Pinto', '171', 'Armação', 'Muriaé', 'MG', '36880-000', '783.300.846-04', 'marciamartins@gmail.com', '1969-11-23', '(32) 98879-2992', 'Filha', 'Ativo', NULL),
+	(36, '6c9165fb-52ac-11f1-a16a-089798669242', 'Rafa', 'Rua G', '002', 'Centro', 'Itaperuna', 'RJ', '36.886-002', '118.034.737-46', 'teste@teste.com', '1987-04-12', '(32) 9999-9999', 'Tia', 'Ativo', 'Teste'),
+	(42, '6c916956-52ac-11f1-a16a-089798669242', 'este Responsavel MVC', 'Rua  este', NULL, NULL, 'Juiz de Fora', 'MG', NULL, '000.000.000-01', NULL, '1987-04-12', NULL, NULL, 'Ativo', NULL);
+/*!40000 ALTER TABLE `tb_responsavel` ENABLE KEYS */;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_sinais_vitais
+CREATE TABLE IF NOT EXISTS `tb_sinais_vitais` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `relatorio_id` int NOT NULL,
+  `pa` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fc` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `temperatura` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `spo2` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `hgt` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacao` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_sinais_vitais_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_sinais_vitais: ~2 rows (aproximadamente)
+INSERT INTO `tb_sinais_vitais` (`id`, `uuid`, `relatorio_id`, `pa`, `fc`, `temperatura`, `spo2`, `hgt`, `observacao`, `created_at`) VALUES
+	(1, '6c9fe732-52ac-11f1-a16a-089798669242', 8, '12/8', '93', '39', '99', '150', NULL, '2026-05-17 23:29:23'),
+	(2, '6c9fea77-52ac-11f1-a16a-089798669242', 9, '139x82', '83', '36.7', '99', '129', NULL, '2026-05-18 11:13:09');
+
+/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
+/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;

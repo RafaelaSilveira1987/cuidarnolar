@@ -7,6 +7,7 @@ class Cuidador extends BaseModuleModel
     protected string $table = 'tb_cuidador';
     protected string $orderBy = 'nome_completo';
     protected string $orderDirection = 'ASC';
+
     protected array $fillable = [
         'nome_completo',
         'endereco',
@@ -25,7 +26,9 @@ class Cuidador extends BaseModuleModel
         'status',
         'contrato_horas',
         'motivo_inativacao',
+        'cor_escala',
     ];
+
     protected array $nullable = [
         'numero',
         'bairro',
@@ -37,24 +40,58 @@ class Cuidador extends BaseModuleModel
         'especialidade',
         'contrato_horas',
         'motivo_inativacao',
+        'cor_escala',
     ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array
     {
         $result = parent::listForIndex($page, $perPage, $search);
-        $result['data'] = array_map(fn (array $row): array => $this->buildEndereco($row), $result['data']);
+        $result['data'] = array_map(fn(array $row): array => $this->buildEndereco($row), $result['data']);
+
         return $result;
     }
 
     public function findForShow(int $id): array|false
     {
         $record = parent::findForShow($id);
+
+        return $record ? $this->buildEndereco($record) : false;
+    }
+
+    public function findForShowByUuid(string $uuid): array|false
+    {
+        $record = $this->rawFirst(
+            "SELECT * FROM {$this->table} WHERE uuid = :uuid LIMIT 1",
+            [':uuid' => $uuid]
+        );
+
         return $record ? $this->buildEndereco($record) : false;
     }
 
     private function buildEndereco(array $row): array
     {
-        $row['endereco_completo'] = trim(($row['endereco'] ?? '') . ', ' . ($row['numero'] ?? '') . ' - ' . ($row['bairro'] ?? '') . ', ' . ($row['cidade'] ?? '') . '/' . ($row['estado'] ?? ''));
+        $partes = [];
+
+        $logradouro = trim((string)($row['endereco'] ?? ''));
+        $numero = trim((string)($row['numero'] ?? ''));
+        $bairro = trim((string)($row['bairro'] ?? ''));
+        $cidade = trim((string)($row['cidade'] ?? ''));
+        $estado = trim((string)($row['estado'] ?? ''));
+
+        if ($logradouro !== '') {
+            $partes[] = $numero !== '' ? $logradouro . ', ' . $numero : $logradouro;
+        }
+
+        if ($bairro !== '') {
+            $partes[] = $bairro;
+        }
+
+        if ($cidade !== '' || $estado !== '') {
+            $partes[] = trim($cidade . '/' . $estado, '/');
+        }
+
+        $row['endereco_completo'] = $partes !== [] ? implode(' - ', $partes) : '';
+
         return $row;
     }
 }

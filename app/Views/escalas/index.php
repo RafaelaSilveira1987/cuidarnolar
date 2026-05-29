@@ -119,15 +119,11 @@ $filtros      ??= [];
             <div style="text-align:center;padding:3rem;color:#9ca3af;font-size:14px;">
                 <i class="ti ti-calendar-off" style="font-size:36px;display:block;margin-bottom:.5rem"></i>
 
-                Nenhuma escala encontrada para o período selecionado.
-
-                <?php if (empty($pacientes)): ?>
+                Nenhuma escala definida para o período selecionado.
                 <br>
                 <small style="font-size:12px;margin-top:.5rem;display:block">
-                    Nenhum paciente cadastrado —
-                    <a href="<?= BASE_URL ?>/pacientes/criar">cadastrar paciente</a>
+                    Para aparecer aqui, o paciente precisa ter uma escala base salva na ficha do paciente, aba <strong>Contrato e escala</strong>.
                 </small>
-                <?php endif; ?>
             </div>
             <?php endif; ?>
 

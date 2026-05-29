@@ -1,76 +1,54 @@
 <?php
-
 /**
  * app/Views/relatorio_plantao/index.php
  * Lista de pacientes com relatórios de plantão.
- * Variáveis: $pacientes (array), $_user (array)
  */
+
+$pacientes = isset($pacientes) && is_array($pacientes) ? $pacientes : [];
 ?>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/relatorio_plantao_pages.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/relatorio_plantao_erp.css">
 
-<div class="rp-wrapper">
-
-    <div class="rp-page-header">
-        <div>
+<div class="rp-page">
+    <header class="rp-header-card">
+        <div class="rp-patient-info">
             <h1>Relatórios de Plantão</h1>
-            <p>Pacientes com evoluções clínicas registradas</p>
+            <p class="rp-patient-meta">Selecione um paciente para consultar o histórico de relatórios.</p>
         </div>
-        <div class="page-actions" style="margin:0">
-            <a href="<?= BASE_URL ?>/relatorio-plantao/novo" class="btn-primary">
-                <i class="ti ti-plus" aria-hidden="true"></i> Novo Relatório
-            </a>
+    </header>
+
+    <?php if (!empty($pacientes)): ?>
+    <section class="rp-patient-list" aria-label="Pacientes com relatórios de plantão">
+        <div class="rp-patient-list-head">
+            <span>Paciente</span>
+            <span>Prontuário</span>
+            <!-- <span>Total</span> -->
+            <span>Último relatório</span>
+            <span>Ação</span>
         </div>
-    </div>
 
-    <section class="rp-pacientes-grid" style="margin-top:20px">
-
-        <?php if (!empty($pacientes)): ?>
-
-        <?php foreach ($pacientes as $paciente):
-                $status = strtolower($paciente['status'] ?? 'ativo');
-            ?>
-        <a href="<?= BASE_URL ?>/relatorio-plantao/paciente/<?= htmlspecialchars((string)($paciente['uuid'] ?? $paciente['id'])) ?>"
-            class="rp-paciente-card">
-
-            <div class="rp-avatar">
-                <?= htmlspecialchars(
-                            strtoupper(substr($paciente['nome_completo'] ?? '', 0, 1))
-                                . strtoupper(substr(strstr($paciente['nome_completo'] ?? ' ', ' '), 1, 1))
-                        ) ?>
-            </div>
-
-            <div class="rp-paciente-content">
-                <h3><?= htmlspecialchars($paciente['nome_completo'] ?? 'Paciente') ?></h3>
-                <div class="rp-meta">
-                    <?php if (!empty($paciente['prontuario'])): ?>
-                    <span>Prontuário #<?= htmlspecialchars($paciente['prontuario']) ?></span>
-                    <?php endif ?>
-                    <?php if (!empty($paciente['idade'])): ?>
-                    <span><?= (int)$paciente['idade'] ?> anos</span>
-                    <?php endif ?>
-                    <?php if (!empty($paciente['diagnostico'])): ?>
-                    <span><?= htmlspecialchars($paciente['diagnostico']) ?></span>
-                    <?php endif ?>
-                </div>
-            </div>
-
-            <div class="rp-status" data-status="<?= htmlspecialchars($status) ?>">
-                <?= htmlspecialchars($paciente['status'] ?? 'Ativo') ?>
-            </div>
-
+        <?php foreach ($pacientes as $paciente): ?>
+        <?php
+                    $nome = (string)($paciente['nome_completo'] ?? 'Paciente');
+                    $uuid = (string)($paciente['uuid'] ?? '');
+                    $href = BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode($uuid);
+                    $total = (int)($paciente['total_relatorios'] ?? 0);
+                    $ultimo = !empty($paciente['ultimo_relatorio_data']) && strtotime((string)$paciente['ultimo_relatorio_data']) !== false
+                        ? date('d/m/Y', strtotime((string)$paciente['ultimo_relatorio_data']))
+                        : '—';
+                ?>
+        <a href="<?= htmlspecialchars($href, ENT_QUOTES, 'UTF-8') ?>" class="rp-patient-row">
+            <strong><?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?></strong>
+            <span><?= !empty($paciente['prontuario']) ? '#' . htmlspecialchars((string)$paciente['prontuario'], ENT_QUOTES, 'UTF-8') : '—' ?></span>
+            <!-- <span><?= $total ?> relatório(s)</span> -->
+            <span><?= htmlspecialchars($ultimo, ENT_QUOTES, 'UTF-8') ?></span>
+            <span class="rp-row-action">Abrir</span>
         </a>
-        <?php endforeach ?>
-
-        <?php else: ?>
-
-        <div class="rp-empty-state">
-            <i class="ti ti-clipboard-list" aria-hidden="true"></i>
-            Nenhum paciente com relatório encontrado.
-        </div>
-
-        <?php endif ?>
-
+        <?php endforeach; ?>
     </section>
-
+    <?php else: ?>
+    <div class="rp-empty">
+        Nenhum paciente com relatório encontrado.
+    </div>
+    <?php endif; ?>
 </div>

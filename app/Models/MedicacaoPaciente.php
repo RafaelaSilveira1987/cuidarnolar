@@ -89,6 +89,41 @@ class MedicacaoPaciente extends BaseModuleModel
         ]);
     }
 
+    public function listarPorPacienteId(int $pacienteId): array
+    {
+        $sql = "
+        SELECT
+            id,
+            uuid,
+            paciente_id,
+            nome_medicamento,
+            apresentacao,
+            dosagem,
+            via,
+            horarios,
+            frequencia,
+            data_inicio,
+            data_fim,
+            observacoes,
+            status,
+            created_at,
+            updated_at
+        FROM tb_medicacoes_paciente
+        WHERE paciente_id = :paciente_id
+        ORDER BY
+            CASE WHEN status = 'Ativo' THEN 0 ELSE 1 END,
+            nome_medicamento ASC
+    ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            ':paciente_id' => $pacienteId,
+        ]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
     public function salvarListaPaciente(int $pacienteId, array $itens): void
     {
         foreach ($itens as $item) {

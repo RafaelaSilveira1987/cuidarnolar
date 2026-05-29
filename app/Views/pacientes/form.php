@@ -118,39 +118,30 @@ $checked = static fn(array $arr, string $value): string => in_array($value, $arr
         </label>
 
         <div class="span-2 form-section-title">
-            <h3>Responsaveis</h3>
+            <h3>Responsável financeiro/familiar</h3>
+            <p class="page-subtitle">
+                Os dados do responsável ficam no cadastro de Responsáveis. Aqui o paciente apenas recebe o vínculo correto.
+            </p>
         </div>
 
-        <label>
-            Responsavel vinculado
+        <label class="span-2">
+            Responsável vinculado
             <select name="responsavel_id">
-                <option value="">Sem vinculo</option>
-                <?php foreach ($responsaveis as $responsavel): ?>
+                <option value="">Sem responsável vinculado</option>
+                <?php foreach (($responsaveis ?? []) as $responsavel): ?>
                     <option value="<?= (int)$responsavel['id'] ?>" <?= $selected($paciente['responsavel_id'] ?? '', $responsavel['id']) ?>>
-                        <?= e($responsavel['nome_completo']) ?>
+                        <?= e($responsavel['nome_completo']) ?><?= !empty($responsavel['cpf']) ? ' — CPF: ' . e($responsavel['cpf']) : '' ?>
                     </option>
                 <?php endforeach; ?>
             </select>
-        </label>
-
-        <label>
-            Nome do responsavel
-            <input type="text" name="responsavel_nome_texto" value="<?= e($paciente['responsavel_nome_texto'] ?? '') ?>">
-        </label>
-
-        <label>
-            Grau de parentesco
-            <input type="text" name="responsavel_parentesco" value="<?= e($paciente['responsavel_parentesco'] ?? '') ?>">
-        </label>
-
-        <label>
-            Telefone do responsavel
-            <input type="text" name="responsavel_telefone" value="<?= e($paciente['responsavel_telefone'] ?? '') ?>">
-        </label>
-
-        <label class="span-2">
-            E-mail do responsavel
-            <input type="email" name="responsavel_email" value="<?= e($paciente['responsavel_email'] ?? '') ?>">
+            <small>
+                Para alterar nome, telefone, CPF, e-mail ou endereço, edite em <strong>Responsáveis</strong>.
+                <?php if (!empty($paciente['responsavel_uuid'])): ?>
+                    <a href="<?= url('/responsaveis/' . rawurlencode((string)$paciente['responsavel_uuid']) . '/editar') ?>">Editar responsável vinculado</a>.
+                <?php else: ?>
+                    <a href="<?= url('/responsaveis/novo') ?>">Cadastrar novo responsável</a>.
+                <?php endif; ?>
+            </small>
         </label>
 
         <label>

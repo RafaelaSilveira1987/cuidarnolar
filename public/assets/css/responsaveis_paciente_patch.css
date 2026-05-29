@@ -1,0 +1,91 @@
+/* Aba Responsáveis dentro da ficha do paciente */
+.responsaveis-paciente-panel {
+  margin-top: 16px;
+}
+
+.responsaveis-paciente-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.responsaveis-paciente-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.responsavel-paciente-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--surface);
+}
+
+.responsavel-paciente-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.responsavel-paciente-main strong {
+  font-size: 17px;
+  color: var(--text);
+}
+
+.responsavel-paciente-main span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.responsavel-paciente-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 14px 0 0;
+}
+
+.responsavel-paciente-grid div {
+  min-width: 0;
+}
+
+.responsavel-paciente-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.responsavel-paciente-grid dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 3px;
+}
+
+.responsavel-paciente-grid dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.responsavel-paciente-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+@media (max-width: 720px) {
+  .responsavel-paciente-main {
+    display: block;
+  }
+
+  .responsavel-paciente-grid {
+    grid-template-columns: 1fr;
+  }
+}

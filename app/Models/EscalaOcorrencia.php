@@ -7,97 +7,35 @@ class EscalaOcorrencia extends BaseModuleModel
     protected string $table = 'tb_escala_ocorrencias';
 
     protected array $fillable = [
-        'escala_base_id',
-        'paciente_id',
-        'cuidador_id',
-        'data_plantao',
-        'inicio',
-        'fim',
-        'tipo_plantao',
-        'status',
-        'origem',
-        'observacoes',
+        'escala_base_id','paciente_id','cuidador_id','data_plantao','inicio','fim',
+        'tipo_plantao','status','origem','observacoes',
     ];
 
-    protected array $nullable = [
-        'escala_base_id',  // plantão avulso não tem escala base
-        'observacoes',
-    ];
+    protected array $nullable = ['escala_base_id', 'cuidador_id', 'observacoes'];
 
-    public function conflito(
-        int $cuidadorId,
-        string $inicio,
-        string $fim
-    ): bool {
-        $sql = "
-            SELECT id
-            FROM tb_escala_ocorrencias
-            WHERE cuidador_id = :cuidador_id
-              AND status NOT IN ('cancelado', 'faltou')
-              AND inicio < :fim
-              AND fim   > :inicio
-            LIMIT 1
-        ";
-
-        $stmt = $this->query($sql, [
-            ':cuidador_id' => $cuidadorId,
-            ':inicio'      => $inicio,
-            ':fim'         => $fim,
-        ]);
-
-        return (bool) $stmt->fetch();
-    }
-
-    public function listarComJoin(): array
+    public function conflito(int $cuidadorId, string $inicio, string $fim, ?int $ignorarId = null): bool
     {
-        return $this->query("
-            SELECT
-                eo.id,
-                eo.data_plantao,
-                eo.inicio,
-                eo.fim,
-                eo.status,
-                c.nome_completo AS cuidador,
-                p.nome_completo AS paciente
-            FROM tb_escala_ocorrencias eo
-            INNER JOIN tb_cuidador  c ON c.id = eo.cuidador_id
-            INNER JOIN tb_pacientes p ON p.id = eo.paciente_id
-            ORDER BY eo.data_plantao ASC, eo.inicio ASC
-        ")->fetchAll();
+        $sql = "\n            SELECT id\n            FROM tb_escala_ocorrencias\n            WHERE cuidador_id = :cuidador_id\n              AND status NOT IN ('cancelado', 'faltou')\n              AND inicio < :fim\n              AND fim > :inicio\n        ";
+
+        $params = [
+            ':cuidador_id' => $cuidadorId,
+            ':inicio' => $inicio,
+            ':fim' => $fim,
+        ];
+
+        if ($ignorarId) {
+            $sql .= ' AND id <> :id';
+            $params[':id'] = $ignorarId;
+        }
+
+        $sql .= ' LIMIT 1';
+
+        return (bool)$this->rawFirst($sql, $params);
     }
 
-    public function porSemana(
-        string $inicio,
-        string $fim,
-        ?int $pacienteId  = null,
-        ?int $cuidadorId  = null
-    ): array {
-        $sql = "
-            SELECT
-                eo.*,
-                eo.inicio        AS turno_inicio,     -- alias que o controller espera
-                eo.fim           AS turno_fim,        -- alias que o controller espera
-                eo.paciente_id   AS paciente_id,
-                eo.cuidador_id   AS colaborador_id,
-                CONCAT(
-                    TIME_FORMAT(eo.inicio, '%Hh'),
-                    ' → ',
-                    TIME_FORMAT(eo.fim, '%Hh')
-                )                AS turno_label,      -- alias que o controller espera
-                p.nome_completo  AS paciente_nome,
-                p.uuid           AS paciente_uuid,
-                c.nome_completo  AS colaborador_nome,
-                c.uuid           AS colaborador_uuid,
-                det.endereco,
-                det.tipo_contrato,
-                det.cor_avatar,
-                det.cor_avatar_t
-            FROM tb_escala_ocorrencias eo
-            INNER JOIN tb_pacientes p           ON p.id = eo.paciente_id
-            LEFT  JOIN tb_paciente_detalhes det ON det.paciente_id = p.id
-            LEFT  JOIN tb_cuidador c            ON c.id = eo.cuidador_id
-            WHERE eo.data_plantao BETWEEN :inicio AND :fim  
-        ";
+    public function porSemana(string $inicio, string $fim, ?int $pacienteId = null, ?int $cuidadorId = null): array
+    {
+        $sql = "\n            SELECT\n                eo.*,\n                TIME(eo.inicio) AS turno_inicio,\n                TIME(eo.fim) AS turno_fim,\n                eo.paciente_id,\n                eo.cuidador_id AS colaborador_id,\n                p.nome_completo AS paciente_nome,\n                p.uuid AS paciente_uuid,\n                c.nome_completo AS colaborador_nome,\n                c.uuid AS colaborador_uuid\n            FROM tb_escala_ocorrencias eo\n            INNER JOIN tb_pacientes p ON p.id = eo.paciente_id\n            LEFT JOIN tb_cuidador c ON c.id = eo.cuidador_id\n            WHERE eo.data_plantao BETWEEN :inicio AND :fim\n        ";
 
         $params = [':inicio' => $inicio, ':fim' => $fim];
 

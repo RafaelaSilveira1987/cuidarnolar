@@ -1,97 +1,80 @@
 <?php
-
 /**
- * Views/escalas/partials/card_paciente.php
- *
- * Variável esperada: $pac (array com a estrutura abaixo)
- *
- * $pac = [
- *   'id'           => 1,
- *   'nome'         => 'João Silva',
- *   'iniciais'     => 'JS',
- *   'cor_avatar'   => '#d1fae5',   // bg
- *   'cor_avatar_t' => '#064e3b',   // texto
- *   'endereco'     => 'Av. Brasil, 420 — Copacabana',
- *   'tipo_contrato'=> '24h',       // '24h' | '12h' | 'diurno'
- *   'cobertura_pct'=> 100,
- *   'turnos'       => [            // array de turnos do contrato
- *     [
- *       'label' => '07h → 19h',
- *       'icone' => 'ti-sun',
- *       'plantoes' => [            // 7 itens, um por dia da semana
- *         [
- *           'data'           => '2025-05-19',
- *           'escala_id'      => 12,
- *           'colaborador_id' => 3,
- *           'colaborador'    => 'Ana Paula',
- *           'inicio'         => '07:00',
- *           'fim'            => '19:00',
- *           'status'         => 'ok',   // 'ok' | 'vago' | 'sub' | 'na'
- *           'sub_nome'       => null,   // nome original se for substituição
- *         ],
- *         ...
- *       ]
- *     ],
- *     ...
- *   ]
- * ];
- *
- * $dias = array de 7 dias [{date, label, num}, ...]  (vem do escopo pai)
+ * app/Views/escalas/partials/card_paciente.php
+ * Card visual de escala por paciente, em formato de calendário semanal.
  */
 
-// Determina classe e texto da barra de cobertura
-$pct = (int)($pac['cobertura_pct'] ?? 0);
-$cob_cls = $pct >= 95 ? 'ok' : ($pct >= 70 ? 'warn' : 'danger');
-
-$tipo  = $pac['tipo_contrato'] ?? '12h';
-$badge_cls = match ($tipo) {
-    '24h'    => 'badge-contrato--24h',
-    'diurno' => 'badge-contrato--diurno',
-    default  => 'badge-contrato--12h',
-};
-$badge_txt = match ($tipo) {
-    '24h'    => 'Plantão 24h',
-    'diurno' => 'Somente diurno',
-    default  => 'Plantão 12h',
-};
+$pac = $pac ?? [];
+$dias = $dias ?? [];
+$turnos = $pac['turnos'] ?? [];
+$percentual = (int)($pac['cobertura_pct'] ?? 0);
+$tipoContrato = $pac['tipo_contrato'] ?? '—';
+$corAvatar = $pac['cor_avatar'] ?? '#dbeafe';
+$corAvatarTexto = $pac['cor_avatar_t'] ?? '#1e3a8a';
+$pacienteUuid = $pac['uuid'] ?? '';
 ?>
 
-<div class="paciente-card paciente-card--<?= $pac['card_bg_index'] ?? 0 ?>" id="pac-<?= $pac['id'] ?>">
+<article class="escala-paciente-card">
+    <header class="escala-paciente-head">
+        <div class="escala-paciente-identidade">
+            <span class="escala-avatar" style="background: <?= htmlspecialchars($corAvatar) ?>; color: <?= htmlspecialchars($corAvatarTexto) ?>;">
+                <?= htmlspecialchars($pac['iniciais'] ?? 'P') ?>
+            </span>
 
-    <!-- Cabeçalho do card -->
-    <div class="paciente-card__header">
-
-        <div class="paciente-card__info">
-            <div class="paciente-avatar"
-                style="background:<?= htmlspecialchars($pac['cor_avatar']) ?>;color:<?= htmlspecialchars($pac['cor_avatar_t']) ?>">
-                <?= htmlspecialchars($pac['iniciais']) ?>
-            </div>
             <div>
-                <div class="paciente-card__name"><?= htmlspecialchars($pac['nome']) ?></div>
-                <div class="paciente-card__address">
+                <h2><?= htmlspecialchars($pac['nome'] ?? 'Paciente') ?></h2>
+                <p class="escala-muted">
                     <i class="ti ti-map-pin" aria-hidden="true"></i>
-                    <?= htmlspecialchars($pac['endereco'] ?? '—') ?>
-                </div>
+                    <?= htmlspecialchars($pac['endereco'] ?: 'Endereço não informado') ?>
+                </p>
+                <p class="escala-muted">
+                    Cuidador referência:
+                    <strong><?= htmlspecialchars($pac['cuidador_referencia_nome'] ?? 'não definido') ?></strong>
+                </p>
             </div>
         </div>
 
-        <div class="paciente-card__meta">
-            <span class="badge-contrato <?= $badge_cls ?>"><?= $badge_txt ?></span>
-            <div class="cobertura-wrap" id="cob-<?= $pac['id'] ?>">
-                <span class="cobertura-label">Cobertura</span>
-                <div class="cobertura-bar">
-                    <div class="cobertura-bar__fill cobertura-bar__fill--<?= $cob_cls ?>"
-                        style="width:<?= min($pct, 100) ?>%"></div>
+        <div class="escala-paciente-status">
+            <span class="escala-contrato-badge">Contrato <?= htmlspecialchars($tipoContrato) ?></span>
+            <span class="escala-progress-label">Cobertura</span>
+            <span class="escala-progress"><span style="width: <?= $percentual ?>%"></span></span>
+            <strong class="escala-percent <?= $percentual < 50 ? 'is-danger' : ($percentual < 100 ? 'is-warning' : 'is-ok') ?>">
+                <?= $percentual ?>%
+            </strong>
+        </div>
+    </header>
+
+    <div class="escala-week-table" role="table" aria-label="Escala semanal de <?= htmlspecialchars($pac['nome'] ?? 'paciente') ?>">
+        <div class="escala-week-row escala-week-row--head" role="row">
+            <div class="escala-week-cell escala-week-cell--turno" role="columnheader">Turno</div>
+            <?php foreach ($dias as $dia): ?>
+                <div class="escala-week-cell escala-week-cell--day" role="columnheader">
+                    <span><?= htmlspecialchars($dia['label'] ?? '') ?></span>
+                    <strong><?= htmlspecialchars($dia['num'] ?? '') ?></strong>
                 </div>
-                <span class="cobertura-pct cobertura-pct--<?= $cob_cls ?>"><?= $pct ?>%</span>
-            </div>
+            <?php endforeach; ?>
         </div>
 
-    </div>
+        <?php if (empty($turnos)): ?>
+            <div class="escala-empty-line">Nenhum turno configurado para este paciente.</div>
+        <?php else: ?>
+            <?php foreach ($turnos as $turno): ?>
+                <div class="escala-week-row" role="row">
+                    <div class="escala-week-cell escala-week-cell--turno" role="rowheader">
+                        <i class="ti <?= htmlspecialchars($turno['icone'] ?? 'ti-clock') ?>" aria-hidden="true"></i>
+                        <span><?= htmlspecialchars($turno['label'] ?? 'Turno') ?></span>
+                    </div>
 
-    <!-- Grade semanal -->
-    <div class="grade-wrap grade-wrap--scroll">
-        <?php include __DIR__ . '/bloco_plantao.php'; ?>
+                    <?php foreach (($turno['plantoes'] ?? []) as $plantao): ?>
+                        <div class="escala-week-cell" role="cell">
+                            <?php
+                            $turnoLabel = $turno['label'] ?? 'Turno';
+                            include __DIR__ . '/bloco_plantao.php';
+                            ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
-
-</div>
+</article>
