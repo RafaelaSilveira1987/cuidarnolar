@@ -30,13 +30,58 @@ $checkedDia = static function (array $escalaBase, string $dia): string {
 };
 
 $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_id'] ?? 0), $profissionaisEscala);
+
+// Paleta fixa: evita cores soltas e mantém a escala visualmente organizada.
+$paletaCuidadores = [
+    '', // opção sem cor
+    '#68f7f2', // verde água
+    '#08f31c', // teal
+    '#2563eb', // azul
+    '#7c3aed', // roxo
+    '#db2777', // rosa
+    '#dc2626', // vermelho
+    '#ea580c', // laranja
+    '#ca8a04', // amarelo/ocre
+    '#16a34a', // verde
+    '#475569', // grafite
+];
+
+$corDaPaleta = static function (mixed $cor) use ($paletaCuidadores): ?string {
+    $cor = strtolower(trim((string)$cor));
+
+    // Permite a opção "sem cor"
+    if ($cor === '') {
+        return '';
+    }
+
+    if (!preg_match('/^#[0-9a-f]{6}$/', $cor)) {
+        return null;
+    }
+
+    return in_array($cor, $paletaCuidadores, true) ? $cor : null;
+};
+
+$coresPorCuidador = [];
+foreach ($profissionaisEscala as $profissionalEscala) {
+    $cid = (int)($profissionalEscala['cuidador_id'] ?? 0);
+    $cor = $corDaPaleta($profissionalEscala['cor_escala'] ?? null);
+    if ($cid > 0 && $cor !== null) {
+        $coresPorCuidador[$cid] = $cor;
+    }
+}
+
+$corPadraoCuidador = static function (int $cid) use ($paletaCuidadores): string {
+    // Padrão: sem cor. A cor só aparece quando a usuária escolher.
+    return '';
+};
 ?>
 
 <section class="panel contrato-escala-panel">
     <div class="panel-header contrato-escala-head">
         <div>
             <h2>Contrato e escala</h2>
-            <p class="page-subtitle">Base operacional para saber qual cobertura foi contratada e como o plantão deve ser montado.</p>
+            <p class="page-subtitle">Base operacional para saber qual cobertura foi contratada e como o plantão deve ser
+                montado.</p>
         </div>
     </div>
 
@@ -44,24 +89,29 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
         <article class="ce-card">
             <span class="ce-label">Contrato ativo</span>
             <?php if ($contratoAtivo): ?>
-                <strong><?= e($contratoAtivo['tipo_servico'] ?? 'Contrato') ?></strong>
-                <p><?= e($fmtMoney($contratoAtivo['valor_mensal'] ?? null)) ?> · vencimento dia <?= e((string)($contratoAtivo['dia_vencimento'] ?? '—')) ?></p>
-                <small>Vigência: <?= e($fmtDate($contratoAtivo['vigencia_inicio'] ?? null)) ?> até <?= e($fmtDate($contratoAtivo['vigencia_fim'] ?? null)) ?></small>
+            <strong><?= e($contratoAtivo['tipo_servico'] ?? 'Contrato') ?></strong>
+            <p><?= e($fmtMoney($contratoAtivo['valor_mensal'] ?? null)) ?> · vencimento dia
+                <?= e((string)($contratoAtivo['dia_vencimento'] ?? '—')) ?></p>
+            <small>Vigência: <?= e($fmtDate($contratoAtivo['vigencia_inicio'] ?? null)) ?> até
+                <?= e($fmtDate($contratoAtivo['vigencia_fim'] ?? null)) ?></small>
             <?php else: ?>
-                <strong>Sem contrato ativo</strong>
-                <p>Cadastre ou vincule um contrato para sugerir automaticamente 6h, 8h, 12h ou 24h.</p>
+            <strong>Sem contrato ativo</strong>
+            <p>Cadastre ou vincule um contrato para sugerir automaticamente 6h, 8h, 12h ou 24h.</p>
             <?php endif; ?>
         </article>
 
         <article class="ce-card">
             <span class="ce-label">Escala base</span>
             <?php if ($escalaBase): ?>
-                <strong><?= e($escalaBase['tipo_cobertura'] ?? '—') ?> · <?= e(substr((string)($escalaBase['hora_inicio'] ?? ''), 0, 5)) ?> às <?= e(substr((string)($escalaBase['hora_fim'] ?? ''), 0, 5)) ?></strong>
-                <p><?= e(ucfirst((string)($escalaBase['tipo_atendimento'] ?? 'domiciliar'))) ?><?= !empty($escalaBase['local']) ? ' · ' . e($escalaBase['local']) : '' ?></p>
-                <small><?= !empty($escalaBase['revezamento_automatico']) ? 'Revezamento automático ativo' : 'Revezamento manual' ?></small>
+            <strong><?= e($escalaBase['tipo_cobertura'] ?? '—') ?> ·
+                <?= e(substr((string)($escalaBase['hora_inicio'] ?? ''), 0, 5)) ?> às
+                <?= e(substr((string)($escalaBase['hora_fim'] ?? ''), 0, 5)) ?></strong>
+            <p><?= e(ucfirst((string)($escalaBase['tipo_atendimento'] ?? 'domiciliar'))) ?><?= !empty($escalaBase['local']) ? ' · ' . e($escalaBase['local']) : '' ?>
+            </p>
+            <small><?= !empty($escalaBase['revezamento_automatico']) ? 'Revezamento automático ativo' : 'Revezamento manual' ?></small>
             <?php else: ?>
-                <strong>Não configurada</strong>
-                <p>Preencha o formulário abaixo para criar a régua operacional desse paciente.</p>
+            <strong>Não configurada</strong>
+            <p>Preencha o formulário abaixo para criar a régua operacional desse paciente.</p>
             <?php endif; ?>
         </article>
 
@@ -69,9 +119,22 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
             <span class="ce-label">Equipe vinculada</span>
             <strong><?= count($profissionaisEscala) ?> profissional(is)</strong>
             <?php if ($profissionaisEscala): ?>
-                <p><?= e(implode(', ', array_map(static fn(array $p): string => (string)$p['nome_completo'], $profissionaisEscala))) ?></p>
+            <div class="ce-team-badges">
+                <?php foreach ($profissionaisEscala as $profissionalEscala): ?>
+                <?php
+                        $cidEquipe = (int)($profissionalEscala['cuidador_id'] ?? 0);
+                        $corEquipe = $coresPorCuidador[$cidEquipe] ?? $corPadraoCuidador($cidEquipe);
+                        $corEquipe = $corDaPaleta($corEquipe) ?? '';
+                        $semCorEquipe = $corEquipe === '';
+                        ?>
+                <span class="ce-team-badge <?= $semCorEquipe ? 'is-no-color' : '' ?>"
+                    <?= !$semCorEquipe ? 'style="--ce-caregiver-color: ' . e($corEquipe) . '"' : '' ?>>
+                    <i></i><?= e($profissionalEscala['nome_completo'] ?? 'Cuidador') ?>
+                </span>
+                <?php endforeach; ?>
+            </div>
             <?php else: ?>
-                <p>Nenhum cuidador fixado. A escala pode ficar aberta para preenchimento.</p>
+            <p>Nenhum cuidador fixado. A escala pode ficar aberta para preenchimento.</p>
             <?php endif; ?>
         </article>
     </div>
@@ -81,11 +144,13 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
     <div class="panel-header">
         <div>
             <h2><?= $escalaBase ? 'Ajustar escala base' : 'Configurar escala base' ?></h2>
-            <p class="page-subtitle">Aqui nasce a automação da escala. Sem isso, o sistema fica chutando igual previsão do tempo antiga.</p>
+            <p class="page-subtitle">Aqui nasce a automação da escala. Sem isso, o sistema fica chutando igual previsão
+                do tempo antiga.</p>
         </div>
     </div>
 
-    <form method="POST" action="<?= url('/pacientes/' . rawurlencode((string)$resourceKey) . '/escala-base') ?>" class="ce-form">
+    <form method="POST" action="<?= url('/pacientes/' . rawurlencode((string)$resourceKey) . '/escala-base') ?>"
+        class="ce-form">
         <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
 
         <div class="ce-subsection">
@@ -99,29 +164,35 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
                 <select name="contrato_tipo_servico">
                     <?php $contratoTipo = $contratoAtivo['tipo_servico'] ?? ''; ?>
                     <?php foreach (['Home care 6h', 'Home care 8h', 'Home care 12h', 'Home care 24h'] as $tipoContrato): ?>
-                    <option value="<?= e($tipoContrato) ?>" <?= $contratoTipo === $tipoContrato ? 'selected' : '' ?>><?= e($tipoContrato) ?></option>
+                    <option value="<?= e($tipoContrato) ?>" <?= $contratoTipo === $tipoContrato ? 'selected' : '' ?>>
+                        <?= e($tipoContrato) ?></option>
                     <?php endforeach; ?>
                 </select>
             </label>
 
             <label>
                 Valor mensal
-                <input type="text" name="contrato_valor_mensal" value="<?= e($contratoAtivo['valor_mensal'] ?? '') ?>" placeholder="Ex.: 3500,00">
+                <input type="text" name="contrato_valor_mensal" value="<?= e($contratoAtivo['valor_mensal'] ?? '') ?>"
+                    placeholder="Ex.: 3500,00">
             </label>
 
             <label>
                 Dia de vencimento
-                <input type="number" name="contrato_dia_vencimento" min="1" max="31" value="<?= e($contratoAtivo['dia_vencimento'] ?? '10') ?>">
+                <input type="number" name="contrato_dia_vencimento" min="1" max="31"
+                    value="<?= e($contratoAtivo['dia_vencimento'] ?? '10') ?>">
             </label>
 
             <label>
                 Forma de pagamento
-                <input type="text" name="contrato_forma_pagamento" value="<?= e($contratoAtivo['forma_pagamento'] ?? '') ?>" placeholder="Pix, boleto, transferência...">
+                <input type="text" name="contrato_forma_pagamento"
+                    value="<?= e($contratoAtivo['forma_pagamento'] ?? '') ?>"
+                    placeholder="Pix, boleto, transferência...">
             </label>
 
             <label>
                 Vigência início
-                <input type="date" name="contrato_vigencia_inicio" value="<?= e($contratoAtivo['vigencia_inicio'] ?? date('Y-m-d')) ?>">
+                <input type="date" name="contrato_vigencia_inicio"
+                    value="<?= e($contratoAtivo['vigencia_inicio'] ?? date('Y-m-d')) ?>">
             </label>
 
             <label>
@@ -148,73 +219,131 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
                 <select name="tipo_cobertura">
                     <?php foreach (['24h', '12h', '8h', '6h'] as $tipo): ?>
                     <?php $selectedTipo = $escalaBase['tipo_cobertura'] ?? $tipoCoberturaSugerido; ?>
-                    <option value="<?= e($tipo) ?>" <?= $selectedTipo === $tipo ? 'selected' : '' ?>><?= e($tipo) ?></option>
+                    <option value="<?= e($tipo) ?>" <?= $selectedTipo === $tipo ? 'selected' : '' ?>><?= e($tipo) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </label>
 
             <label>
                 Início
-                <input type="time" name="hora_inicio" value="<?= e(substr((string)($escalaBase['hora_inicio'] ?? '07:00'), 0, 5)) ?>">
+                <input type="time" name="hora_inicio"
+                    value="<?= e(substr((string)($escalaBase['hora_inicio'] ?? '07:00'), 0, 5)) ?>">
             </label>
 
             <label>
                 Fim
-                <input type="time" name="hora_fim" value="<?= e(substr((string)($escalaBase['hora_fim'] ?? '19:00'), 0, 5)) ?>">
+                <input type="time" name="hora_fim"
+                    value="<?= e(substr((string)($escalaBase['hora_fim'] ?? '19:00'), 0, 5)) ?>">
             </label>
 
             <label>
                 Tipo de atendimento
                 <?php $tipoAtendimento = $escalaBase['tipo_atendimento'] ?? 'domiciliar'; ?>
                 <select name="tipo_atendimento">
-                    <option value="domiciliar" <?= $tipoAtendimento === 'domiciliar' ? 'selected' : '' ?>>Domiciliar</option>
-                    <option value="hospitalar" <?= $tipoAtendimento === 'hospitalar' ? 'selected' : '' ?>>Hospitalar</option>
+                    <option value="domiciliar" <?= $tipoAtendimento === 'domiciliar' ? 'selected' : '' ?>>Domiciliar
+                    </option>
+                    <option value="hospitalar" <?= $tipoAtendimento === 'hospitalar' ? 'selected' : '' ?>>Hospitalar
+                    </option>
                 </select>
             </label>
 
             <label>
                 Local
-                <input type="text" name="local" value="<?= e($escalaBase['local'] ?? ($paciente['endereco_completo'] ?? '')) ?>" placeholder="Endereço, hospital, quarto...">
+                <input type="text" name="local"
+                    value="<?= e($escalaBase['local'] ?? ($paciente['endereco_completo'] ?? '')) ?>"
+                    placeholder="Endereço, hospital, quarto...">
             </label>
         </div>
 
         <div class="ce-week-box">
             <strong>Dias de cobertura</strong>
             <div class="ce-week-days">
-                <label><input type="checkbox" name="domingo" value="1" <?= $checkedDia($escalaBase, 'domingo') ?>> Dom</label>
-                <label><input type="checkbox" name="segunda" value="1" <?= $checkedDia($escalaBase, 'segunda') ?>> Seg</label>
-                <label><input type="checkbox" name="terca" value="1" <?= $checkedDia($escalaBase, 'terca') ?>> Ter</label>
-                <label><input type="checkbox" name="quarta" value="1" <?= $checkedDia($escalaBase, 'quarta') ?>> Qua</label>
-                <label><input type="checkbox" name="quinta" value="1" <?= $checkedDia($escalaBase, 'quinta') ?>> Qui</label>
-                <label><input type="checkbox" name="sexta" value="1" <?= $checkedDia($escalaBase, 'sexta') ?>> Sex</label>
-                <label><input type="checkbox" name="sabado" value="1" <?= $checkedDia($escalaBase, 'sabado') ?>> Sáb</label>
+                <label><input type="checkbox" name="domingo" value="1" <?= $checkedDia($escalaBase, 'domingo') ?>>
+                    Dom</label>
+                <label><input type="checkbox" name="segunda" value="1" <?= $checkedDia($escalaBase, 'segunda') ?>>
+                    Seg</label>
+                <label><input type="checkbox" name="terca" value="1" <?= $checkedDia($escalaBase, 'terca') ?>>
+                    Ter</label>
+                <label><input type="checkbox" name="quarta" value="1" <?= $checkedDia($escalaBase, 'quarta') ?>>
+                    Qua</label>
+                <label><input type="checkbox" name="quinta" value="1" <?= $checkedDia($escalaBase, 'quinta') ?>>
+                    Qui</label>
+                <label><input type="checkbox" name="sexta" value="1" <?= $checkedDia($escalaBase, 'sexta') ?>>
+                    Sex</label>
+                <label><input type="checkbox" name="sabado" value="1" <?= $checkedDia($escalaBase, 'sabado') ?>>
+                    Sáb</label>
             </div>
         </div>
-
-        <label class="ce-check">
-            <input type="checkbox" name="revezamento_automatico" value="1" <?= ($escalaBase === [] || !empty($escalaBase['revezamento_automatico'])) ? 'checked' : '' ?>>
-            Usar revezamento automático entre os cuidadores selecionados
-        </label>
+        <div class="ce-check">
+            <label>
+                <input class="ce-check-input" type="checkbox" name="revezamento_automatico" value="1"
+                    <?= ($escalaBase === [] || !empty($escalaBase['revezamento_automatico'])) ? 'checked' : '' ?>>
+                Usar revezamento automático entre os cuidadores selecionados
+            </label>
+        </div>
 
         <div class="ce-caregivers-box">
             <strong>Cuidadores da escala</strong>
-            <p class="page-subtitle">Pode deixar sem cuidador por enquanto. A cobertura ficará aberta para completar depois.</p>
+            <p class="page-subtitle">A cor agora pertence ao vínculo deste cuidador com este paciente/escala. O
+                mesmo
+                cuidador pode ter outra cor em outro paciente.</p>
 
             <div class="ce-caregivers-list">
                 <?php foreach ($cuidadoresOptions as $cuidador): ?>
-                <?php $cid = (int)($cuidador['id'] ?? 0); ?>
-                <label>
-                    <input type="checkbox" name="cuidador_ids[]" value="<?= $cid ?>" <?= in_array($cid, $cuidadorSelecionado, true) ? 'checked' : '' ?>>
-                    <span><?= e($cuidador['nome_completo'] ?? '') ?></span>
-                    <small><?= e($cuidador['especialidade'] ?? 'Cuidador') ?><?= !empty($cuidador['contrato_horas']) ? ' · ' . e($cuidador['contrato_horas']) : '' ?></small>
-                </label>
+                <?php
+                    $cid = (int)($cuidador['id'] ?? 0);
+                    $corCuidadorEscala = $coresPorCuidador[$cid] ?? $corPadraoCuidador($cid);
+                    $corCuidadorEscala = $corDaPaleta($corCuidadorEscala) ?? '';
+                    $semCorCuidador = $corCuidadorEscala === '';
+                    $nomeCuidador = (string)($cuidador['nome_completo'] ?? 'Cuidador');
+                    ?>
+                <div class="ce-caregiver-row <?= $semCorCuidador ? 'is-no-color' : '' ?>"
+                    <?= !$semCorCuidador ? 'style="--ce-caregiver-color: ' . e($corCuidadorEscala) . '"' : '' ?>>
+                    <label class="ce-caregiver-checkline" title="Selecionar <?= e($nomeCuidador) ?>">
+                        <input type="checkbox" name="cuidador_ids[]" value="<?= $cid ?>"
+                            <?= in_array($cid, $cuidadorSelecionado, true) ? 'checked' : '' ?>>
+                        <span class="ce-caregiver-info">
+                            <strong><?= e($nomeCuidador) ?></strong>
+                            <small><?= e($cuidador['especialidade'] ?? 'Cuidador') ?><?= !empty($cuidador['contrato_horas']) ? ' · ' . e($cuidador['contrato_horas']) : '' ?></small>
+                        </span>
+                    </label>
+
+                    <div class="ce-color-picker" data-color-picker>
+                        <button type="button" class="ce-color-swatch <?= $semCorCuidador ? 'is-empty' : '' ?>"
+                            data-color-toggle aria-label="Escolher cor de <?= e($nomeCuidador) ?> nesta escala"
+                            title="<?= $semCorCuidador ? 'Sem cor' : 'Escolher cor' ?>"
+                            <?= !$semCorCuidador ? 'style="background: ' . e($corCuidadorEscala) . '"' : '' ?>></button>
+
+                        <input type="hidden" name="cuidador_cores[<?= $cid ?>]" value="<?= e($corCuidadorEscala) ?>"
+                            data-color-input>
+
+                        <div class="ce-color-popover" data-color-popover>
+                            <div class="ce-color-popover-title">Cor do cuidador nesta escala</div>
+                            <div class="ce-color-grid" role="listbox" aria-label="Paleta de cores">
+                                <?php foreach ($paletaCuidadores as $corOpcao): ?>
+                                <?php
+                                    $semCorOpcao = $corOpcao === '';
+                                    $tituloCor = $semCorOpcao ? 'Sem cor' : strtoupper($corOpcao);
+                                ?>
+                                <button type="button"
+                                    class="ce-color-choice <?= $corOpcao === $corCuidadorEscala ? 'is-active' : '' ?> <?= $semCorOpcao ? 'is-empty' : '' ?>"
+                                    data-color-choice="<?= e($corOpcao) ?>" title="<?= e($tituloCor) ?>"
+                                    aria-label="<?= e($tituloCor) ?>"
+                                    <?= !$semCorOpcao ? 'style="background: ' . e($corOpcao) . '"' : '' ?>></button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <?php endforeach; ?>
             </div>
         </div>
 
         <label>
             Observações da escala
-            <textarea name="observacoes" rows="3" placeholder="Ex.: troca aos domingos, cuidador preferencial, regras do domicílio..."><?= e($escalaBase['observacoes'] ?? '') ?></textarea>
+            <textarea name="observacoes" rows="3"
+                placeholder="Ex.: troca aos domingos, cuidador preferencial, regras do domicílio..."><?= e($escalaBase['observacoes'] ?? '') ?></textarea>
         </label>
 
         <div class="button-row">
@@ -230,30 +359,31 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
     </div>
 
     <?php if (!$proximosPlantoes): ?>
-        <p class="empty-state">Nenhum plantão futuro encontrado para este paciente.</p>
+    <p class="empty-state">Nenhum plantão futuro encontrado para este paciente.</p>
     <?php else: ?>
-        <div class="table-wrap">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Horário</th>
-                        <th>Cuidador</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($proximosPlantoes as $plantao): ?>
-                    <tr>
-                        <td><?= e($fmtDate($plantao['data_plantao'] ?? null)) ?></td>
-                        <td><?= e(date('H:i', strtotime((string)$plantao['inicio']))) ?> às <?= e(date('H:i', strtotime((string)$plantao['fim']))) ?></td>
-                        <td><?= e($plantao['cuidador_nome'] ?? 'Aberto') ?></td>
-                        <td><?= e($plantao['status'] ?? 'previsto') ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Horário</th>
+                    <th>Cuidador</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($proximosPlantoes as $plantao): ?>
+                <tr>
+                    <td><?= e($fmtDate($plantao['data_plantao'] ?? null)) ?></td>
+                    <td><?= e(date('H:i', strtotime((string)$plantao['inicio']))) ?> às
+                        <?= e(date('H:i', strtotime((string)$plantao['fim']))) ?></td>
+                    <td><?= e($plantao['cuidador_nome'] ?? 'Aberto') ?></td>
+                    <td><?= e($plantao['status'] ?? 'previsto') ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
     <?php endif; ?>
 </section>
 
@@ -278,7 +408,8 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
                 <tr>
                     <td><?= e($contrato['tipo_servico'] ?? '-') ?></td>
                     <td><?= e($fmtMoney($contrato['valor_mensal'] ?? null)) ?></td>
-                    <td><?= e($fmtDate($contrato['vigencia_inicio'] ?? null)) ?> até <?= e($fmtDate($contrato['vigencia_fim'] ?? null)) ?></td>
+                    <td><?= e($fmtDate($contrato['vigencia_inicio'] ?? null)) ?> até
+                        <?= e($fmtDate($contrato['vigencia_fim'] ?? null)) ?></td>
                     <td><?= e($contrato['status'] ?? '-') ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -287,3 +418,79 @@ $cuidadorSelecionado = array_map(static fn(array $p): int => (int)($p['cuidador_
     </div>
 </section>
 <?php endif; ?>
+
+
+<script>
+(function() {
+    document.addEventListener('click', function(event) {
+        var toggle = event.target.closest('[data-color-toggle]');
+        var choice = event.target.closest('[data-color-choice]');
+        var picker = event.target.closest('[data-color-picker]');
+
+        if (!picker) {
+            document.querySelectorAll('[data-color-popover].is-open').forEach(function(popover) {
+                popover.classList.remove('is-open');
+            });
+        }
+
+        if (toggle) {
+            event.preventDefault();
+            var currentPicker = toggle.closest('[data-color-picker]');
+            var currentPopover = currentPicker ? currentPicker.querySelector('[data-color-popover]') : null;
+
+            document.querySelectorAll('[data-color-popover].is-open').forEach(function(popover) {
+                if (popover !== currentPopover) {
+                    popover.classList.remove('is-open');
+                }
+            });
+
+            if (currentPopover) {
+                currentPopover.classList.toggle('is-open');
+            }
+        }
+
+        if (choice) {
+            event.preventDefault();
+            var color = choice.getAttribute('data-color-choice');
+            var currentPicker = choice.closest('[data-color-picker]');
+            var row = choice.closest('.ce-caregiver-row');
+            var input = currentPicker ? currentPicker.querySelector('[data-color-input]') : null;
+            var swatch = currentPicker ? currentPicker.querySelector('[data-color-toggle]') : null;
+            var popover = currentPicker ? currentPicker.querySelector('[data-color-popover]') : null;
+
+            if (input) input.value = color;
+
+            if (swatch) {
+                if (color) {
+                    swatch.style.background = color;
+                    swatch.classList.remove('is-empty');
+                    swatch.setAttribute('title', 'Escolher cor');
+                } else {
+                    swatch.style.background = '';
+                    swatch.classList.add('is-empty');
+                    swatch.setAttribute('title', 'Sem cor');
+                }
+            }
+
+            if (row) {
+                if (color) {
+                    row.style.setProperty('--ce-caregiver-color', color);
+                    row.classList.remove('is-no-color');
+                } else {
+                    row.style.removeProperty('--ce-caregiver-color');
+                    row.classList.add('is-no-color');
+                }
+            }
+
+            if (currentPicker) {
+                currentPicker.querySelectorAll('[data-color-choice]').forEach(function(btn) {
+                    btn.classList.remove('is-active');
+                });
+            }
+
+            choice.classList.add('is-active');
+            if (popover) popover.classList.remove('is-open');
+        }
+    });
+})();
+</script>

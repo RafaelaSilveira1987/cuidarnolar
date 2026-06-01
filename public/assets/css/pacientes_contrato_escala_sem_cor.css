@@ -1,0 +1,50 @@
+/* Ajuste visual para opção "sem cor / sem preenchimento" na paleta de cuidadores da escala */
+
+.ce-caregiver-row.is-no-color {
+  border-left-color: var(--border);
+}
+
+.ce-team-badge.is-no-color i {
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, .25);
+}
+
+.ce-color-swatch.is-empty,
+.ce-color-choice.is-empty {
+  position: relative;
+  background: #fff !important;
+  overflow: hidden;
+}
+
+.ce-color-swatch.is-empty::before,
+.ce-color-choice.is-empty::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(45deg, #f8fafc 25%, transparent 25%),
+    linear-gradient(-45deg, #f8fafc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f8fafc 75%),
+    linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+}
+
+.ce-color-swatch.is-empty::after,
+.ce-color-choice.is-empty::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -18%;
+  width: 2px;
+  height: 140%;
+  background: #ef4444;
+  transform: rotate(45deg);
+  transform-origin: center;
+}
+
+.ce-color-choice.is-empty.is-active,
+.ce-color-swatch.is-empty:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
+}

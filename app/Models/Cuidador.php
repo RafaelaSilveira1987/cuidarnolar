@@ -26,7 +26,6 @@ class Cuidador extends BaseModuleModel
         'status',
         'contrato_horas',
         'motivo_inativacao',
-        'cor_escala',
     ];
 
     protected array $nullable = [
@@ -40,7 +39,6 @@ class Cuidador extends BaseModuleModel
         'especialidade',
         'contrato_horas',
         'motivo_inativacao',
-        'cor_escala',
     ];
 
     public function listForIndex(int $page = 1, int $perPage = 15, string $search = ''): array

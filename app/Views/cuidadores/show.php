@@ -60,10 +60,6 @@ $rg = cuidador_valor($record['rg'] ?? null);
 $nascimento = cuidador_data($record['data_nascimento'] ?? null);
 $idade = cuidador_idade($record['data_nascimento'] ?? null);
 $enderecoCompleto = cuidador_valor($record['endereco_completo'] ?? null);
-$corEscala = cuidador_valor($record['cor_escala'] ?? null, '#0f766e');
-if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $corEscala)) {
-    $corEscala = '#0f766e';
-}
 $canInativar = $status !== 'Inativo' && $resourceKey !== '';
 ?>
 
@@ -71,7 +67,7 @@ $canInativar = $status !== 'Inativo' && $resourceKey !== '';
 
 <section class="cuidador-hero">
     <div class="cuidador-identity">
-        <div class="cuidador-avatar" aria-hidden="true" style="background: <?= e($corEscala) ?>; color: #fff;"><?= e($inicial) ?></div>
+        <div class="cuidador-avatar" aria-hidden="true"><?= e($inicial) ?></div>
 
         <div>
             <span class="cuidador-eyebrow">Ficha do cuidador</span>
@@ -121,13 +117,6 @@ $canInativar = $status !== 'Inativo' && $resourceKey !== '';
         <strong><?= e($pix) ?></strong>
     </div>
 
-    <div class="cuidador-info-pill">
-        <span>Cor na escala</span>
-        <strong style="display:flex;align-items:center;gap:8px;">
-            <i style="width:16px;height:16px;border-radius:999px;background:<?= e($corEscala) ?>;display:inline-block;border:1px solid rgba(0,0,0,.12);"></i>
-            <?= e($corEscala) ?>
-        </strong>
-    </div>
 </section>
 
 <section class="cuidador-layout">
@@ -160,15 +149,6 @@ $canInativar = $status !== 'Inativo' && $resourceKey !== '';
                 <dd><?= e($status) ?></dd>
             </div>
 
-            <div>
-                <dt>Cor na escala</dt>
-                <dd>
-                    <span style="display:inline-flex;align-items:center;gap:8px;">
-                        <i style="width:16px;height:16px;border-radius:999px;background:<?= e($corEscala) ?>;display:inline-block;border:1px solid rgba(0,0,0,.12);"></i>
-                        <?= e($corEscala) ?>
-                    </span>
-                </dd>
-            </div>
         </dl>
     </article>
 

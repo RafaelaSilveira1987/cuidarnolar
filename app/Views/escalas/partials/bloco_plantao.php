@@ -1,81 +1,78 @@
 <?php
 /**
  * app/Views/escalas/partials/bloco_plantao.php
- * Célula de plantão com cor por cuidador e ações rápidas.
+ * Bloco compacto do plantão dentro da grade semanal/mensal.
+ * Recebe: $plantao, $turno, $pac, $dia.
  */
 
-$plantao = $plantao ?? [];
-$turnoLabel = $turnoLabel ?? 'Turno';
+$plantao = is_array($plantao ?? null) ? $plantao : [];
+$turno = is_array($turno ?? null) ? $turno : [];
+$pac = is_array($pac ?? null) ? $pac : [];
+$dia = is_array($dia ?? null) ? $dia : [];
+
+$escalaId = $plantao['escala_id'] ?? null;
+$pacienteUuid = (string)($plantao['paciente_uuid'] ?? $pac['uuid'] ?? '');
+$cuidadorUuid = (string)($plantao['colaborador_uuid'] ?? '');
+$cuidadorId = (string)($plantao['colaborador_id'] ?? '');
+$nomeCuidador = trim((string)($plantao['colaborador'] ?? ''));
+$dataPlantao = (string)($plantao['data'] ?? $dia['date'] ?? '');
+$inicio = (string)($plantao['inicio'] ?? $turno['inicio'] ?? '');
+$fim = (string)($plantao['fim'] ?? $turno['fim'] ?? '');
 $status = (string)($plantao['status'] ?? 'vago');
-$temCuidador = !empty($plantao['colaborador']);
-$isVago = $status === 'vago' || !$temCuidador;
-$isSub = $status === 'sub';
-$isSugerido = $status === 'sugerido';
+$turnoCodigo = (string)($plantao['turno_codigo'] ?? $turno['codigo'] ?? 'diurno');
+$corCuidador = trim((string)($plantao['colaborador_cor'] ?? ''));
+$temCuidador = $nomeCuidador !== '' && $nomeCuidador !== '—';
 
-if (!function_exists('escala_cor_cuidador')) {
-    function escala_cor_cuidador(string $chave): array
-    {
-        $hash = abs(crc32($chave ?: 'sem-cuidador'));
-        $hue = $hash % 360;
-        return [
-            "hsl({$hue} 88% 94%)",
-            "hsl({$hue} 72% 76%)",
-            "hsl({$hue} 64% 26%)",
-        ];
-    }
-}
-
-$chaveCor = (string)($plantao['colaborador_uuid'] ?? $plantao['colaborador_id'] ?? $plantao['colaborador'] ?? '');
-[$bg, $border, $text] = escala_cor_cuidador($chaveCor);
-$badge = $isVago ? 'VAGO' : ($isSub ? 'SUB' : 'OK');
-$classe = $isVago ? 'is-vago' : ($isSub ? 'is-sub' : 'is-ok');
-$titulo = trim(($plantao['colaborador'] ?? '') . ' ' . ($plantao['inicio'] ?? '') . '-' . ($plantao['fim'] ?? ''));
+$styleColor = $corCuidador !== '' ? ' style="--cuidador-cor:' . e($corCuidador) . '"' : '';
+$nomeExibir = $temCuidador ? $nomeCuidador : 'Sem cuidador';
+$statusLabel = match ($status) {
+    'sub' => 'Substituído',
+    'sugerido' => 'Prévia',
+    'vago' => 'Vago',
+    default => 'OK',
+};
 ?>
 
-<div class="plantao-cell <?= $classe ?>"
-    role="button"
-    tabindex="0"
-    title="<?= htmlspecialchars($titulo ?: 'Plantão em aberto') ?>"
-    style="<?= !$isVago ? '--care-bg:' . htmlspecialchars($bg) . ';--care-border:' . htmlspecialchars($border) . ';--care-text:' . htmlspecialchars($text) . ';' : '' ?>"
-    data-escala-id="<?= htmlspecialchars((string)($plantao['escala_id'] ?? '')) ?>"
-    data-paciente-uuid="<?= htmlspecialchars((string)($plantao['paciente_uuid'] ?? $pacienteUuid ?? '')) ?>"
-    data-colaborador-uuid="<?= htmlspecialchars((string)($plantao['colaborador_uuid'] ?? '')) ?>"
-    data-colaborador-id="<?= htmlspecialchars((string)($plantao['colaborador_id'] ?? '')) ?>"
-    data-data-plantao="<?= htmlspecialchars((string)($plantao['data'] ?? '')) ?>"
-    data-turno="<?= htmlspecialchars((string)($plantao['turno_codigo'] ?? 'diurno')) ?>"
-    data-inicio="<?= htmlspecialchars((string)($plantao['inicio'] ?? '07:00')) ?>"
-    data-fim="<?= htmlspecialchars((string)($plantao['fim'] ?? '19:00')) ?>">
+<div class="plantao-cell plantao-cell--<?= e($status) ?>"
+    <?= $styleColor ?>
+    draggable="<?= $escalaId ? 'true' : 'false' ?>"
+    data-escala-id="<?= e((string)$escalaId) ?>"
+    data-paciente-uuid="<?= e($pacienteUuid) ?>"
+    data-cuidador-uuid="<?= e($cuidadorUuid) ?>"
+    data-cuidador-id="<?= e($cuidadorId) ?>"
+    data-data="<?= e($dataPlantao) ?>"
+    data-turno="<?= e($turnoCodigo) ?>"
+    data-inicio="<?= e($inicio) ?>"
+    data-fim="<?= e($fim) ?>"
+    data-observacao="<?= e((string)($plantao['observacoes'] ?? '')) ?>">
 
-    <div class="plantao-cell__top">
-        <span class="plantao-cell__nome">
-            <?= htmlspecialchars($isVago ? 'Sem cuidador' : ($plantao['colaborador'] ?? 'Cuidador')) ?>
-        </span>
-        <span class="plantao-cell__badge"><?= $badge ?></span>
+    <div class="plantao-cell__head">
+        <span class="plantao-cell__dot" aria-hidden="true"></span>
+        <span class="plantao-cell__status"><?= e($statusLabel) ?></span>
     </div>
 
-    <div class="plantao-cell__hora">
-        <?= htmlspecialchars((string)($plantao['inicio'] ?? '--:--')) ?>–<?= htmlspecialchars((string)($plantao['fim'] ?? '--:--')) ?>
-        <?php if ($isSugerido): ?>
-            <span class="plantao-cell__hint">prévia</span>
+    <div class="plantao-cell__body">
+        <strong class="plantao-cell__nome"><?= e($nomeExibir) ?></strong>
+        <span class="plantao-cell__hora"><?= e($inicio) ?> - <?= e($fim) ?></span>
+        <?php if (!empty($plantao['sub_nome'])): ?>
+            <small class="plantao-cell__sub">Original: <?= e((string)$plantao['sub_nome']) ?></small>
         <?php endif; ?>
     </div>
 
-    <?php if ($isSub && !empty($plantao['sub_nome'])): ?>
-        <div class="plantao-cell__sub">Substitui <?= htmlspecialchars($plantao['sub_nome']) ?></div>
-    <?php endif; ?>
+    <div class="plantao-cell__actions">
+        <?php if ($escalaId): ?>
+            <button type="button" class="plantao-action js-edit-plantao" title="Editar plantão">Editar</button>
 
-    <div class="plantao-cell__actions" aria-label="Ações do plantão">
-        <button type="button" data-action="editar" title="Editar/alocar plantão">
-            <i class="ti ti-pencil" aria-hidden="true"></i>
-        </button>
+            <form method="POST" action="<?= BASE_URL ?>/escala/excluir" class="plantao-action-form js-delete-plantao">
+                <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
+                <input type="hidden" name="escala_id" value="<?= e((string)$escalaId) ?>">
+                <input type="hidden" name="semana" value="<?= e($dataPlantao) ?>">
+                <button type="submit" class="plantao-action plantao-action--danger" title="Excluir plantão">Excluir</button>
+            </form>
 
-        <?php if (!empty($plantao['escala_id'])): ?>
-            <button type="button" data-action="substituir" title="Substituir cuidador">
-                <i class="ti ti-arrows-exchange" aria-hidden="true"></i>
-            </button>
-            <button type="button" data-action="excluir" data-escala-id="<?= htmlspecialchars((string)$plantao['escala_id']) ?>" title="Excluir plantão">
-                <i class="ti ti-trash" aria-hidden="true"></i>
-            </button>
+            <button type="button" class="plantao-action js-substituir-plantao" title="Substituir cuidador">Substituir</button>
+        <?php else: ?>
+            <button type="button" class="plantao-action js-open-criar-plantao" data-paciente-uuid="<?= e($pacienteUuid) ?>" data-data="<?= e($dataPlantao) ?>" data-turno="<?= e($turnoCodigo) ?>">Alocar</button>
         <?php endif; ?>
     </div>
 </div>

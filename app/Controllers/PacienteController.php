@@ -295,6 +295,11 @@ class PacienteController extends ResourceController
             $cuidadorIds = [];
         }
 
+        $cuidadorCores = $_POST['cuidador_cores'] ?? [];
+        if (!is_array($cuidadorCores)) {
+            $cuidadorCores = [];
+        }
+
         $contratoModel = new ContratoPaciente();
         $contratoModel->salvarAtivoPaciente((int)$paciente['id'], [
             'tipo_servico' => $this->input('contrato_tipo_servico', ''),
@@ -326,7 +331,7 @@ class PacienteController extends ResourceController
             'observacoes' => $this->input('observacoes', ''),
         ];
 
-        (new Escala())->salvarBasePaciente((int)$paciente['id'], $data, $cuidadorIds);
+        (new Escala())->salvarBasePaciente((int)$paciente['id'], $data, $cuidadorIds, $cuidadorCores);
 
         $this->flash('success', 'Contrato e escala atualizados com sucesso.');
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=contrato_escala');

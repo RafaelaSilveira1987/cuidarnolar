@@ -10,6 +10,7 @@ class EscalaProfissional extends BaseModuleModel
         'escala_base_id',
         'cuidador_id',
         'ordem_revezamento',
+        'cor_escala',
         'ativo',
     ];
 }

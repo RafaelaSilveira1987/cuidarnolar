@@ -105,6 +105,11 @@ abstract class BaseModel
     {
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
+            if ($value === null) {
+                $stmt->bindValue($key, null, PDO::PARAM_NULL);
+                continue;
+            }
+
             $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
             $stmt->bindValue($key, $value, $type);
         }

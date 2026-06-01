@@ -116,9 +116,12 @@ $router->get('/relatorio-plantao/plantao/{uuid}', 'RelatorioPlantaoController@sh
 $router->get('/escala', 'EscalaController@index', ['auth']);
 $router->post('/escala/salvar', 'EscalaController@salvar',  ['auth', 'csrf']);
 $router->post('/escala/substituir', 'EscalaController@substituir', ['auth', 'csrf']);
+$router->post('/escala/mover', 'EscalaController@mover', ['auth', 'csrf']);
 $router->get('/escala/paciente/{uuid}', 'EscalaController@paciente', ['auth']);
 $router->get('/escala/colaborador/{uuid}', 'EscalaController@colaborador', ['auth']);
 $router->post('/escala/excluir', 'EscalaController@excluir', ['auth', 'csrf']);
+$router->post('/escala/trocar', 'EscalaController@trocar', ['auth', 'csrf']);
+$router->post('/escala/aprovar', 'EscalaController@aprovar', ['auth', 'csrf']);
 
 
 return $router;
