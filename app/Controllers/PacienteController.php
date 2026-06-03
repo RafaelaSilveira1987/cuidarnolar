@@ -9,6 +9,7 @@ use App\Models\Financeiro;
 use App\Models\Historico;
 use App\Models\MedicacaoPaciente;
 use App\Models\Paciente;
+use App\Models\PlanoCuidado;
 use App\Models\Responsavel;
 
 class PacienteController extends ResourceController
@@ -78,6 +79,7 @@ class PacienteController extends ResourceController
         $contratoModel = new ContratoPaciente();
         $contratoAtivo = $contratoModel->contratoAtivoPorPaciente($pacienteId);
         $escalaModel = new Escala();
+        $planoModel = new PlanoCuidado();
 
         $this->view('pacientes/show', [
             'pageTitle'    => 'Paciente — ' . ($record['nome_completo'] ?? ''),
@@ -99,6 +101,9 @@ class PacienteController extends ResourceController
             'tipoCoberturaSugerido' => $contratoModel->inferirTipoCobertura($contratoAtivo ?: null),
             'escalaResumo' => $escalaModel->resumoPorPaciente($pacienteId),
             'cuidadoresEscalaOptions' => $escalaModel->listaCuidadores(),
+            'planoCuidadoAtivo' => $planoModel->planoAtivoPorPaciente($pacienteId) ?: [],
+            'planosCuidadoHistorico' => $planoModel->historicoPorPaciente($pacienteId),
+            'planosCuidadoModelos' => $planoModel->listarModelos(),
         ]);
     }
 
@@ -329,6 +334,268 @@ class PacienteController extends ResourceController
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=contrato_escala');
     }
 
+
+    public function planoNovo(string $id): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        $model = new PlanoCuidado();
+        $gerar = (string)$this->input('gerar', '');
+        $modelo = (string)$this->input('modelo', '');
+        $record = $gerar === '1'
+            ? $model->gerarRascunhoPaciente($paciente, $modelo)
+            : $model->gerarRascunhoPaciente($paciente, $modelo ?: 'geral');
+
+        if ($gerar !== '1') {
+            $record['objetivos'] = '';
+            $record['monitoramento'] = '';
+            $record['oxigenoterapia'] = '';
+            $record['nebulizacao'] = '';
+            $record['controle_ambiental'] = '';
+            $record['alimentacao_hidratacao'] = '';
+            $record['atividade_repouso'] = '';
+            $record['medicamentos'] = '';
+            $record['comunicacao_familia'] = '';
+            $record['sinais_alerta'] = '';
+            $record['observacoes'] = '';
+        }
+
+        $this->renderPlanoCuidadoForm($paciente, $record, [], 'Novo plano de cuidados');
+    }
+
+    public function planoStore(string $id): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        $data = $this->planoCuidadoInput();
+        $errors = $this->validatePlanoCuidado($data);
+
+        if ($errors !== []) {
+            $this->renderPlanoCuidadoForm($paciente, $data, $errors, 'Novo plano de cuidados');
+            return;
+        }
+
+        $model = new PlanoCuidado();
+        $planoId = $model->salvarPlano((int)$paciente['id'], $data);
+
+        if (($data['status'] ?? '') === 'Ativo') {
+            $model->ativarPlano((int)$paciente['id'], $planoId);
+        }
+
+        $this->flash('success', 'Plano de cuidados cadastrado com sucesso.');
+        $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
+    }
+
+    public function planoEditar(string $id, string $planoId): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        $plano = (new PlanoCuidado())->findByPaciente((int)$paciente['id'], (int)$planoId);
+        if (!$plano) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Plano de cuidados não encontrado para este paciente.'], 'layouts/blank');
+            return;
+        }
+
+        $this->renderPlanoCuidadoForm($paciente, $plano, [], 'Editar plano de cuidados', (int)$planoId);
+    }
+
+    public function planoUpdate(string $id, string $planoId): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        $model = new PlanoCuidado();
+        $plano = $model->findByPaciente((int)$paciente['id'], (int)$planoId);
+        if (!$plano) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Plano de cuidados não encontrado para este paciente.'], 'layouts/blank');
+            return;
+        }
+
+        $data = $this->planoCuidadoInput();
+        $errors = $this->validatePlanoCuidado($data);
+
+        if ($errors !== []) {
+            $this->renderPlanoCuidadoForm($paciente, array_merge($plano, $data), $errors, 'Editar plano de cuidados', (int)$planoId);
+            return;
+        }
+
+        $model->salvarPlano((int)$paciente['id'], $data, (int)$planoId);
+
+        if (($data['status'] ?? '') === 'Ativo') {
+            $model->ativarPlano((int)$paciente['id'], (int)$planoId);
+        }
+
+        $this->flash('success', 'Plano de cuidados atualizado com sucesso.');
+        $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
+    }
+
+    public function planoAtivar(string $id, string $planoId): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        (new PlanoCuidado())->ativarPlano((int)$paciente['id'], (int)$planoId);
+        $this->flash('success', 'Plano de cuidados ativado.');
+        $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
+    }
+
+    public function planoArquivar(string $id, string $planoId): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        (new PlanoCuidado())->arquivarPlano((int)$paciente['id'], (int)$planoId);
+        $this->flash('success', 'Plano de cuidados arquivado.');
+        $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
+    }
+
+
+    public function planoPdf(string $id, string $planoId): void
+    {
+        $paciente = $this->resolvePaciente($id);
+
+        if (!$paciente) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        $model = new PlanoCuidado();
+        $plano = $model->findByPaciente((int)$paciente['id'], (int)$planoId);
+
+        if (!$plano) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Plano de cuidados não encontrado para este paciente.'], 'layouts/blank');
+            return;
+        }
+
+        $empresa = [];
+        try {
+            $empresa = (new ContratoPaciente())->empresaPadrao();
+        } catch (\Throwable) {
+            $empresa = [];
+        }
+
+        ob_start();
+        require dirname(__DIR__) . '/Views/pacientes/plano-pdf.php';
+        $html = ob_get_clean();
+
+        $dompdf = new \Dompdf\Dompdf([
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'DejaVu Sans',
+        ]);
+
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $nomePaciente = preg_replace('/[^a-zA-Z0-9_-]/', '-', strtolower((string)($paciente['nome_completo'] ?? 'paciente')));
+        $versao = (int)($plano['versao'] ?? 1);
+        $filename = 'plano-cuidados-' . trim($nomePaciente, '-') . '-v' . $versao . '.pdf';
+
+        $dompdf->stream($filename, [
+            'Attachment' => false,
+        ]);
+    }
+
+    private function renderPlanoCuidadoForm(array $paciente, array $record, array $errors, string $title, ?int $planoId = null): void
+    {
+        $model = new PlanoCuidado();
+
+        $this->view('pacientes/plano-form', [
+            'pageTitle' => $title,
+            'title' => $title,
+            'routeBase' => $this->routeBase,
+            'paciente' => $paciente,
+            'record' => $record,
+            'errors' => $errors,
+            'modelosPlano' => $model->listarModelos(),
+            'action' => $planoId
+                ? '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/planos/' . $planoId
+                : '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/planos',
+            'isEdit' => $planoId !== null,
+        ]);
+    }
+
+    private function planoCuidadoInput(): array
+    {
+        return [
+            'modelo_chave' => $this->input('modelo_chave', ''),
+            'titulo' => $this->input('titulo', ''),
+            'subtitulo' => $this->input('subtitulo', ''),
+            'responsavel_tecnico' => $this->input('responsavel_tecnico', ''),
+            'data_inicio' => $this->input('data_inicio', date('Y-m-d')),
+            'data_revisao' => $this->input('data_revisao', ''),
+            'status' => $this->input('status', 'Rascunho'),
+            'versao' => $this->input('versao', '1'),
+            'resumo_clinico' => $this->input('resumo_clinico', ''),
+            'objetivos' => $this->input('objetivos', ''),
+            'monitoramento' => $this->input('monitoramento', ''),
+            'oxigenoterapia' => $this->input('oxigenoterapia', ''),
+            'nebulizacao' => $this->input('nebulizacao', ''),
+            'controle_ambiental' => $this->input('controle_ambiental', ''),
+            'alimentacao_hidratacao' => $this->input('alimentacao_hidratacao', ''),
+            'atividade_repouso' => $this->input('atividade_repouso', ''),
+            'medicamentos' => $this->input('medicamentos', ''),
+            'comunicacao_familia' => $this->input('comunicacao_familia', ''),
+            'sinais_alerta' => $this->input('sinais_alerta', ''),
+            'observacoes' => $this->input('observacoes', ''),
+        ];
+    }
+
+    private function validatePlanoCuidado(array $data): array
+    {
+        $errors = [];
+
+        if (trim((string)($data['titulo'] ?? '')) === '') {
+            $errors['titulo'] = 'Informe o título do plano.';
+        }
+
+        if (trim((string)($data['data_inicio'] ?? '')) === '') {
+            $errors['data_inicio'] = 'Informe a data de início.';
+        }
+
+        if (trim((string)($data['objetivos'] ?? '')) === '') {
+            $errors['objetivos'] = 'Informe pelo menos os objetivos do cuidado.';
+        }
+
+        return $errors;
+    }
 
     public function contratoNovo(string $id): void
     {

@@ -262,7 +262,7 @@ button.rp-btn {
   background: #eef6ff;
   color: #1d4ed8;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -293,7 +293,7 @@ button.rp-btn {
   justify-content: center;
 
   padding: 10px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--rp-border-strong);
 
   background: #ffffff;
@@ -411,7 +411,7 @@ button.rp-btn {
   justify-content: center;
 
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 
   font-size: 12px;
   font-weight: 700;
@@ -649,7 +649,7 @@ textarea.rp-input,
 .rp-tag {
   background: #eff6ff;
   color: #2563eb;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 8px 14px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -687,7 +687,7 @@ textarea.rp-input,
   display: inline-flex;
   align-self: flex-start;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: rgba(2, 117, 108, 0.1);
   color: var(--rp-primary);
   font-size: 12px;

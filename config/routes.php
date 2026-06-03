@@ -20,6 +20,14 @@ $router->post('/pacientes/{uuid}/inativar', 'PacienteController@inativar', ['aut
 $router->post('/pacientes/{uuid}/escala-base', 'PacienteController@salvarEscalaBase', ['auth', 'csrf']);
 $router->post('/pacientes/{uuid}/escala-base/reaplicar', 'PacienteController@reaplicarEscalaBase', ['auth', 'csrf']);
 
+$router->get('/pacientes/{uuid}/planos/novo', 'PacienteController@planoNovo', ['auth']);
+$router->post('/pacientes/{uuid}/planos', 'PacienteController@planoStore', ['auth', 'csrf']);
+$router->get('/pacientes/{uuid}/planos/{planoId}/pdf', 'PacienteController@planoPdf', ['auth']);
+$router->get('/pacientes/{uuid}/planos/{planoId}/editar', 'PacienteController@planoEditar', ['auth']);
+$router->post('/pacientes/{uuid}/planos/{planoId}', 'PacienteController@planoUpdate', ['auth', 'csrf']);
+$router->post('/pacientes/{uuid}/planos/{planoId}/ativar', 'PacienteController@planoAtivar', ['auth', 'csrf']);
+$router->post('/pacientes/{uuid}/planos/{planoId}/arquivar', 'PacienteController@planoArquivar', ['auth', 'csrf']);
+
 $router->get('/pacientes/{uuid}/contratos/novo', 'PacienteController@contratoNovo', ['auth']);
 $router->post('/pacientes/{uuid}/contratos', 'PacienteController@contratoStore', ['auth', 'csrf']);
 $router->get('/pacientes/{uuid}/contratos/{contratoId}/editar', 'PacienteController@contratoEditar', ['auth']);

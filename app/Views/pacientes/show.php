@@ -73,13 +73,13 @@ if ($currentKey === '' || in_array($currentKey, ['pacientes', 'editar', 'novo'],
 $tabUrl = static fn(string $a): string => url('/pacientes/' . rawurlencode($currentKey) . '?aba=' . urlencode($a));
 
 $abas = [
-    'cadastro' => 'Dados cadastrais',
-    'responsaveis' => 'Responsáveis e contatos',
+    'cadastro' => 'Cadastro',
+    'responsaveis' => 'Responsáveis',
     'anamnese' => 'Anamnese',
     'medicacoes' => 'Medicações',
-    'historico' => 'Histórico clínico',
-    'plano' => 'Plano de cuidados',
-    'plantao' => 'Relatórios de plantão',
+    'historico' => 'Histórico',
+    'plano' => 'Plano de Cuidados',
+    'plantao' => 'Relatório de Plantões',
     'contratos' => 'Contratos',
     'contrato_escala' => 'Escala',
 ];
@@ -198,6 +198,10 @@ if (trim((string)($paciente['curativos'] ?? '')) !== '') {
 if ($alimentacaoVia !== 'Não informado') {
     $tagsClinicas[] = 'Via alimentar: ' . $alimentacaoVia;
 }
+
+$abasComResumoClinico = ['cadastro', 'anamnese', 'medicacoes', 'historico'];
+$exibirResumoClinico = in_array($abaAtiva, $abasComResumoClinico, true);
+$exibirAlertaClinicoCompacto = !empty($tagsClinicas);
 ?>
 
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/responsaveis_paciente_patch.css">
@@ -229,6 +233,27 @@ if ($alimentacaoVia !== 'Não informado') {
     </div>
 </section>
 
+
+<nav class="patient-tabs patient-tabs--top">
+    <?php foreach ($abas as $key => $label): ?>
+    <a href="<?= $tabUrl($key) ?>" class="<?= $abaAtiva === $key ? 'active' : '' ?>">
+        <?= e($label) ?>
+    </a>
+    <?php endforeach; ?>
+</nav>
+
+<?php if ($exibirAlertaClinicoCompacto): ?>
+<section class="pac-clinical-tags" aria-label="Tags clínicas">
+    <strong>Alertas assistenciais:</strong>
+    <div>
+        <?php foreach ($tagsClinicas as $tag): ?>
+        <span><?= e($tag) ?></span>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
+
+<?php if ($exibirResumoClinico): ?>
 <section class="pac-quick-panel" aria-label="Resumo rápido do paciente">
     <div class="pac-quick-grid">
         <div class="pac-quick-item pac-quick-item--wide">
@@ -266,25 +291,9 @@ if ($alimentacaoVia !== 'Não informado') {
             <strong><?= e($cognicao) ?></strong>
         </div>
     </div>
-
-    <div class="pac-clinical-tags" aria-label="Tags clínicas">
-        <?php if (!empty($tagsClinicas)): ?>
-        <?php foreach ($tagsClinicas as $tag): ?>
-        <span><?= e($tag) ?></span>
-        <?php endforeach; ?>
-        <?php else: ?>
-        <span>Sem dispositivos críticos informados</span>
-        <?php endif; ?>
-    </div>
 </section>
 
-<nav class="patient-tabs">
-    <?php foreach ($abas as $key => $label): ?>
-    <a href="<?= $tabUrl($key) ?>" class="<?= $abaAtiva === $key ? 'active' : '' ?>">
-        <?= e($label) ?>
-    </a>
-    <?php endforeach; ?>
-</nav>
+
 
 <section class="panel pac-clinical-summary">
     <div class="panel-header">
@@ -383,6 +392,8 @@ if ($alimentacaoVia !== 'Não informado') {
     </div>
     <?php endif; ?>
 </section>
+
+<?php endif; ?>
 
 <div class="patient-tab-content">
 

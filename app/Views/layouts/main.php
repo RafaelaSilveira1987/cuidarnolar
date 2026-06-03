@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="<?= url('/assets/css/responsaveis_paciente_patch.css') ?>">
     <link rel="stylesheet" href="<?= url('/assets/css/agendamentos.css') ?>">
     <link rel="stylesheet" href="<?= url('/assets/css/configuracoes.css') ?>">
+    <link rel="stylesheet" href="<?= url('/assets/css/ui_refino_v14.css') ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
 

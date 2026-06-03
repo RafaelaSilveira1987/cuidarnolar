@@ -264,6 +264,14 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                 <?php endif; ?>
 
                 <?php if ($periodoFechado): ?>
+                <form method="POST" action="<?= url('/escala/cancelar-fechamento') ?>"
+                    onsubmit="return confirm('Cancelar o fechamento deste período? Os plantões voltarão para confirmado e poderão ser ajustados. Se já houver financeiro gerado, o sistema vai bloquear.');">
+                    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                    <input type="hidden" name="paciente_uuid" value="<?= e($pac['uuid'] ?? '') ?>">
+                    <input type="hidden" name="modo" value="<?= e($modo) ?>">
+                    <input type="hidden" name="periodo" value="<?= e($filtros['periodo'] ?? date('Y-m-d')) ?>">
+                    <button type="submit" class="btn btn-secondary">Cancelar fechamento</button>
+                </form>
                 <a class="btn btn-primary" href="<?= url('/financeiro/contas-pagar/gerar') . '?' . e($financeiroQuery) ?>">
                     Gerar financeiro
                 </a>
@@ -279,7 +287,17 @@ $queryBase = function (array $extra = []) use ($filtros): string {
             <strong>Plantões finalizados e prontos para gerar contas a pagar.</strong>
             <p>Agora o financeiro dos cuidadores usa somente os plantões finalizados deste período. Bonito, seguro e sem pagar antes da hora.</p>
         </div>
-        <a class="btn btn-primary" href="<?= url('/financeiro/contas-pagar/gerar') . '?' . e($financeiroQuery) ?>">Gerar financeiro dos cuidadores</a>
+        <div class="escala-fechamento-actions">
+            <form method="POST" action="<?= url('/escala/cancelar-fechamento') ?>"
+                onsubmit="return confirm('Cancelar o fechamento deste período? Os plantões voltarão para confirmado e poderão ser ajustados.');">
+                <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                <input type="hidden" name="paciente_uuid" value="<?= e($pac['uuid'] ?? '') ?>">
+                <input type="hidden" name="modo" value="<?= e($modo) ?>">
+                <input type="hidden" name="periodo" value="<?= e($filtros['periodo'] ?? date('Y-m-d')) ?>">
+                <button type="submit" class="btn btn-secondary">Cancelar fechamento</button>
+            </form>
+            <a class="btn btn-primary" href="<?= url('/financeiro/contas-pagar/gerar') . '?' . e($financeiroQuery) ?>">Gerar financeiro dos cuidadores</a>
+        </div>
     </section>
     <?php elseif ($periodoAprovado): ?>
     <section class="escala-fechamento-card">
@@ -322,8 +340,8 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                                 default => 'personalizado',
                             };
                             ?>
-                <div class="escala-shift escala-shift--<?= e($status) ?>" style="--cuidador-cor: <?= e($cor) ?>"
-                    draggable="true" data-escala-id="<?= e($plantao['escala_id'] ?? '') ?>"
+                <div class="escala-shift escala-shift--<?= e($status) ?> <?= $periodoFechado ? 'escala-shift--locked' : '' ?>" style="--cuidador-cor: <?= e($cor) ?>"
+                    draggable="<?= $periodoFechado ? 'false' : 'true' ?>" data-escala-id="<?= e($plantao['escala_id'] ?? '') ?>"
                     data-paciente-uuid="<?= e($pac['uuid'] ?? '') ?>" data-data="<?= e($data) ?>"
                     data-turno="<?= e($plantao['turno_codigo'] ?? '') ?>">
                     <div class="escala-shift__bar"></div>
@@ -339,7 +357,9 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                         <div class="escala-shift__status"><?= e($plantao['status_label'] ?? '') ?></div>
 
                         <div class="escala-shift__actions">
-                            <?php if (!empty($plantao['escala_id'])): ?>
+                            <?php if ($periodoFechado): ?>
+                            <span class="escala-locked-badge" title="Período fechado"><i class="ti ti-lock" aria-hidden="true"></i> Fechado</span>
+                            <?php elseif (!empty($plantao['escala_id'])): ?>
                             <button type="button" class="mini-btn mini-btn--icon js-escala-editar"
                                 data-id="<?= e($plantao['escala_id']) ?>" data-paciente="<?= e($pac['uuid'] ?? '') ?>"
                                 data-data="<?= e($data) ?>" data-inicio="<?= e($plantao['hora_inicio'] ?? '') ?>"

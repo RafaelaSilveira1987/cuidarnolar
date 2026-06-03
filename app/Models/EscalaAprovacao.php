@@ -239,6 +239,100 @@ class EscalaAprovacao extends BaseModel
     }
 
 
+
+    /**
+     * Cancela o fechamento do período e volta a aprovação para aprovada.
+     */
+    public function cancelarFechamentoPeriodo(
+        int $escalaBaseId,
+        int $pacienteId,
+        string $periodoInicio,
+        string $periodoFim,
+        int $totalReabertos = 0
+    ): bool {
+        $tabela = $this->resolverTabela();
+        if (!$tabela) {
+            return false;
+        }
+
+        $colunas = $this->colunasTabela($tabela);
+        if (!isset($colunas['paciente_id'], $colunas['escala_base_id'], $colunas['status'])) {
+            return false;
+        }
+
+        $campoInicio = isset($colunas['data_inicio']) ? 'data_inicio' : (isset($colunas['periodo_inicio']) ? 'periodo_inicio' : null);
+        $campoFim = isset($colunas['data_fim']) ? 'data_fim' : (isset($colunas['periodo_fim']) ? 'periodo_fim' : null);
+        if (!$campoInicio || !$campoFim) {
+            return false;
+        }
+
+        $statusAprovada = $this->valorEnumSeguro($tabela, 'status', [
+            'aprovada',
+            'aprovado',
+            'confirmado',
+            'confirmada',
+            'OK',
+            'ok',
+        ]);
+
+        if (!$statusAprovada) {
+            return false;
+        }
+
+        $agora = date('Y-m-d H:i:s');
+        $usuarioId = $this->usuarioLogadoId();
+        $linhaHistorico = "\n[{$agora}] Cancelamento do fechamento realizado. Plantões reabertos para ajuste: {$totalReabertos}.";
+
+        $sets = ['status = :status'];
+        $params = [
+            ':status' => $statusAprovada,
+            ':paciente_id' => $pacienteId,
+            ':escala_base_id' => $escalaBaseId,
+            ':periodo_inicio' => $periodoInicio,
+            ':periodo_fim' => $periodoFim,
+        ];
+
+        if (isset($colunas['fechado_por'])) {
+            $sets[] = 'fechado_por = NULL';
+        }
+        if (isset($colunas['fechado_em'])) {
+            $sets[] = 'fechado_em = NULL';
+        }
+        if (isset($colunas['reaberto_por']) && $usuarioId) {
+            $sets[] = 'reaberto_por = :reaberto_por';
+            $params[':reaberto_por'] = $usuarioId;
+        }
+        if (isset($colunas['reaberto_em'])) {
+            $sets[] = 'reaberto_em = :reaberto_em';
+            $params[':reaberto_em'] = $agora;
+        }
+        if (isset($colunas['atualizado_em'])) {
+            $sets[] = 'atualizado_em = :atualizado_em';
+            $params[':atualizado_em'] = $agora;
+        }
+        if (isset($colunas['updated_at'])) {
+            $sets[] = 'updated_at = :updated_at';
+            $params[':updated_at'] = $agora;
+        }
+        if (isset($colunas['observacoes'])) {
+            $sets[] = "observacoes = TRIM(CONCAT(COALESCE(observacoes, ''), :historico))";
+            $params[':historico'] = $linhaHistorico;
+        }
+
+        $stmt = $this->query(
+            "UPDATE {$tabela}
+             SET " . implode(', ', $sets) . "
+             WHERE paciente_id = :paciente_id
+               AND escala_base_id = :escala_base_id
+               AND {$campoInicio} = :periodo_inicio
+               AND {$campoFim} = :periodo_fim
+             LIMIT 1",
+            $params
+        );
+
+        return $stmt->rowCount() > 0;
+    }
+
     public function buscarPorPeriodo(
         int $escalaBaseId,
         int $pacienteId,

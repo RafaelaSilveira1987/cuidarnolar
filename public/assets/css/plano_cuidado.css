@@ -1,0 +1,264 @@
+.plano-care-header,
+.plano-form-header {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.plano-care-actions,
+.plano-active-buttons,
+.plano-form-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-plano {
+  align-self: flex-end;
+}
+
+.plano-empty-card {
+  border: 1px dashed var(--border);
+  border-radius: 18px;
+  background: #f8fafc;
+  padding: 18px;
+}
+
+.plano-empty-card h3,
+.plano-active-card h3 {
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: 20px;
+}
+
+.plano-empty-card p,
+.plano-active-card p {
+  color: var(--muted);
+}
+
+.plano-modelos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.plano-modelo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: .18s ease;
+}
+
+.plano-modelo-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(1, 148, 142, .35);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, .08);
+}
+
+.plano-modelo-card strong {
+  color: var(--primary);
+}
+
+.plano-modelo-card span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.plano-active-card {
+  border: 1px solid rgba(1, 148, 142, .18);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  padding: 18px;
+}
+
+.plano-active-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.plano-active-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.plano-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.plano-status-ativo {
+  background: rgba(1, 148, 142, .12);
+  color: #02756c;
+}
+
+.plano-status-rascunho {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.plano-status-revisado {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.plano-status-arquivado {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.plano-section-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.plano-section {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  padding: 14px;
+}
+
+.plano-section h4 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.plano-section p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.plano-section-muted {
+  background: #f8fafc;
+  margin-bottom: 12px;
+}
+
+.plano-history-panel {
+  margin-top: 18px;
+}
+
+.plano-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plano-history-actions form {
+  margin: 0;
+}
+
+.plano-history-actions button {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.plano-form-panel {
+  max-width: 1120px;
+}
+
+.plano-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.plano-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.plano-form-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.plano-form-grid label,
+.plano-textarea-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.plano-form-grid input,
+.plano-form-grid select,
+.plano-textarea-block textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  color: var(--text);
+  font: inherit;
+}
+
+.plano-textarea-block textarea {
+  min-height: 128px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.plano-textarea-block small {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.plano-form-note {
+  border: 1px solid rgba(202, 138, 4, .25);
+  border-radius: 14px;
+  background: #fffbeb;
+  color: #78350f;
+  padding: 12px 14px;
+  line-height: 1.45;
+}
+
+.plano-section-editor {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .plano-modelos-grid,
+  .plano-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .plano-active-top {
+    flex-direction: column;
+  }
+
+  .plano-active-meta {
+    align-items: flex-start;
+  }
+}

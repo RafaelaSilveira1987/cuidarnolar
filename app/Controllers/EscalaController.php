@@ -337,6 +337,90 @@ class EscalaController extends BaseController
         $this->redirect($retorno);
     }
 
+
+    public function cancelarFechamento(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/escala');
+            return;
+        }
+
+        $pacienteUuid = $this->sanitizarUuid($_POST['paciente_uuid'] ?? null);
+        $modo = ($_POST['modo'] ?? 'semana') === 'mes' ? 'mes' : 'semana';
+        $periodo = $this->sanitizarData($_POST['periodo'] ?? null) ?: date('Y-m-d');
+        $retorno = '/escala' . ($pacienteUuid
+            ? '?paciente=' . rawurlencode($pacienteUuid) . '&modo=' . $modo . '&periodo=' . rawurlencode($periodo)
+            : '');
+
+        if (!$pacienteUuid) {
+            $this->flash('error', 'Selecione um paciente para cancelar o fechamento.');
+            $this->redirect('/escala');
+            return;
+        }
+
+        $paciente = $this->escala->buscarPacientePorUuid($pacienteUuid);
+        if (!$paciente) {
+            $this->flash('error', 'Paciente não localizado para cancelar fechamento.');
+            $this->redirect('/escala');
+            return;
+        }
+
+        [$inicioPeriodo, $fimPeriodo] = $this->resolverPeriodo($modo, $periodo);
+        $pacientes = $this->escala->listarPacientesOperacionais((int)$paciente['id'], null);
+        $escalaBaseId = (int)($pacientes[0]['escala_base_id'] ?? $paciente['escala_base_id'] ?? 0);
+
+        if ($escalaBaseId <= 0) {
+            $this->flash('error', 'Este paciente ainda não possui escala base operacional.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        $aprovacao = $this->escalaAprovacao->buscarPorPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo
+        );
+
+        $status = strtolower((string)($aprovacao['status'] ?? ''));
+        if (!$aprovacao || !in_array($status, ['fechada', 'finalizada'], true)) {
+            $this->flash('info', 'Este período não está fechado.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        $bloqueadosFinanceiro = $this->escalaOcorrencia->contarFinalizadosComFinanceiroPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo
+        );
+
+        if ($bloqueadosFinanceiro > 0) {
+            $this->flash('error', 'Não é possível cancelar o fechamento porque já existe financeiro gerado para ' . $bloqueadosFinanceiro . ' plantão(ões). Cancele/estorne os lançamentos financeiros antes.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        $reabertos = $this->escalaOcorrencia->cancelarFinalizacaoPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo
+        );
+
+        $this->escalaAprovacao->cancelarFechamentoPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo,
+            $reabertos
+        );
+
+        $this->flash('success', "Fechamento cancelado. {$reabertos} plantão(ões) voltaram para confirmado e podem ser ajustados novamente.");
+        $this->redirect($retorno);
+    }
+
     public function mover(): void
     {
         $this->trocar();

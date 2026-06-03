@@ -9,17 +9,18 @@
 }
 
 .ce-card {
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
 }
 
 .ce-card strong {
   display: block;
   margin: 6px 0;
-  color: var(--text);
-  font-size: 17px;
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
 }
 
 .ce-card p,
@@ -29,10 +30,10 @@
 
 .ce-label {
   display: block;
-  color: var(--primary-dark);
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: .08em;
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -45,10 +46,10 @@
 .ce-week-box,
 .ce-caregivers-box,
 .ce-check {
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: 14px;
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .ce-week-days {
@@ -58,7 +59,7 @@
   margin-top: 10px;
 }
 
-.ce-week-days label{
+.ce-week-days label {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -95,7 +96,7 @@
   height: 16px;
   margin: 0;
   flex: 0 0 auto;
-} 
+}
 
 .ce-caregivers-list {
   display: grid;
@@ -110,11 +111,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border: 1px solid var(--border);
-  border-left: 5px solid var(--ce-caregiver-color, var(--primary));
-  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  border-left: 5px solid var(--ce-caregiver-color, var(--color-primary));
+  border-radius: var(--radius-lg);
   padding: 10px 12px;
-  background: #fff;
+  background: var(--color-surface);
   min-height: 62px;
 }
 
@@ -142,8 +143,8 @@
 }
 
 .ce-caregiver-info strong {
-  color: var(--text);
-  font-weight: 800;
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -162,9 +163,11 @@
 .ce-color-swatch {
   width: 30px;
   height: 30px;
-  border-radius: 7px;
-  border: 1px solid rgba(15, 23, 42, .22);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .45), 0 2px 6px rgba(15, 23, 42, .12);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   padding: 0;
 }
@@ -187,7 +190,7 @@
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, .18);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
   z-index: 50;
   display: none;
 }
@@ -199,10 +202,10 @@
 .ce-color-popover-title {
   color: var(--muted);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
   margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
 .ce-color-grid {
@@ -215,10 +218,10 @@
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  border: 1px solid rgba(15, 23, 42, .20);
+  border: 1px solid rgba(15, 23, 42, 0.2);
   cursor: pointer;
   padding: 0;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 .ce-color-choice:hover {
@@ -267,7 +270,7 @@
 
 .contrato-active-card {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .8fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr);
   gap: 16px;
   align-items: stretch;
 }
@@ -300,12 +303,12 @@
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: #f8fafc;
   color: var(--text);
   padding: 6px 10px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .contrato-mini-grid {
@@ -325,14 +328,14 @@
 .contrato-mini-grid dt {
   color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
 }
 
 .contrato-mini-grid dd {
   margin: 4px 0 0;
   color: var(--text);
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .contrato-finance-card {
@@ -364,7 +367,7 @@
   flex-direction: column;
   gap: 6px;
   color: var(--text);
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .contrato-generate-form button {
@@ -436,7 +439,7 @@
   border-radius: 12px;
   background: #f8fafc;
   padding: 10px 12px;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .contrato-check-grid input {
@@ -473,18 +476,30 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 5px 9px;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: var(--weight-bold);
   background: #e2e8f0;
   color: #334155;
 }
 
-.status-ativo { background: #dcfce7; color: #166534; }
-.status-suspenso { background: #fef3c7; color: #92400e; }
-.status-encerrado { background: #e2e8f0; color: #334155; }
-.status-cancelado { background: #fee2e2; color: #991b1b; }
+.status-ativo {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-suspenso {
+  background: #fef3c7;
+  color: #92400e;
+}
+.status-encerrado {
+  background: #e2e8f0;
+  color: #334155;
+}
+.status-cancelado {
+  background: #fee2e2;
+  color: #991b1b;
+}
 
 .ce-contract-notice {
   display: flex;

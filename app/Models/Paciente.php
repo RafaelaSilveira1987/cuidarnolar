@@ -62,7 +62,31 @@ class Paciente extends BaseModuleModel
 
     public function createPaciente(array $data): int
     {
-        return $this->insert($this->filterExistingColumns($this->normalizeData($data)));
+        $id = $this->insert(
+            $this->filterExistingColumns(
+                $this->normalizeData($data)
+            )
+        );
+
+        $prontuario = $this->gerarProntuario((int)$id);
+
+        $this->query(
+            "UPDATE tb_pacientes
+         SET prontuario = :prontuario
+         WHERE id = :id
+           AND (prontuario IS NULL OR TRIM(prontuario) = '')",
+            [
+                ':prontuario' => $prontuario,
+                ':id' => $id,
+            ]
+        );
+
+        return (int)$id;
+    }
+
+    private function gerarProntuario(int $id): string
+    {
+        return 'PRT-' . date('Y') . '-' . str_pad((string)$id, 6, '0', STR_PAD_LEFT);
     }
 
     public function updatePaciente(int $id, array $data): bool

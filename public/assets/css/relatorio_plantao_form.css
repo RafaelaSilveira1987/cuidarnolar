@@ -62,7 +62,7 @@
   flex: 0 0 auto;
   background: var(--rpf-primary-soft);
   color: var(--rpf-primary-dark);
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .rp-patient-info {
@@ -72,7 +72,7 @@
 .rp-patient-info__name {
   color: var(--rpf-text);
   font-size: 1.05rem;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .rp-patient-info__meta {
@@ -111,7 +111,7 @@
   gap: 0.45rem;
   color: var(--rpf-text);
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .turno-selector {
@@ -127,7 +127,7 @@
   border: 1px solid var(--rpf-border-strong);
   background: var(--rpf-surface);
   color: #334155;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 0.55rem 0.9rem;
   font-weight: 700;
   cursor: pointer;
@@ -173,7 +173,7 @@
   margin-bottom: 1rem;
   color: var(--rpf-text);
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .rp-section__title i {
@@ -250,9 +250,9 @@
   width: fit-content;
   min-height: 24px;
   padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .sinal-badge.hidden {
@@ -291,7 +291,7 @@
   min-height: 38px;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--rpf-border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: #fff;
   color: #334155;
   font-size: 0.86rem;
@@ -335,7 +335,7 @@
   border-radius: 50%;
   background: var(--rpf-surface-soft);
   color: var(--rpf-text);
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .med-list {
@@ -361,12 +361,12 @@
   justify-content: center;
   min-width: 54px;
   color: var(--rpf-primary-dark);
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .med-name {
   color: var(--rpf-text);
-  font-weight: 750;
+  font-weight: var(--weight-semibold);
   min-width: 0;
 }
 
@@ -389,11 +389,11 @@
   min-height: 34px;
   padding: 0.42rem 0.7rem;
   border: 1px solid var(--rpf-border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: #fff;
   color: #475569;
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   transition:
     background 0.18s ease,
@@ -502,7 +502,7 @@
   min-height: 40px;
   border-radius: 8px;
   padding: 0.62rem 0.95rem;
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
   text-decoration: none;
   cursor: pointer;
 }
@@ -559,7 +559,7 @@
 
 .rp-footer__name {
   color: var(--rpf-text);
-  font-weight: 800;
+  font-weight: var(--weight-semibold);
 }
 
 .rp-footer__coren {

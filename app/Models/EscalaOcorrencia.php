@@ -198,6 +198,75 @@ class EscalaOcorrencia extends BaseModuleModel
         return $stmt->rowCount();
     }
 
+
+    /**
+     * Cancela o fechamento do período quando ainda não existe financeiro gerado.
+     * Plantões finalizados voltam para confirmado, liberando ajustes operacionais.
+     */
+    public function cancelarFinalizacaoPeriodo(int $escalaBaseId, int $pacienteId, string $periodoInicio, string $periodoFim): int
+    {
+        if ($escalaBaseId <= 0 || $pacienteId <= 0) {
+            return 0;
+        }
+
+        $agora = date('Y-m-d H:i:s');
+        $linhaHistorico = "\n[{$agora}] Fechamento cancelado. Plantão voltou para confirmado para ajuste operacional.";
+
+        $stmt = $this->query(
+            "UPDATE {$this->table} o
+                LEFT JOIN tb_financeiro f
+                  ON f.escala_ocorrencia_id = o.id
+                 AND f.tipo_transacao <> 'Entrada'
+                 AND f.status <> 'Cancelado'
+                SET o.status = 'confirmado',
+                    o.observacoes = TRIM(CONCAT(COALESCE(o.observacoes, ''), :historico)),
+                    o.atualizado_em = :atualizado_em
+              WHERE o.escala_base_id = :escala_base_id
+                AND o.paciente_id = :paciente_id
+                AND o.data_plantao BETWEEN :inicio AND :fim
+                AND o.status = 'finalizado'
+                AND f.id IS NULL",
+            [
+                ':historico' => $linhaHistorico,
+                ':atualizado_em' => $agora,
+                ':escala_base_id' => $escalaBaseId,
+                ':paciente_id' => $pacienteId,
+                ':inicio' => $periodoInicio,
+                ':fim' => $periodoFim,
+            ]
+        );
+
+        return $stmt->rowCount();
+    }
+
+    public function contarFinalizadosComFinanceiroPeriodo(int $escalaBaseId, int $pacienteId, string $periodoInicio, string $periodoFim): int
+    {
+        if ($escalaBaseId <= 0 || $pacienteId <= 0) {
+            return 0;
+        }
+
+        $row = $this->rawFirst(
+            "SELECT COUNT(DISTINCT o.id) AS total
+               FROM {$this->table} o
+               JOIN tb_financeiro f
+                 ON f.escala_ocorrencia_id = o.id
+                AND f.tipo_transacao <> 'Entrada'
+                AND f.status <> 'Cancelado'
+              WHERE o.escala_base_id = :escala_base_id
+                AND o.paciente_id = :paciente_id
+                AND o.data_plantao BETWEEN :inicio AND :fim
+                AND o.status = 'finalizado'",
+            [
+                ':escala_base_id' => $escalaBaseId,
+                ':paciente_id' => $pacienteId,
+                ':inicio' => $periodoInicio,
+                ':fim' => $periodoFim,
+            ]
+        );
+
+        return (int)($row['total'] ?? 0);
+    }
+
     public function contarFinalizadosPeriodo(int $escalaBaseId, int $pacienteId, string $periodoInicio, string $periodoFim): int
     {
         if ($escalaBaseId <= 0 || $pacienteId <= 0) {

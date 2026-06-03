@@ -4,15 +4,16 @@
 
 .page-header h1,
 .main-content h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .main-content p {
-  color: #475569;
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
+  font-size: var(--text-base);
 }
 
 /* FORM */
@@ -21,7 +22,7 @@ form {
   margin-top: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
 .form-group {
@@ -31,9 +32,10 @@ form {
 }
 
 .form-group label {
-  font-weight: 600;
-  color: #334155;
-  font-size: 0.95rem;
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  letter-spacing: -0.01em;
 }
 
 /* INPUTS */
@@ -42,12 +44,15 @@ input,
 select,
 textarea {
   width: 100%;
-  padding: 0.9rem 1rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  background: #fff;
-  transition: all 0.2s ease;
+  padding: 9px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  background: var(--color-surface);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   box-sizing: border-box;
 }
 
@@ -55,8 +60,8 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(46, 184, 122, 0.15);
 }
 
 textarea {
@@ -75,39 +80,43 @@ textarea {
 /* CARD */
 
 .card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .card h3 {
   margin: 0 0 1rem;
-  color: #0f172a;
-  font-size: 1.1rem;
-  font-weight: 700;
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
 }
 
 /* BOTÃO */
 
 .btn-primary,
 button.btn-primary {
-  background: #0f766e;
-  color: white;
+  background: var(--color-accent);
+  color: #fff;
   border: none;
-  padding: 1rem 1.4rem;
-  border-radius: 12px;
-  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
-  transition: 0.2s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
   align-self: flex-start;
 }
 
 .btn-primary:hover,
 button.btn-primary:hover {
   transform: translateY(-1px);
-  opacity: 0.95;
+  background: var(--color-primary-hover);
 }
 
 /* TIMELINE */
@@ -124,33 +133,38 @@ button.btn-primary:hover {
 .tab-container {
   display: flex;
   justify-content: space-around;
-  border-bottom: 2px solid #e2e8f0;
-  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--space-5);
 }
 
 .tab-link {
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #475569;
+  padding: 10px 14px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
   text-decoration: none;
   border-bottom: 2px solid transparent;
-  transition: all 0.3s;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .tab-link.active {
-  color: #0f766e;
-  border-bottom: 2px solid #0f766e;
+  color: var(--color-accent);
+  border-bottom: 2px solid var(--color-accent);
+  font-weight: var(--weight-semibold);
 }
 
 /* Estilo para os cards de plantão */
 .plantao-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .plantao-topo {
@@ -161,8 +175,9 @@ button.btn-primary:hover {
 }
 
 .plantao-topo strong {
-  font-size: 1.1rem;
-  color: #1e293b;
+  font-size: var(--text-lg);
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
 }
 
 .plantao-topo .status-badge {
@@ -183,21 +198,21 @@ button.btn-primary:hover {
 
 .sv-item {
   text-align: center;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.8rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
 }
 
 .sv-item small {
   display: block;
-  font-size: 0.8rem;
-  color: #64748b;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .sv-item strong {
-  font-size: 1.2rem;
-  color: #1e293b;
+  font-size: var(--text-lg);
+  color: var(--text-primary);
 }
 
 .plantao-body {
