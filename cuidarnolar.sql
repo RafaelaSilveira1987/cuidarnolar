@@ -105,30 +105,48 @@ CREATE TABLE IF NOT EXISTS `tb_contratos_paciente` (
   `id` int NOT NULL AUTO_INCREMENT,
   `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
   `paciente_id` int NOT NULL,
+  `responsavel_legal_id` int DEFAULT NULL,
+  `responsavel_financeiro_id` int DEFAULT NULL,
   `tipo_servico` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `servicos_contratados` text COLLATE utf8mb4_unicode_ci,
+  `escala_contratada` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `tipo_plantao` enum('6h','8h','12h','24h') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `hora_inicio_padrao` time DEFAULT NULL,
   `hora_fim_padrao` time DEFAULT NULL,
+  `tipo_prazo` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'Indeterminado',
+  `tipo_cobranca` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT 'Mensal',
+  `valor_contrato` decimal(12,2) DEFAULT NULL,
   `valor_mensal` decimal(12,2) NOT NULL,
+  `valor_semanal` decimal(12,2) DEFAULT NULL,
+  `valor_plantao` decimal(12,2) DEFAULT NULL,
   `dia_vencimento` tinyint unsigned NOT NULL DEFAULT '10',
   `forma_pagamento` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `multa_percentual` decimal(8,4) DEFAULT NULL,
+  `juros_percentual` decimal(8,4) DEFAULT NULL,
   `vigencia_inicio` date NOT NULL,
   `vigencia_fim` date DEFAULT NULL,
+  `empresa_razao_social` varchar(180) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `empresa_cnpj` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `empresa_endereco` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `empresa_responsavel_contrato` varchar(160) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `paciente_snapshot` longtext COLLATE utf8mb4_unicode_ci,
+  `responsavel_legal_snapshot` longtext COLLATE utf8mb4_unicode_ci,
+  `responsavel_financeiro_snapshot` longtext COLLATE utf8mb4_unicode_ci,
+  `empresa_snapshot` longtext COLLATE utf8mb4_unicode_ci,
   `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Ativo',
   `observacoes` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_contratos_paciente_uuid` (`uuid`),
   KEY `idx_contratos_paciente` (`paciente_id`),
   KEY `idx_contratos_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Copiando dados para a tabela cuidar_no_lar.tb_contratos_paciente: ~4 rows (aproximadamente)
-INSERT INTO `tb_contratos_paciente` (`id`, `uuid`, `paciente_id`, `tipo_servico`, `tipo_plantao`, `hora_inicio_padrao`, `hora_fim_padrao`, `valor_mensal`, `dia_vencimento`, `forma_pagamento`, `vigencia_inicio`, `vigencia_fim`, `status`, `observacoes`, `created_at`) VALUES
-	(1, '6ae2639f-52ac-11f1-a16a-089798669242', 2, 'Cuidados 24h', '24h', '07:00:00', '07:00:00', 3000.00, 10, 'PIX', '2026-01-01', '2026-12-31', 'Ativo', NULL, '2026-05-13 23:50:40'),
-	(2, 'cd1aa9a4-5b8e-11f1-b6c0-089798669242', 12, 'Home care 12h', NULL, NULL, NULL, 2500.00, 10, NULL, '2026-05-29', '2026-06-01', 'Ativo', NULL, '2026-05-29 18:47:10'),
-	(3, 'f1852ba1-5b8e-11f1-b6c0-089798669242', 1, 'Home care 24h', NULL, NULL, NULL, 3000.00, 10, NULL, '2026-05-29', NULL, 'Ativo', NULL, '2026-05-29 18:48:12'),
-	(4, '146e27eb-5b9d-11f1-b6c0-089798669242', 16, 'Home care 12h', NULL, NULL, NULL, 2000.00, 10, NULL, '2026-05-29', NULL, 'Ativo', NULL, '2026-05-29 20:29:23');
+INSERT INTO `tb_contratos_paciente` (`id`, `uuid`, `paciente_id`, `responsavel_legal_id`, `responsavel_financeiro_id`, `tipo_servico`, `servicos_contratados`, `escala_contratada`, `tipo_plantao`, `hora_inicio_padrao`, `hora_fim_padrao`, `tipo_prazo`, `tipo_cobranca`, `valor_contrato`, `valor_mensal`, `valor_semanal`, `valor_plantao`, `dia_vencimento`, `forma_pagamento`, `multa_percentual`, `juros_percentual`, `vigencia_inicio`, `vigencia_fim`, `empresa_razao_social`, `empresa_cnpj`, `empresa_endereco`, `empresa_responsavel_contrato`, `paciente_snapshot`, `responsavel_legal_snapshot`, `responsavel_financeiro_snapshot`, `empresa_snapshot`, `status`, `observacoes`, `created_at`, `updated_at`) VALUES
+	(5, '72fd4cac-5dd9-11f1-8b1a-089798669242', 13, 44, 44, 'Home care escala 12x36 horas', '["Cuidador"]', '12x36 Noturno', NULL, '19:00:00', '07:00:00', 'Determinado', 'Contrato fechado', 2000.00, 0.00, NULL, 120.00, 10, 'PIX', 1.5000, 1.0000, '2026-06-01', '2026-06-15', 'Cuidar no Lar', NULL, NULL, NULL, '{"nome_completo":"Lucas Gabriel","cpf":"222.222.222-02","rg":null,"data_nascimento":"2020-11-02","endereco":"Rua Beta, 20","telefone":"32988880002","email":"lucas@email.com"}', '{"id":44,"nome_completo":"Fernanda","cpf":"MIG-0000000013","grau_parentesco":"Mãe","telefone":"32988882222","email":null,"endereco":"Rua Beta, 20, Muriaé\\/MG"}', '{"id":44,"nome_completo":"Fernanda","cpf":"MIG-0000000013","grau_parentesco":"Mãe","telefone":"32988882222","email":null,"endereco":"Rua Beta, 20, Muriaé\\/MG"}', '{"razao_social":"Cuidar no Lar","cnpj":null,"endereco":null,"responsavel_contrato":null}', 'Ativo', NULL, '2026-06-01 16:46:34', '2026-06-01 16:46:34'),
+	(6, '186b74a5-5df3-11f1-8b1a-089798669242', 14, 45, 45, 'Home Care 24 horas', '["Técnico de Enfermagem"]', '24 horas', NULL, '07:00:00', '07:00:00', 'Determinado', 'Mensal', 5000.00, 5000.00, NULL, NULL, 10, NULL, 2.0000, 1.0000, '2026-06-01', '2026-06-30', 'Cuidar no Lar', NULL, NULL, NULL, '{"nome_completo":"Helena Souza","cpf":"222.222.222-03","rg":null,"data_nascimento":"2019-01-12","endereco":"Rua Gama, 30","telefone":"32988880003","email":"helena@email.com"}', '{"id":45,"nome_completo":"Marcelo Souza","cpf":"MIG-0000000014","grau_parentesco":"Pai","telefone":"32988883333","email":null,"endereco":"Rua Gama, 30, Muriaé\\/MG"}', '{"id":45,"nome_completo":"Marcelo Souza","cpf":"MIG-0000000014","grau_parentesco":"Pai","telefone":"32988883333","email":null,"endereco":"Rua Gama, 30, Muriaé\\/MG"}', '{"razao_social":"Cuidar no Lar","cnpj":null,"endereco":null,"responsavel_contrato":null}', 'Ativo', NULL, '2026-06-01 19:50:09', '2026-06-01 19:50:09');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_cuidador
 CREATE TABLE IF NOT EXISTS `tb_cuidador` (
@@ -263,11 +281,13 @@ CREATE TABLE IF NOT EXISTS `tb_escala_aprovacoes` (
   UNIQUE KEY `uq_escala_aprovacao_periodo` (`escala_base_id`,`paciente_id`,`data_inicio`,`data_fim`),
   KEY `idx_escala_aprovacao_paciente_periodo` (`paciente_id`,`data_inicio`,`data_fim`),
   KEY `idx_escala_aprovacao_base` (`escala_base_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Copiando dados para a tabela cuidar_no_lar.tb_escala_aprovacoes: ~0 rows (aproximadamente)
+-- Copiando dados para a tabela cuidar_no_lar.tb_escala_aprovacoes: ~3 rows (aproximadamente)
 INSERT INTO `tb_escala_aprovacoes` (`id`, `paciente_id`, `escala_base_id`, `data_inicio`, `data_fim`, `status`, `aprovado_por`, `aprovado_em`, `reaberto_por`, `reaberto_em`, `observacoes`, `criado_em`, `atualizado_em`) VALUES
-	(1, 12, 3, '2026-05-31', '2026-06-06', 'aprovada', 1, '2026-05-31 05:07:06', NULL, NULL, 'Aprovação da escala do período. Plantões novos confirmados: 2', '2026-05-31 08:06:54', '2026-05-31 08:07:06');
+	(1, 12, 3, '2026-05-31', '2026-06-06', 'aprovada', 1, '2026-05-31 14:21:56', NULL, NULL, 'Aprovação da escala do período. Plantões novos confirmados: 2', '2026-05-31 08:06:54', '2026-05-31 17:21:56'),
+	(6, 16, 4, '2026-05-31', '2026-06-06', 'aprovada', 1, '2026-06-01 12:59:08', NULL, NULL, 'Aprovação da escala do período. Plantões novos confirmados: 0', '2026-05-31 18:32:59', '2026-06-01 15:59:08'),
+	(8, 16, 5, '2026-05-31', '2026-06-06', 'reaberta', 1, '2026-06-01 13:26:16', 1, '2026-06-01 13:27:28', 'Aprovação da escala do período. Plantões novos confirmados: 6\n[2026-06-01 13:27:28] Escala base reaberta para alteração de cuidadores, horários ou cores.\n[2026-06-01 13:27:28] Alteração salva na escala base. Reaplicação operacional pendente.\n[2026-06-01 13:27:43] Escala base reaplicada no grid operacional. Plantões removidos: 6. Plantões gerados: 7.', '2026-06-01 16:26:16', '2026-06-01 16:27:43');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_escala_base
 CREATE TABLE IF NOT EXISTS `tb_escala_base` (
@@ -295,14 +315,14 @@ CREATE TABLE IF NOT EXISTS `tb_escala_base` (
   PRIMARY KEY (`id`),
   KEY `fk_tb_escala_base_paciente` (`paciente_id`),
   CONSTRAINT `fk_tb_escala_base_paciente` FOREIGN KEY (`paciente_id`) REFERENCES `tb_pacientes` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3;
 
 -- Copiando dados para a tabela cuidar_no_lar.tb_escala_base: ~4 rows (aproximadamente)
 INSERT INTO `tb_escala_base` (`id`, `paciente_id`, `nome`, `tipo_cobertura`, `hora_inicio`, `hora_fim`, `tipo_atendimento`, `local`, `recorrente`, `domingo`, `segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`, `revezamento_automatico`, `ativo`, `observacoes`, `criado_em`, `atualizado_em`) VALUES
 	(1, 1, 'Cobertura João', '24h', '07:00:00', '07:00:00', 'domiciliar', NULL, 'sim', 1, 1, 1, 1, 1, 1, 1, 1, 1, NULL, '2026-05-21 15:14:56', '2026-05-21 15:14:56'),
 	(2, 1, 'Cobertura João', '24h', '07:00:00', '07:00:00', 'domiciliar', 'Rua João Dornelas, 100 - Dornelas', 'sim', 1, 1, 1, 1, 1, 1, 1, 1, 1, NULL, '2026-05-21 15:44:28', '2026-05-29 18:48:12'),
 	(3, 12, 'Escala base', '24h', '07:00:00', '19:00:00', 'domiciliar', 'Rua Alpha, 10', 'sim', 1, 1, 1, 1, 1, 1, 1, 1, 1, NULL, '2026-05-29 17:47:53', '2026-05-31 03:11:28'),
-	(4, 16, 'Escala base', '12h', '07:00:00', '19:00:00', 'domiciliar', 'Rua Épsilon, 50', 'sim', 1, 1, 1, 1, 1, 1, 1, 1, 1, NULL, '2026-05-29 20:29:23', '2026-05-29 20:29:23');
+	(5, 16, 'Escala base', '12h', '07:00:00', '19:00:00', 'domiciliar', 'Rua Épsilon, 50', 'sim', 1, 1, 1, 1, 1, 1, 1, 1, 1, NULL, '2026-06-01 13:00:40', '2026-06-01 13:00:40');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_escala_ocorrencias
 CREATE TABLE IF NOT EXISTS `tb_escala_ocorrencias` (
@@ -331,9 +351,9 @@ CREATE TABLE IF NOT EXISTS `tb_escala_ocorrencias` (
   CONSTRAINT `fk_tb_ocorrencia_cuidador` FOREIGN KEY (`cuidador_id`) REFERENCES `tb_cuidador` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_tb_ocorrencia_escala` FOREIGN KEY (`escala_base_id`) REFERENCES `tb_escala_base` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_tb_ocorrencia_paciente` FOREIGN KEY (`paciente_id`) REFERENCES `tb_pacientes` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=129 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=153 DEFAULT CHARSET=utf8mb3;
 
--- Copiando dados para a tabela cuidar_no_lar.tb_escala_ocorrencias: ~24 rows (aproximadamente)
+-- Copiando dados para a tabela cuidar_no_lar.tb_escala_ocorrencias: ~22 rows (aproximadamente)
 INSERT INTO `tb_escala_ocorrencias` (`id`, `escala_base_id`, `paciente_id`, `cuidador_id`, `data_plantao`, `inicio`, `fim`, `tipo_plantao`, `status`, `conflito`, `cobertura_incompleta`, `observacoes`, `criado_em`, `atualizado_em`, `origem`) VALUES
 	(1, 1, 1, 1, '2026-05-25', '2026-05-25 07:00:00', '2026-05-26 07:00:00', '24h', 'previsto', 0, 0, NULL, '2026-05-21 16:00:34', '2026-05-21 16:00:34', 'Automatica'),
 	(2, 1, 1, 2, '2026-05-26', '2026-05-26 07:00:00', '2026-05-27 07:00:00', '24h', 'previsto', 0, 0, NULL, '2026-05-21 16:00:34', '2026-05-21 16:00:34', 'Automatica'),
@@ -345,20 +365,18 @@ INSERT INTO `tb_escala_ocorrencias` (`id`, `escala_base_id`, `paciente_id`, `cui
 	(106, NULL, 8, 8, '2026-05-23', '2026-05-23 07:00:00', '2026-05-23 19:00:00', '12h', 'previsto', 0, 0, NULL, '2026-05-22 11:47:12', '2026-05-22 11:47:12', 'Manual'),
 	(107, NULL, 9, 67, '2026-05-23', '2026-05-23 07:00:00', '2026-05-23 19:00:00', '12h', 'previsto', 0, 0, NULL, '2026-05-22 12:09:04', '2026-05-22 12:09:04', 'Manual'),
 	(108, NULL, 8, 67, '2026-05-23', '2026-05-23 19:00:00', '2026-05-24 07:00:00', '12h', 'previsto', 0, 0, NULL, '2026-05-22 15:28:23', '2026-05-22 15:28:23', 'Manual'),
-	(109, NULL, 12, 68, '2026-05-29', '2026-05-29 07:00:00', '2026-05-29 19:00:00', '12h', 'previsto', 0, 0, NULL, '2026-05-29 19:28:05', '2026-05-29 19:28:05', 'Manual'),
-	(110, NULL, 16, 69, '2026-05-30', '2026-05-30 07:00:00', '2026-05-31 07:00:00', '24h', 'previsto', 0, 0, NULL, '2026-05-29 19:28:39', '2026-05-29 19:28:39', 'Manual'),
 	(111, NULL, 1, 7, '2026-06-01', '2026-06-01 19:00:00', '2026-06-02 07:00:00', '12h', 'previsto', 0, 0, NULL, '2026-05-30 01:06:41', '2026-05-30 01:06:41', 'Manual'),
-	(112, 3, 12, 71, '2026-04-26', '2026-04-26 07:00:00', '2026-04-26 19:00:00', '24h', 'confirmado', 0, 0, NULL, '2026-05-31 00:26:37', '2026-05-31 00:26:37', 'Manual'),
-	(113, 3, 12, 70, '2026-04-28', '2026-04-28 07:00:00', '2026-04-28 19:00:00', '24h', 'confirmado', 0, 0, NULL, '2026-05-31 00:27:09', '2026-05-31 00:29:26', 'Manual'),
-	(114, 3, 12, 71, '2026-04-30', '2026-04-30 07:00:00', '2026-04-30 19:00:00', '24h', 'confirmado', 0, 0, NULL, '2026-05-31 00:28:33', '2026-05-31 00:29:26', 'Manual'),
-	(115, 3, 12, 71, '2026-05-29', '2026-05-29 07:00:00', '2026-05-29 19:00:00', '24h', 'confirmado', 0, 0, NULL, '2026-05-31 00:32:38', '2026-05-31 00:33:09', 'Manual'),
-	(116, 3, 12, 69, '2026-05-29', '2026-05-29 19:00:00', '2026-05-30 07:00:00', '24h', 'confirmado', 0, 0, NULL, '2026-05-31 00:33:06', '2026-05-31 00:33:09', 'Manual'),
-	(117, 3, 12, 12, '2026-05-30', '2026-05-30 07:00:00', '2026-05-30 19:00:00', '24h', 'confirmado', 0, 0, NULL, '2026-05-31 00:33:16', '2026-05-31 00:58:29', 'Manual'),
-	(118, 3, 12, 66, '2026-05-28', '2026-05-28 07:00:00', '2026-05-28 19:00:00', '24h', 'confirmado', 0, 0, NULL, '2026-05-31 01:00:30', '2026-05-31 01:00:30', 'Manual'),
-	(125, 3, 12, 70, '2026-05-31', '2026-05-31 07:00:00', '2026-05-31 19:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 03:13:01', '2026-05-31 03:13:01', 'Manual'),
-	(126, 3, 12, 69, '2026-06-01', '2026-06-01 07:00:00', '2026-06-01 19:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 03:13:01', '2026-05-31 03:13:01', 'Manual'),
-	(127, 3, 12, 70, '2026-05-31', '2026-05-31 19:00:00', '2026-06-01 07:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 03:13:01', '2026-05-31 03:13:01', 'Manual'),
-	(128, 3, 12, 69, '2026-06-01', '2026-06-01 19:00:00', '2026-06-02 07:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 03:13:01', '2026-05-31 03:13:01', 'Manual');
+	(129, 3, 12, 12, '2026-05-31', '2026-05-31 07:00:00', '2026-05-31 19:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 14:19:54', '2026-06-01 12:40:21', 'Manual'),
+	(130, 3, 12, 12, '2026-06-01', '2026-06-01 07:00:00', '2026-06-01 19:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 14:19:54', '2026-06-01 12:40:36', 'Manual'),
+	(131, 3, 12, 71, '2026-05-31', '2026-05-31 19:00:00', '2026-06-01 07:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 14:19:54', '2026-06-01 12:41:08', 'Manual'),
+	(132, 3, 12, 71, '2026-06-01', '2026-06-01 19:00:00', '2026-06-02 07:00:00', '12h', 'confirmado', 0, 0, NULL, '2026-05-31 14:19:54', '2026-06-01 12:41:19', 'Manual'),
+	(146, 5, 16, 63, '2026-05-31', '2026-05-31 07:00:00', '2026-05-31 19:00:00', '12h', 'previsto', 0, 0, 'Reaplicado da escala base em 01/06/2026 13:27.', '2026-06-01 13:27:43', '2026-06-01 13:27:43', 'Automatica'),
+	(147, 5, 16, 5, '2026-06-01', '2026-06-01 07:00:00', '2026-06-01 19:00:00', '12h', 'previsto', 0, 0, 'Reaplicado da escala base em 01/06/2026 13:27.', '2026-06-01 13:27:43', '2026-06-01 13:27:43', 'Automatica'),
+	(148, 5, 16, 63, '2026-06-02', '2026-06-02 07:00:00', '2026-06-02 19:00:00', '12h', 'previsto', 0, 0, 'Reaplicado da escala base em 01/06/2026 13:27.', '2026-06-01 13:27:43', '2026-06-01 13:27:43', 'Automatica'),
+	(149, 5, 16, 5, '2026-06-03', '2026-06-03 07:00:00', '2026-06-03 19:00:00', '12h', 'previsto', 0, 0, 'Reaplicado da escala base em 01/06/2026 13:27.', '2026-06-01 13:27:43', '2026-06-01 13:27:43', 'Automatica'),
+	(150, 5, 16, 63, '2026-06-04', '2026-06-04 07:00:00', '2026-06-04 19:00:00', '12h', 'previsto', 0, 0, 'Reaplicado da escala base em 01/06/2026 13:27.', '2026-06-01 13:27:43', '2026-06-01 13:27:43', 'Automatica'),
+	(151, 5, 16, 5, '2026-06-05', '2026-06-05 07:00:00', '2026-06-05 19:00:00', '12h', 'previsto', 0, 0, 'Reaplicado da escala base em 01/06/2026 13:27.', '2026-06-01 13:27:43', '2026-06-01 13:27:43', 'Automatica'),
+	(152, 5, 16, 63, '2026-06-06', '2026-06-06 07:00:00', '2026-06-06 19:00:00', '12h', 'previsto', 0, 0, 'Reaplicado da escala base em 01/06/2026 13:27.', '2026-06-01 13:27:43', '2026-06-01 13:27:43', 'Automatica');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_escala_profissionais
 CREATE TABLE IF NOT EXISTS `tb_escala_profissionais` (
@@ -367,6 +385,7 @@ CREATE TABLE IF NOT EXISTS `tb_escala_profissionais` (
   `cuidador_id` int NOT NULL,
   `ordem_revezamento` int DEFAULT '1',
   `principal_escala` tinyint(1) DEFAULT '1',
+  `cor_escala` varchar(7) DEFAULT NULL,
   `ativo` tinyint(1) DEFAULT '1',
   `criado_em` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -374,27 +393,57 @@ CREATE TABLE IF NOT EXISTS `tb_escala_profissionais` (
   KEY `fk_tb_escala_profissionais_cuidador` (`cuidador_id`),
   CONSTRAINT `fk_tb_escala_profissionais_cuidador` FOREIGN KEY (`cuidador_id`) REFERENCES `tb_cuidador` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_tb_escala_profissionais_escala` FOREIGN KEY (`escala_base_id`) REFERENCES `tb_escala_base` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb3;
 
--- Copiando dados para a tabela cuidar_no_lar.tb_escala_profissionais: ~11 rows (aproximadamente)
-INSERT INTO `tb_escala_profissionais` (`id`, `escala_base_id`, `cuidador_id`, `ordem_revezamento`, `principal_escala`, `ativo`, `criado_em`) VALUES
-	(1, 1, 1, 1, 1, 1, '2026-05-21 15:15:07'),
-	(2, 1, 2, 2, 1, 1, '2026-05-21 15:15:07'),
-	(3, 1, 1, 1, 1, 1, '2026-05-21 15:44:36'),
-	(4, 1, 2, 2, 1, 1, '2026-05-21 15:44:36'),
-	(5, 3, 2, 1, 1, 0, '2026-05-29 17:47:53'),
-	(6, 3, 8, 2, 0, 0, '2026-05-29 17:47:53'),
-	(7, 3, 2, 1, 1, 0, '2026-05-29 18:47:10'),
-	(8, 3, 8, 2, 1, 0, '2026-05-29 18:47:10'),
-	(9, 2, 3, 1, 1, 0, '2026-05-29 18:48:12'),
-	(10, 2, 33, 2, 1, 0, '2026-05-29 18:48:12'),
-	(11, 2, 3, 1, 1, 1, '2026-05-29 18:48:47'),
-	(12, 3, 67, 1, 1, 0, '2026-05-29 19:44:05'),
-	(13, 3, 69, 2, 1, 0, '2026-05-29 19:44:05'),
-	(14, 4, 71, 1, 1, 1, '2026-05-29 20:29:23'),
-	(15, 4, 70, 2, 1, 1, '2026-05-29 20:29:23'),
-	(16, 3, 70, 1, 1, 1, '2026-05-31 03:11:28'),
-	(17, 3, 69, 2, 1, 1, '2026-05-31 03:11:28');
+-- Copiando dados para a tabela cuidar_no_lar.tb_escala_profissionais: ~47 rows (aproximadamente)
+INSERT INTO `tb_escala_profissionais` (`id`, `escala_base_id`, `cuidador_id`, `ordem_revezamento`, `principal_escala`, `cor_escala`, `ativo`, `criado_em`) VALUES
+	(1, 1, 1, 1, 1, '#2563eb', 1, '2026-05-21 15:15:07'),
+	(2, 1, 2, 2, 1, '#7c3aed', 1, '2026-05-21 15:15:07'),
+	(3, 1, 1, 1, 1, '#2563eb', 1, '2026-05-21 15:44:36'),
+	(4, 1, 2, 2, 1, '#7c3aed', 1, '2026-05-21 15:44:36'),
+	(5, 3, 2, 1, 1, '#7c3aed', 0, '2026-05-29 17:47:53'),
+	(6, 3, 8, 2, 0, '#9333ea', 0, '2026-05-29 17:47:53'),
+	(7, 3, 2, 1, 1, '#7c3aed', 0, '2026-05-29 18:47:10'),
+	(8, 3, 8, 2, 1, '#9333ea', 0, '2026-05-29 18:47:10'),
+	(9, 2, 3, 1, 1, '#dc2626', 0, '2026-05-29 18:48:12'),
+	(10, 2, 33, 2, 1, '#dc2626', 0, '2026-05-29 18:48:12'),
+	(11, 2, 3, 1, 1, '#dc2626', 1, '2026-05-29 18:48:47'),
+	(12, 3, 67, 1, 1, '#16a34a', 0, '2026-05-29 19:44:05'),
+	(13, 3, 69, 2, 1, '#3d18f7', 0, '2026-05-29 19:44:05'),
+	(16, 3, 70, 1, 1, '#0f766e', 0, '2026-05-31 03:11:28'),
+	(17, 3, 69, 2, 1, '#3d18f7', 0, '2026-05-31 03:11:28'),
+	(20, 3, 71, 1, 1, '#58f993', 0, '2026-05-31 18:33:28'),
+	(21, 3, 70, 2, 1, '#e41bb9', 0, '2026-05-31 18:33:28'),
+	(22, 3, 69, 3, 1, '#3d18f7', 0, '2026-05-31 18:33:28'),
+	(23, 3, 70, 1, 1, '#e41bb9', 0, '2026-05-31 18:34:09'),
+	(24, 3, 69, 2, 1, '#44d507', 0, '2026-05-31 18:34:09'),
+	(25, 3, 71, 1, 1, NULL, 0, '2026-06-01 11:53:08'),
+	(26, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 11:53:08'),
+	(27, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 11:56:13'),
+	(28, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 11:56:13'),
+	(29, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 11:57:39'),
+	(30, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 11:57:39'),
+	(31, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 12:08:22'),
+	(32, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 12:08:22'),
+	(33, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 12:16:39'),
+	(34, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 12:16:39'),
+	(35, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 12:17:02'),
+	(36, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 12:17:02'),
+	(37, 3, 8, 3, 1, '#ca8a04', 0, '2026-06-01 12:17:02'),
+	(38, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 12:17:17'),
+	(39, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 12:17:17'),
+	(40, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 12:38:29'),
+	(41, 3, 70, 2, 1, '#7c3aed', 0, '2026-06-01 12:38:29'),
+	(42, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 12:39:31'),
+	(43, 3, 12, 2, 1, '#08f31c', 0, '2026-06-01 12:39:31'),
+	(44, 3, 71, 1, 1, '#db2777', 0, '2026-06-01 12:40:10'),
+	(45, 3, 12, 2, 1, '#08f31c', 0, '2026-06-01 12:40:10'),
+	(46, 3, 71, 1, 1, '#7c3aed', 1, '2026-06-01 12:53:06'),
+	(47, 3, 12, 2, 1, '#08f31c', 1, '2026-06-01 12:53:06'),
+	(50, 5, 63, 1, 1, '#dc2626', 0, '2026-06-01 13:00:40'),
+	(51, 5, 69, 2, 1, '#2563eb', 0, '2026-06-01 13:00:40'),
+	(52, 5, 63, 1, 1, '#dc2626', 1, '2026-06-01 13:27:28'),
+	(53, 5, 5, 2, 1, '#68f7f2', 1, '2026-06-01 13:27:28');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_escala_substituicoes
 CREATE TABLE IF NOT EXISTS `tb_escala_substituicoes` (
@@ -413,14 +462,14 @@ CREATE TABLE IF NOT EXISTS `tb_escala_substituicoes` (
   CONSTRAINT `fk_tb_sub_ocorrencia` FOREIGN KEY (`ocorrencia_id`) REFERENCES `tb_escala_ocorrencias` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_tb_sub_original` FOREIGN KEY (`cuidador_original_id`) REFERENCES `tb_cuidador` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_tb_sub_substituto` FOREIGN KEY (`cuidador_substituto_id`) REFERENCES `tb_cuidador` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3;
 
--- Copiando dados para a tabela cuidar_no_lar.tb_escala_substituicoes: ~2 rows (aproximadamente)
+-- Copiando dados para a tabela cuidar_no_lar.tb_escala_substituicoes: ~4 rows (aproximadamente)
 INSERT INTO `tb_escala_substituicoes` (`id`, `ocorrencia_id`, `cuidador_original_id`, `cuidador_substituto_id`, `motivo`, `observacoes`, `criado_em`, `data_plantao`) VALUES
 	(1, 108, 67, 62, 'falta', 'Não veio para o plantão', '2026-05-22 18:40:37', NULL),
 	(2, 106, 8, 33, 'emergencia', NULL, '2026-05-23 00:03:25', NULL),
-	(3, 109, 68, 70, 'atestado', NULL, '2026-05-30 22:13:41', NULL),
-	(4, 114, 70, 70, 'Substituição operacional', NULL, '2026-05-31 00:29:17', '2026-04-30');
+	(5, 129, 69, 68, 'emergencia', NULL, '2026-05-31 15:06:40', '2026-05-31'),
+	(6, 129, 68, 69, 'atestado', NULL, '2026-05-31 15:31:11', '2026-05-31');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_eventos
 CREATE TABLE IF NOT EXISTS `tb_eventos` (
@@ -456,58 +505,93 @@ CREATE TABLE IF NOT EXISTS `tb_financeiro` (
   `responsavel_id` int DEFAULT NULL,
   `cuidador_id` int DEFAULT NULL,
   `paciente_id` int DEFAULT NULL,
+  `contrato_paciente_id` int DEFAULT NULL,
   `plano_id` varchar(50) DEFAULT NULL,
   `data` datetime NOT NULL DEFAULT (now()),
   `data_vencimento` date DEFAULT NULL,
+  `mes_referencia` char(7) DEFAULT NULL,
   `data_pagamento` date DEFAULT NULL,
-  `tipo_transacao` enum('Entrada','Saída') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `tipo_transacao` enum('Entrada','Saída') NOT NULL,
   `categoria_id` int unsigned DEFAULT NULL,
-  `moeda` enum('Pix','Depósito','Boleto','Dinheiro') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `moeda` enum('Pix','Depósito','Boleto','Dinheiro','Cartão') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `valor` decimal(10,2) DEFAULT NULL,
   `descricao` varchar(255) DEFAULT NULL,
   `detalhes` text,
-  `status` enum('Pendente','Pago','Transporte') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
-  `observacoes` tinytext NOT NULL,
+  `origem` varchar(30) DEFAULT NULL,
+  `status` enum('Pendente','Pago','Cancelado') NOT NULL DEFAULT 'Pendente',
+  `observacoes` tinytext,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_financeiro_uuid` (`uuid`),
+  UNIQUE KEY `uq_financeiro_contrato_mes` (`contrato_paciente_id`,`mes_referencia`,`tipo_transacao`),
   KEY `responsavel_id` (`responsavel_id`),
   KEY `cuidador_id` (`cuidador_id`),
   KEY `fk_plano` (`plano_id`),
   KEY `idx_financeiro_categoria` (`categoria_id`),
-  KEY `idx_financeiro_vencimento` (`data_vencimento`)
-) ENGINE=MyISAM AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb3;
+  KEY `idx_financeiro_vencimento` (`data_vencimento`),
+  KEY `idx_financeiro_contrato_paciente` (`contrato_paciente_id`),
+  KEY `idx_financeiro_mes_referencia` (`mes_referencia`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3;
 
 -- Copiando dados para a tabela cuidar_no_lar.tb_financeiro: 27 rows
 /*!40000 ALTER TABLE `tb_financeiro` DISABLE KEYS */;
-INSERT INTO `tb_financeiro` (`id`, `uuid`, `responsavel_id`, `cuidador_id`, `paciente_id`, `plano_id`, `data`, `data_vencimento`, `data_pagamento`, `tipo_transacao`, `categoria_id`, `moeda`, `valor`, `descricao`, `detalhes`, `status`, `observacoes`) VALUES
-	(1, '6b9be76c-52ac-11f1-a16a-089798669242', 1, NULL, NULL, '1', '2024-11-19 00:00:00', '2026-05-14', NULL, 'Entrada', NULL, 'Pix', 1000.00, 'Valor referente a serviço de cuidados final de semana mês 10', NULL, 'Pago', 'Valor referente a serviço de cuidados final de semana mês 10'),
-	(2, '6b9cd1e4-52ac-11f1-a16a-089798669242', NULL, 3, NULL, '24h', '2024-11-19 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 1000.00, 'valor pago a cuidador por prestação de cuidados mês 10', NULL, 'Pago', 'valor pago a cuidador por prestação de cuidados mês 10'),
-	(4, '6b9cda5f-52ac-11f1-a16a-089798669242', 2, NULL, NULL, '24h', '2024-11-10 00:00:00', '2026-05-14', NULL, 'Entrada', NULL, 'Pix', 2000.00, 'Referente a serviço 10/2024', NULL, 'Pago', 'Referente a serviço 10/2024'),
-	(5, '6b9cdeff-52ac-11f1-a16a-089798669242', NULL, 4, NULL, '24h', '2024-11-10 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 2000.00, 'Valor referente a plantões 10/2024', NULL, 'Pago', 'Valor referente a plantões 10/2024'),
-	(6, '6b9ce40e-52ac-11f1-a16a-089798669242', 2, NULL, NULL, '24h', '2024-11-10 00:00:00', '2026-05-14', NULL, 'Entrada', NULL, 'Pix', 3000.00, 'Referente a serviços de cuidados ao idoso prestados no mês 10/2024', NULL, 'Pago', 'Referente a serviços de cuidados ao idoso prestados no mês 10/2024'),
-	(7, '6b9ce839-52ac-11f1-a16a-089798669242', NULL, 8, NULL, '24h', '2024-12-19 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 3000.00, 'Referente a serviço de cuidados ao idoso referente ao mês 10/2024', NULL, 'Pago', 'Referente a serviço de cuidados ao idoso referente ao mês 10/2024'),
-	(11, '6b9cf070-52ac-11f1-a16a-089798669242', NULL, 11, NULL, '24h', '2025-01-06 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 434.00, 'Acerto de cuidados a paciente Ormezinda em 2 finais de semana (21 e 22/12 // 28 e 29/12 ano de 2024). Com desconto de vale transporte referente a esses dias (R$ 16,00) + desconto de 10% (R$ 50,00).', NULL, 'Pago', 'Acerto de cuidados a paciente Ormezinda em 2 finais de semana (21 e 22/12 // 28 e 29/12 ano de 2024). Com desconto de vale transporte referente a esses dias (R$ 16,00) + desconto de 10% (R$ 50,00).'),
-	(12, '6b9cec3c-52ac-11f1-a16a-089798669242', 1, NULL, NULL, '24h', '2025-01-17 00:00:00', '2026-05-14', NULL, 'Entrada', NULL, 'Dinheiro', 1000.00, 'Referente a serviço de cuidados a dona Ormezinda mês 12/2024', NULL, 'Pago', 'Referente a serviço de cuidados a dona Ormezinda mês 12/2024'),
-	(14, '6b9cf452-52ac-11f1-a16a-089798669242', 2, NULL, NULL, '24h', '2025-02-10 00:00:00', '2026-05-14', NULL, 'Entrada', NULL, 'Pix', 3000.00, 'Referente aos cuidados da paciente Maria da Penha no mês 01/2025', NULL, 'Pago', 'Referente aos cuidados da paciente Maria da Penha no mês 01/2025'),
-	(15, '6b9cf890-52ac-11f1-a16a-089798669242', NULL, 1, NULL, '1', '2025-01-19 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 200.00, 'Serviço de cuidados prestados a Maria da Penha, plantão domingo.', NULL, 'Pago', 'Serviço de cuidados prestados a Maria da Penha, plantão domingo.'),
-	(16, '6b9cfc74-52ac-11f1-a16a-089798669242', NULL, 1, NULL, '4', '2025-01-24 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 500.00, 'Serviços de cuidados paciente Ormezinda, aos finais de semana. ', NULL, 'Pago', 'Serviços de cuidados paciente Ormezinda, aos finais de semana. '),
-	(17, '6b9d00d7-52ac-11f1-a16a-089798669242', NULL, 1, NULL, '4', '2025-01-25 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 200.00, '', NULL, 'Pago', ''),
-	(18, '6b9d050c-52ac-11f1-a16a-089798669242', NULL, 1, NULL, '4', '2025-01-31 20:49:00', '2026-05-14', NULL, 'Saída', 2, 'Pix', 37.00, 'Adiantamento de vale transporte', NULL, 'Pago', 'Adiantamento de vale transporte'),
-	(19, '6b9d0d2e-52ac-11f1-a16a-089798669242', NULL, 1, NULL, '4', '2025-01-24 20:54:25', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 37.00, 'Adiantamento vale transporte', NULL, 'Pago', 'Adiantamento vale transporte'),
-	(20, '6b9d117e-52ac-11f1-a16a-089798669242', NULL, 1, NULL, '4', '2025-02-02 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 200.00, 'Serviço de cuidados a paciente Maria da Penha, plantão extra de domingo.', NULL, 'Pago', 'Serviço de cuidados a paciente Maria da Penha, plantão extra de domingo.'),
-	(21, '6b9d159e-52ac-11f1-a16a-089798669242', 1, NULL, NULL, '4', '2025-02-19 00:00:00', '2026-05-14', NULL, 'Entrada', NULL, 'Pix', 1000.00, 'Serviços de cuidados a paciente Ormezinda mês 01/2025', NULL, 'Pago', 'Serviços de cuidados a paciente Ormezinda mês 01/2025'),
-	(22, '6b9d199e-52ac-11f1-a16a-089798669242', 1, 1, NULL, '4', '2025-02-15 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 37.00, 'Adiantamento para transporte de 15 a 17/02/25', NULL, 'Pago', 'Adiantamento para transporte de 15 a 17/02/25'),
-	(34, '6b9d2d56-52ac-11f1-a16a-089798669242', 1, 1, NULL, '4', '2025-02-15 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 200.00, 'Plantão extra', NULL, 'Pago', 'Plantão extra'),
-	(35, '6b9d31e8-52ac-11f1-a16a-089798669242', 1, 1, NULL, '4', '2025-03-02 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 200.00, 'Plantão extra', NULL, 'Pago', 'Plantão extra'),
-	(38, '6b9d1dc4-52ac-11f1-a16a-089798669242', 1, 1, NULL, '4', '2025-03-19 00:00:00', '2026-05-14', NULL, 'Entrada', NULL, 'Pix', 1000.00, 'Mês 03/2025', NULL, 'Pago', 'Mês 03/2025'),
-	(46, '6b9d21aa-52ac-11f1-a16a-089798669242', 2, 8, 2, '4', '2026-03-10 00:00:00', '2026-03-10', '2026-03-10', 'Entrada', 1, 'Pix', 3000.00, 'Mês 02/2025', NULL, 'Pago', 'Mês 02/2025'),
-	(47, '6b9d2596-52ac-11f1-a16a-089798669242', NULL, 66, NULL, '3', '2025-05-09 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 120.00, 'Plantão Fundação', NULL, 'Pago', 'Plantão Fundação'),
-	(48, '6b9d297b-52ac-11f1-a16a-089798669242', NULL, 64, NULL, '3', '2025-05-09 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 510.00, 'Serviços de cuidador de idoso - 05/05/2025  09/05/2025', NULL, 'Pago', 'Serviços de cuidador de idoso - 05/05/2025  09/05/2025'),
-	(49, '6b9d35e4-52ac-11f1-a16a-089798669242', NULL, 61, NULL, '3', '2025-05-10 00:00:00', '2026-05-14', NULL, 'Saída', NULL, 'Pix', 40.00, 'Plantão Fundação', NULL, 'Pago', 'Plantão Fundação'),
-	(52, '6b9d39d3-52ac-11f1-a16a-089798669242', NULL, 1, NULL, '4', '2025-04-20 00:00:00', '2026-01-15', '2026-01-15', 'Saída', 2, 'Pix', 250.00, 'Serviços de cuidados aos finais de semana', NULL, 'Pago', 'Serviços de cuidados aos finais de semana'),
-	(53, '6b9d3db5-52ac-11f1-a16a-089798669242', 42, 67, 10, NULL, '2026-05-13 10:00:00', '2026-05-10', NULL, 'Entrada', NULL, NULL, 10.00, ' este', NULL, 'Pendente', ' este'),
-	(54, '6b9d4189-52ac-11f1-a16a-089798669242', NULL, NULL, NULL, NULL, '2026-05-13 10:00:00', '2026-05-10', NULL, 'Saída', NULL, NULL, 0.00, ' este saida', NULL, 'Pendente', ' este saida');
+INSERT INTO `tb_financeiro` (`id`, `uuid`, `responsavel_id`, `cuidador_id`, `paciente_id`, `contrato_paciente_id`, `plano_id`, `data`, `data_vencimento`, `mes_referencia`, `data_pagamento`, `tipo_transacao`, `categoria_id`, `moeda`, `valor`, `descricao`, `detalhes`, `origem`, `status`, `observacoes`) VALUES
+	(1, '591e8bff-5ddb-11f1-8b1a-089798669242', 44, NULL, 13, 5, '5', '2026-06-01 19:47:34', '2026-06-10', '2026-06', '2026-06-01', 'Entrada', 1, 'Pix', 2000.00, 'Mensalidade Junho/2026 - Lucas Gabriel', 'Gerado automaticamente a partir do contrato do paciente #5.', 'contrato', 'Pago', 'Mensalidade Junho/2026 - Lucas Gabriel\r\nBaixa registrada em 01/06/2026 19:47 | Recebido em 01/06/2026 | Valor: R$ 2.000,00 | Forma: Pix'),
+	(2, '1d197a5b-5df3-11f1-8b1a-089798669242', 45, NULL, 14, 6, '6', '2026-06-01 19:52:02', '2026-06-10', '2026-06', '2026-06-01', 'Entrada', 1, 'Cartão', 5000.00, 'Mensalidade Junho/2026 - Helena Souza', 'Gerado automaticamente a partir do contrato do paciente #6.', 'contrato', 'Pago', 'Mensalidade Junho/2026 - Helena Souza\r\nBaixa registrada em 01/06/2026 19:52 | Recebido em 01/06/2026 | Valor: R$ 5.000,00 | Forma: Cartão');
 /*!40000 ALTER TABLE `tb_financeiro` ENABLE KEYS */;
+
+-- Copiando estrutura para tabela cuidar_no_lar.tb_financeiro_bkp_antes_geracao
+CREATE TABLE IF NOT EXISTS `tb_financeiro_bkp_antes_geracao` (
+  `id` int NOT NULL DEFAULT '0',
+  `uuid` char(36) CHARACTER SET utf8mb3 NOT NULL DEFAULT (uuid()),
+  `responsavel_id` int DEFAULT NULL,
+  `cuidador_id` int DEFAULT NULL,
+  `paciente_id` int DEFAULT NULL,
+  `contrato_paciente_id` int DEFAULT NULL,
+  `plano_id` varchar(50) CHARACTER SET utf8mb3 DEFAULT NULL,
+  `data` datetime NOT NULL DEFAULT (now()),
+  `data_vencimento` date DEFAULT NULL,
+  `mes_referencia` char(7) CHARACTER SET utf8mb3 DEFAULT NULL,
+  `data_pagamento` date DEFAULT NULL,
+  `tipo_transacao` enum('Entrada','Saída') CHARACTER SET utf8mb3 NOT NULL,
+  `categoria_id` int unsigned DEFAULT NULL,
+  `moeda` enum('Pix','Depósito','Boleto','Dinheiro') CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `valor` decimal(10,2) DEFAULT NULL,
+  `descricao` varchar(255) CHARACTER SET utf8mb3 DEFAULT NULL,
+  `detalhes` text CHARACTER SET utf8mb3,
+  `origem` varchar(30) CHARACTER SET utf8mb3 DEFAULT NULL,
+  `status` enum('Pendente','Pago','Cancelado') CHARACTER SET utf8mb3 NOT NULL DEFAULT 'Pendente',
+  `observacoes` tinytext CHARACTER SET utf8mb3
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Copiando dados para a tabela cuidar_no_lar.tb_financeiro_bkp_antes_geracao: ~27 rows (aproximadamente)
+INSERT INTO `tb_financeiro_bkp_antes_geracao` (`id`, `uuid`, `responsavel_id`, `cuidador_id`, `paciente_id`, `contrato_paciente_id`, `plano_id`, `data`, `data_vencimento`, `mes_referencia`, `data_pagamento`, `tipo_transacao`, `categoria_id`, `moeda`, `valor`, `descricao`, `detalhes`, `origem`, `status`, `observacoes`) VALUES
+	(1, '6b9be76c-52ac-11f1-a16a-089798669242', 1, NULL, NULL, NULL, '1', '2024-11-19 00:00:00', '2026-05-14', NULL, NULL, 'Entrada', NULL, 'Pix', 1000.00, 'Valor referente a serviço de cuidados final de semana mês 10', NULL, 'manual', 'Pago', 'Valor referente a serviço de cuidados final de semana mês 10'),
+	(2, '6b9cd1e4-52ac-11f1-a16a-089798669242', NULL, 3, NULL, NULL, '24h', '2024-11-19 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 1000.00, 'valor pago a cuidador por prestação de cuidados mês 10', NULL, 'manual', 'Pago', 'valor pago a cuidador por prestação de cuidados mês 10'),
+	(4, '6b9cda5f-52ac-11f1-a16a-089798669242', 2, NULL, NULL, NULL, '24h', '2024-11-10 00:00:00', '2026-05-14', NULL, NULL, 'Entrada', NULL, 'Pix', 2000.00, 'Referente a serviço 10/2024', NULL, 'manual', 'Pago', 'Referente a serviço 10/2024'),
+	(5, '6b9cdeff-52ac-11f1-a16a-089798669242', NULL, 4, NULL, NULL, '24h', '2024-11-10 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 2000.00, 'Valor referente a plantões 10/2024', NULL, 'manual', 'Pago', 'Valor referente a plantões 10/2024'),
+	(6, '6b9ce40e-52ac-11f1-a16a-089798669242', 2, NULL, NULL, NULL, '24h', '2024-11-10 00:00:00', '2026-05-14', NULL, NULL, 'Entrada', NULL, 'Pix', 3000.00, 'Referente a serviços de cuidados ao idoso prestados no mês 10/2024', NULL, 'manual', 'Pago', 'Referente a serviços de cuidados ao idoso prestados no mês 10/2024'),
+	(7, '6b9ce839-52ac-11f1-a16a-089798669242', NULL, 8, NULL, NULL, '24h', '2024-12-19 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 3000.00, 'Referente a serviço de cuidados ao idoso referente ao mês 10/2024', NULL, 'manual', 'Pago', 'Referente a serviço de cuidados ao idoso referente ao mês 10/2024'),
+	(12, '6b9cec3c-52ac-11f1-a16a-089798669242', 1, NULL, NULL, NULL, '24h', '2025-01-17 00:00:00', '2026-05-14', NULL, NULL, 'Entrada', NULL, 'Dinheiro', 1000.00, 'Referente a serviço de cuidados a dona Ormezinda mês 12/2024', NULL, 'manual', 'Pago', 'Referente a serviço de cuidados a dona Ormezinda mês 12/2024'),
+	(11, '6b9cf070-52ac-11f1-a16a-089798669242', NULL, 11, NULL, NULL, '24h', '2025-01-06 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 434.00, 'Acerto de cuidados a paciente Ormezinda em 2 finais de semana (21 e 22/12 // 28 e 29/12 ano de 2024). Com desconto de vale transporte referente a esses dias (R$ 16,00) + desconto de 10% (R$ 50,00).', NULL, 'manual', 'Pago', 'Acerto de cuidados a paciente Ormezinda em 2 finais de semana (21 e 22/12 // 28 e 29/12 ano de 2024). Com desconto de vale transporte referente a esses dias (R$ 16,00) + desconto de 10% (R$ 50,00).'),
+	(14, '6b9cf452-52ac-11f1-a16a-089798669242', 2, NULL, NULL, NULL, '24h', '2025-02-10 00:00:00', '2026-05-14', NULL, NULL, 'Entrada', NULL, 'Pix', 3000.00, 'Referente aos cuidados da paciente Maria da Penha no mês 01/2025', NULL, 'manual', 'Pago', 'Referente aos cuidados da paciente Maria da Penha no mês 01/2025'),
+	(15, '6b9cf890-52ac-11f1-a16a-089798669242', NULL, 1, NULL, NULL, '1', '2025-01-19 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 200.00, 'Serviço de cuidados prestados a Maria da Penha, plantão domingo.', NULL, 'manual', 'Pago', 'Serviço de cuidados prestados a Maria da Penha, plantão domingo.'),
+	(16, '6b9cfc74-52ac-11f1-a16a-089798669242', NULL, 1, NULL, NULL, '4', '2025-01-24 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 500.00, 'Serviços de cuidados paciente Ormezinda, aos finais de semana. ', NULL, 'manual', 'Pago', 'Serviços de cuidados paciente Ormezinda, aos finais de semana. '),
+	(17, '6b9d00d7-52ac-11f1-a16a-089798669242', NULL, 1, NULL, NULL, '4', '2025-01-25 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 200.00, '', NULL, 'manual', 'Pago', ''),
+	(18, '6b9d050c-52ac-11f1-a16a-089798669242', NULL, 1, NULL, NULL, '4', '2025-01-31 20:49:00', '2026-05-14', NULL, NULL, 'Saída', 2, 'Pix', 37.00, 'Adiantamento de vale transporte', NULL, 'manual', 'Pago', 'Adiantamento de vale transporte'),
+	(19, '6b9d0d2e-52ac-11f1-a16a-089798669242', NULL, 1, NULL, NULL, '4', '2025-01-24 20:54:25', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 37.00, 'Adiantamento vale transporte', NULL, 'manual', 'Pago', 'Adiantamento vale transporte'),
+	(20, '6b9d117e-52ac-11f1-a16a-089798669242', NULL, 1, NULL, NULL, '4', '2025-02-02 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 200.00, 'Serviço de cuidados a paciente Maria da Penha, plantão extra de domingo.', NULL, 'manual', 'Pago', 'Serviço de cuidados a paciente Maria da Penha, plantão extra de domingo.'),
+	(21, '6b9d159e-52ac-11f1-a16a-089798669242', 1, NULL, NULL, NULL, '4', '2025-02-19 00:00:00', '2026-05-14', NULL, NULL, 'Entrada', NULL, 'Pix', 1000.00, 'Serviços de cuidados a paciente Ormezinda mês 01/2025', NULL, 'manual', 'Pago', 'Serviços de cuidados a paciente Ormezinda mês 01/2025'),
+	(22, '6b9d199e-52ac-11f1-a16a-089798669242', 1, 1, NULL, NULL, '4', '2025-02-15 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 37.00, 'Adiantamento para transporte de 15 a 17/02/25', NULL, 'manual', 'Pago', 'Adiantamento para transporte de 15 a 17/02/25'),
+	(38, '6b9d1dc4-52ac-11f1-a16a-089798669242', 1, 1, NULL, NULL, '4', '2025-03-19 00:00:00', '2026-05-14', NULL, NULL, 'Entrada', NULL, 'Pix', 1000.00, 'Mês 03/2025', NULL, 'manual', 'Pago', 'Mês 03/2025'),
+	(46, '6b9d21aa-52ac-11f1-a16a-089798669242', 2, 8, 2, NULL, '4', '2026-03-10 00:00:00', '2026-03-10', NULL, '2026-03-10', 'Entrada', 1, 'Pix', 3000.00, 'Mês 02/2025', NULL, 'manual', 'Pago', 'Mês 02/2025'),
+	(47, '6b9d2596-52ac-11f1-a16a-089798669242', NULL, 66, NULL, NULL, '3', '2025-05-09 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 120.00, 'Plantão Fundação', NULL, 'manual', 'Pago', 'Plantão Fundação'),
+	(48, '6b9d297b-52ac-11f1-a16a-089798669242', NULL, 64, NULL, NULL, '3', '2025-05-09 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 510.00, 'Serviços de cuidador de idoso - 05/05/2025  09/05/2025', NULL, 'manual', 'Pago', 'Serviços de cuidador de idoso - 05/05/2025  09/05/2025'),
+	(34, '6b9d2d56-52ac-11f1-a16a-089798669242', 1, 1, NULL, NULL, '4', '2025-02-15 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 200.00, 'Plantão extra', NULL, 'manual', 'Pago', 'Plantão extra'),
+	(35, '6b9d31e8-52ac-11f1-a16a-089798669242', 1, 1, NULL, NULL, '4', '2025-03-02 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 200.00, 'Plantão extra', NULL, 'manual', 'Pago', 'Plantão extra'),
+	(49, '6b9d35e4-52ac-11f1-a16a-089798669242', NULL, 61, NULL, NULL, '3', '2025-05-10 00:00:00', '2026-05-14', NULL, NULL, 'Saída', NULL, 'Pix', 40.00, 'Plantão Fundação', NULL, 'manual', 'Pago', 'Plantão Fundação'),
+	(52, '6b9d39d3-52ac-11f1-a16a-089798669242', NULL, 1, NULL, NULL, '4', '2025-04-20 00:00:00', '2026-01-15', NULL, '2026-01-15', 'Saída', 2, 'Pix', 250.00, 'Serviços de cuidados aos finais de semana', NULL, 'manual', 'Pago', 'Serviços de cuidados aos finais de semana'),
+	(53, '6b9d3db5-52ac-11f1-a16a-089798669242', 42, 67, 10, NULL, NULL, '2026-05-13 10:00:00', '2026-05-10', NULL, NULL, 'Entrada', NULL, NULL, 10.00, ' este', NULL, 'manual', 'Pendente', ' este'),
+	(54, '6b9d4189-52ac-11f1-a16a-089798669242', NULL, NULL, NULL, NULL, NULL, '2026-05-13 10:00:00', '2026-05-10', NULL, NULL, 'Saída', NULL, NULL, 0.00, ' este saida', NULL, 'manual', 'Pendente', ' este saida');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_historico
 CREATE TABLE IF NOT EXISTS `tb_historico` (
@@ -564,12 +648,12 @@ CREATE TABLE IF NOT EXISTS `tb_lancamentos` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_lancamentos_uuid` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=119 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Copiando dados para a tabela cuidar_no_lar.tb_lancamentos: ~108 rows (aproximadamente)
 INSERT INTO `tb_lancamentos` (`id`, `uuid`, `tipo_transacao`, `valor`, `status`, `data_vencimento`, `data_pagamento`, `descricao`, `detalhes`, `created_at`, `updated_at`) VALUES
-	(1, '6bdba00a-52ac-11f1-a16a-089798669242', 'Entrada', 1000.00, 'Pago', '2026-05-14', NULL, NULL, NULL, '2026-05-14 17:32:23', '2026-05-18 11:26:32'),
-	(2, '6bdba833-52ac-11f1-a16a-089798669242', 'Saida', 1000.00, 'Pago', '2026-05-14', NULL, NULL, NULL, '2026-05-14 17:32:23', '2026-05-18 11:26:32'),
+	(1, '6bdba00a-52ac-11f1-a16a-089798669242', 'Entrada', 2000.00, 'Pago', '2026-06-10', '2026-06-01', NULL, NULL, '2026-05-14 17:32:23', '2026-06-01 19:47:34'),
+	(2, '6bdba833-52ac-11f1-a16a-089798669242', 'Entrada', 5000.00, 'Pago', '2026-06-10', '2026-06-01', NULL, NULL, '2026-05-14 17:32:23', '2026-06-01 19:52:02'),
 	(3, '6bdbaad9-52ac-11f1-a16a-089798669242', 'Entrada', 2000.00, 'Pago', NULL, NULL, NULL, NULL, '2026-05-14 17:32:23', '2026-05-18 11:26:32'),
 	(4, '6bdbaf40-52ac-11f1-a16a-089798669242', 'Entrada', 2000.00, 'Pago', '2026-05-14', NULL, NULL, NULL, '2026-05-14 17:32:23', '2026-05-18 11:26:32'),
 	(5, '6bdbb1d2-52ac-11f1-a16a-089798669242', 'Saida', 2000.00, 'Pago', '2026-05-14', NULL, NULL, NULL, '2026-05-14 17:32:23', '2026-05-18 11:26:32'),
@@ -675,7 +759,9 @@ INSERT INTO `tb_lancamentos` (`id`, `uuid`, `tipo_transacao`, `valor`, `status`,
 	(113, '6bdccf29-52ac-11f1-a16a-089798669242', 'Entrada', 0.00, 'Pendente', NULL, NULL, NULL, NULL, '2026-05-14 18:24:49', '2026-05-18 11:26:32'),
 	(114, '6bdcd1c3-52ac-11f1-a16a-089798669242', 'Entrada', 0.00, 'Pendente', NULL, NULL, NULL, NULL, '2026-05-14 18:24:49', '2026-05-18 11:26:32'),
 	(115, '6bdcd3af-52ac-11f1-a16a-089798669242', 'Entrada', 0.00, 'Pendente', NULL, NULL, NULL, NULL, '2026-05-14 18:24:49', '2026-05-18 11:26:32'),
-	(116, '6bdcd58e-52ac-11f1-a16a-089798669242', 'Entrada', 0.00, 'Pendente', NULL, NULL, NULL, NULL, '2026-05-14 18:24:49', '2026-05-18 11:26:32');
+	(116, '6bdcd58e-52ac-11f1-a16a-089798669242', 'Entrada', 0.00, 'Pendente', NULL, NULL, NULL, NULL, '2026-05-14 18:24:49', '2026-05-18 11:26:32'),
+	(117, '591e9ccc-5ddb-11f1-8b1a-089798669242', 'Entrada', 2000.00, 'Pendente', '2026-06-10', NULL, NULL, NULL, '2026-06-01 17:00:09', '2026-06-01 17:00:09'),
+	(118, '1d19819b-5df3-11f1-8b1a-089798669242', 'Entrada', 5000.00, 'Pendente', '2026-06-10', NULL, NULL, NULL, '2026-06-01 19:50:17', '2026-06-01 19:50:17');
 
 -- Copiando estrutura para tabela cuidar_no_lar.tb_medicacoes_paciente
 CREATE TABLE IF NOT EXISTS `tb_medicacoes_paciente` (
@@ -1145,7 +1231,7 @@ CREATE TABLE IF NOT EXISTS `tb_usuarios` (
 
 -- Copiando dados para a tabela cuidar_no_lar.tb_usuarios: ~5 rows (aproximadamente)
 INSERT INTO `tb_usuarios` (`id`, `uuid`, `nome_completo`, `email`, `telefone`, `senha`, `username`, `ultimo_login`, `status`, `tipo_usuario_id`, `token_recuperacao`, `token_expiracao`, `codigo_sms`, `remember_token`, `password_reset_token`, `password_reset_expires`, `last_password_change`, `precisa_alterar_senha`) VALUES
-	(1, '6ccb62ee-52ac-11f1-a16a-089798669242', 'Rafaela Silveira', 'rafaelasilveira1987@gmail.com', '032998416669', '$2y$10$bwb6qTiWiDP.nrILvH6g5eRNy7XGI8ppBloxXsgBzhCg6w3vVeW5W', 'rafaela', '2026-05-30 21:40:25', 'ativo', 1, '53e390fe40521b8b3358addfdf762e922443a80c938366a5db9a0b6882d00eed', '2025-05-21 23:35:55', NULL, '$2y$10$Ep4vj.MTTPEIxu63tJs90uLUifM8TXqAq9ShZxIH3FNbi/MHOjQPm', NULL, NULL, NULL, 0),
+	(1, '6ccb62ee-52ac-11f1-a16a-089798669242', 'Rafaela Silveira', 'rafaelasilveira1987@gmail.com', '032998416669', '$2y$10$bwb6qTiWiDP.nrILvH6g5eRNy7XGI8ppBloxXsgBzhCg6w3vVeW5W', 'rafaela', '2026-06-01 17:14:14', 'ativo', 1, '53e390fe40521b8b3358addfdf762e922443a80c938366a5db9a0b6882d00eed', '2025-05-21 23:35:55', NULL, '$2y$10$Ep4vj.MTTPEIxu63tJs90uLUifM8TXqAq9ShZxIH3FNbi/MHOjQPm', NULL, NULL, NULL, 0),
 	(2, '6ccb6f08-52ac-11f1-a16a-089798669242', 'Vanusa Alves', 'vanusaag@gmail.com', '032988575765', '$2y$10$1SOeyBMXxUXIidnTmjvD7.CW7owqekQm18mo8NOenPJKSzBL5.We.', 'vanusa', '2025-05-23 10:46:31', 'ativo', 1, '88ffe88a2fa779c629018346be29b95716351dd67ab983a567c2ce3da1fcbb12', '2025-05-21 23:35:39', '077802', '$2y$10$eK9PH5bE1ETedpvnnCnDDuFAFfgxFAQyxcjsDzxHM4urJ6xti.yc.', NULL, NULL, NULL, 0),
 	(3, '6ccb71f4-52ac-11f1-a16a-089798669242', 'Teste', 'teste@gmail.com', NULL, '$2y$10$dCEKzeU36R07DX19n8x35Ow25FdyJLQKkFk7G7X5Pu3gst7FpqIAu', 'teste', '2025-01-21 20:52:33', 'ativo', 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),
 	(6, '6ccb74d9-52ac-11f1-a16a-089798669242', 'Maria Silva', 'maria@email.com', NULL, '$2y$10$YWlhQ91EO533DdkX57XY6O7Q6ExbsTmYx7YulNcbECvtiiDNupsha', 'maria123', '0000-00-00 00:00:00', 'ativo', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0),

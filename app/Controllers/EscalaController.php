@@ -237,6 +237,106 @@ class EscalaController extends BaseController
         $this->redirect('/escala?paciente=' . rawurlencode($pacienteUuid) . '&modo=' . $modo . '&periodo=' . rawurlencode($periodo));
     }
 
+
+    public function fechar(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/escala');
+            return;
+        }
+
+        $pacienteUuid = $this->sanitizarUuid($_POST['paciente_uuid'] ?? null);
+        $modo = ($_POST['modo'] ?? 'semana') === 'mes' ? 'mes' : 'semana';
+        $periodo = $this->sanitizarData($_POST['periodo'] ?? null) ?: date('Y-m-d');
+        $retorno = '/escala' . ($pacienteUuid
+            ? '?paciente=' . rawurlencode($pacienteUuid) . '&modo=' . $modo . '&periodo=' . rawurlencode($periodo)
+            : '');
+
+        if (!$pacienteUuid) {
+            $this->flash('error', 'Selecione um paciente para fechar a escala.');
+            $this->redirect('/escala');
+            return;
+        }
+
+        $paciente = $this->escala->buscarPacientePorUuid($pacienteUuid);
+        if (!$paciente) {
+            $this->flash('error', 'Paciente não localizado para fechar escala.');
+            $this->redirect('/escala');
+            return;
+        }
+
+        [$inicioPeriodo, $fimPeriodo] = $this->resolverPeriodo($modo, $periodo);
+
+        $pacientes = $this->escala->listarPacientesOperacionais((int)$paciente['id'], null);
+        $escalaBaseId = (int)($pacientes[0]['escala_base_id'] ?? $paciente['escala_base_id'] ?? 0);
+
+        if ($escalaBaseId <= 0) {
+            $this->flash('error', 'Este paciente ainda não possui escala base operacional para fechamento.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        $aprovacao = $this->escalaAprovacao->buscarPorPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo
+        );
+
+        $status = strtolower((string)($aprovacao['status'] ?? ''));
+        $statusAprovado = in_array($status, ['aprovada', 'aprovado', 'confirmado', 'confirmada', 'ok'], true);
+        $statusFechado = in_array($status, ['fechada', 'finalizada'], true);
+
+        if (!$aprovacao) {
+            $this->flash('error', 'Primeiro confirme/aprove a escala deste período. Depois faça o fechamento.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        if ($statusFechado) {
+            $this->flash('info', 'Este período já está fechado. O financeiro dos cuidadores já pode ser gerado.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        if (!$statusAprovado) {
+            $this->flash('error', 'A escala precisa estar aprovada para permitir o fechamento.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        $alterados = $this->escalaOcorrencia->finalizarPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo
+        );
+
+        $totalFinalizados = $this->escalaOcorrencia->contarFinalizadosPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo
+        );
+
+        if ($totalFinalizados <= 0) {
+            $this->flash('error', 'Nenhum plantão confirmado foi encontrado para finalizar neste período.');
+            $this->redirect($retorno);
+            return;
+        }
+
+        $this->escalaAprovacao->fecharPeriodo(
+            $escalaBaseId,
+            (int)$paciente['id'],
+            $inicioPeriodo,
+            $fimPeriodo,
+            $totalFinalizados
+        );
+
+        $this->flash('success', "Escala fechada com sucesso. {$alterados} plantão(ões) foram finalizados. Agora já dá para gerar o financeiro dos cuidadores.");
+        $this->redirect($retorno);
+    }
+
     public function mover(): void
     {
         $this->trocar();
@@ -795,12 +895,15 @@ class EscalaController extends BaseController
                 ?? $aprovacaoPeriodo['criado_em']
                 ?? null;
 
+            $statusAprovacao = strtolower((string)($aprovacaoPeriodo['status'] ?? 'aprovada'));
             $historico[] = [
-                'tipo' => 'aprovacao',
-                'titulo' => 'Período aprovado',
-                'data' => $dataAprovacao,
+                'tipo' => in_array($statusAprovacao, ['fechada', 'finalizada'], true) ? 'fechamento' : 'aprovacao',
+                'titulo' => in_array($statusAprovacao, ['fechada', 'finalizada'], true) ? 'Período fechado' : 'Período aprovado',
+                'data' => $aprovacaoPeriodo['fechado_em'] ?? $dataAprovacao,
                 'data_plantao' => $aprovacaoPeriodo['data_inicio'] ?? $aprovacaoPeriodo['periodo_inicio'] ?? null,
-                'detalhe' => 'Escala do período marcada como ' . ($aprovacaoPeriodo['status'] ?? 'aprovada') . '.',
+                'detalhe' => in_array($statusAprovacao, ['fechada', 'finalizada'], true)
+                    ? 'Plantões finalizados e liberados para geração do contas a pagar.'
+                    : 'Escala do período marcada como ' . ($aprovacaoPeriodo['status'] ?? 'aprovada') . '.',
                 'observacoes' => $aprovacaoPeriodo['observacoes'] ?? null,
             ];
         }

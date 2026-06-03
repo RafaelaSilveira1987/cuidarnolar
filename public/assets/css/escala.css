@@ -188,6 +188,58 @@
   text-align: right;
 }
 
+
+.escala-paciente-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.escala-paciente-actions form {
+  margin: 0;
+}
+
+.escala-fechamento-card {
+  background: #fff;
+  border: 1px solid var(--escala-border);
+  border-left: 5px solid var(--escala-primary);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.escala-fechamento-card span {
+  display: block;
+  color: var(--escala-primary-dark);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.escala-fechamento-card strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--escala-text);
+  font-size: 18px;
+}
+
+.escala-fechamento-card p {
+  margin: 6px 0 0;
+  color: var(--escala-muted);
+  font-size: 13px;
+}
+
+.escala-fechamento-card--ok {
+  background: linear-gradient(135deg, #f0fdfa, #ffffff);
+}
+
 .escala-calendar {
   display: grid;
   grid-template-columns: repeat(7, minmax(130px, 1fr));
@@ -405,7 +457,59 @@
     grid-template-columns: repeat(2, minmax(180px, 1fr));
   }
 
-  .escala-calendar {
+  
+.escala-paciente-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.escala-paciente-actions form {
+  margin: 0;
+}
+
+.escala-fechamento-card {
+  background: #fff;
+  border: 1px solid var(--escala-border);
+  border-left: 5px solid var(--escala-primary);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.escala-fechamento-card span {
+  display: block;
+  color: var(--escala-primary-dark);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.escala-fechamento-card strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--escala-text);
+  font-size: 18px;
+}
+
+.escala-fechamento-card p {
+  margin: 6px 0 0;
+  color: var(--escala-muted);
+  font-size: 13px;
+}
+
+.escala-fechamento-card--ok {
+  background: linear-gradient(135deg, #f0fdfa, #ffffff);
+}
+
+.escala-calendar {
     grid-template-columns: repeat(2, minmax(240px, 1fr));
   }
 }
@@ -423,7 +527,59 @@
 
   .escala-filter-bar,
   .escala-summary-strip,
-  .escala-calendar {
+  
+.escala-paciente-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.escala-paciente-actions form {
+  margin: 0;
+}
+
+.escala-fechamento-card {
+  background: #fff;
+  border: 1px solid var(--escala-border);
+  border-left: 5px solid var(--escala-primary);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.escala-fechamento-card span {
+  display: block;
+  color: var(--escala-primary-dark);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.escala-fechamento-card strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--escala-text);
+  font-size: 18px;
+}
+
+.escala-fechamento-card p {
+  margin: 6px 0 0;
+  color: var(--escala-muted);
+  font-size: 13px;
+}
+
+.escala-fechamento-card--ok {
+  background: linear-gradient(135deg, #f0fdfa, #ffffff);
+}
+
+.escala-calendar {
     grid-template-columns: 1fr;
   }
 }
@@ -611,6 +767,11 @@
 .escala-historico-item--ajuste .escala-historico-item__icon {
   background: #eef2ff;
   color: #3730a3;
+}
+
+.escala-historico-item--fechamento .escala-historico-item__icon {
+  background: #dcfce7;
+  color: #166534;
 }
 
 .escala-historico-item__body {

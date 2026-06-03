@@ -144,6 +144,101 @@ class EscalaAprovacao extends BaseModel
     }
 
 
+    /**
+     * Marca o período como fechado/finalizado para liberar a geração do contas a pagar.
+     */
+    public function fecharPeriodo(
+        int $escalaBaseId,
+        int $pacienteId,
+        string $periodoInicio,
+        string $periodoFim,
+        int $totalFinalizados = 0
+    ): bool {
+        $tabela = $this->resolverTabela();
+        if (!$tabela) {
+            return false;
+        }
+
+        $colunas = $this->colunasTabela($tabela);
+        if (!isset($colunas['paciente_id'], $colunas['escala_base_id'], $colunas['status'])) {
+            return false;
+        }
+
+        $campoInicio = isset($colunas['data_inicio']) ? 'data_inicio' : (isset($colunas['periodo_inicio']) ? 'periodo_inicio' : null);
+        $campoFim = isset($colunas['data_fim']) ? 'data_fim' : (isset($colunas['periodo_fim']) ? 'periodo_fim' : null);
+
+        if (!$campoInicio || !$campoFim) {
+            return false;
+        }
+
+        $statusFechada = $this->valorEnumSeguro($tabela, 'status', [
+            'fechada',
+            'finalizada',
+            'aprovada',
+        ]);
+
+        if (!$statusFechada) {
+            return false;
+        }
+
+        $agora = date('Y-m-d H:i:s');
+        $usuarioId = $this->usuarioLogadoId();
+        $linhaHistorico = "\n[{$agora}] Fechamento da escala realizado. Plantões finalizados: {$totalFinalizados}.";
+
+        $sets = ['status = :status'];
+        $params = [
+            ':status' => $statusFechada,
+            ':paciente_id' => $pacienteId,
+            ':escala_base_id' => $escalaBaseId,
+            ':periodo_inicio' => $periodoInicio,
+            ':periodo_fim' => $periodoFim,
+        ];
+
+        if (isset($colunas['fechado_por']) && $usuarioId) {
+            $sets[] = 'fechado_por = :fechado_por';
+            $params[':fechado_por'] = $usuarioId;
+        }
+
+        if (isset($colunas['fechado_em'])) {
+            $sets[] = 'fechado_em = :fechado_em';
+            $params[':fechado_em'] = $agora;
+        }
+
+        if (isset($colunas['atualizado_em'])) {
+            $sets[] = 'atualizado_em = :atualizado_em';
+            $params[':atualizado_em'] = $agora;
+        }
+
+        if (isset($colunas['updated_at'])) {
+            $sets[] = 'updated_at = :updated_at';
+            $params[':updated_at'] = $agora;
+        }
+
+        if (isset($colunas['observacoes'])) {
+            $sets[] = "observacoes = TRIM(CONCAT(COALESCE(observacoes, ''), :historico))";
+            $params[':historico'] = $linhaHistorico;
+        }
+
+        if (isset($colunas['total_plantoes'])) {
+            $sets[] = 'total_plantoes = :total_plantoes';
+            $params[':total_plantoes'] = $totalFinalizados;
+        }
+
+        $stmt = $this->query(
+            "UPDATE {$tabela}
+             SET " . implode(', ', $sets) . "
+             WHERE paciente_id = :paciente_id
+               AND escala_base_id = :escala_base_id
+               AND {$campoInicio} = :periodo_inicio
+               AND {$campoFim} = :periodo_fim
+             LIMIT 1",
+            $params
+        );
+
+        return $stmt->rowCount() > 0;
+    }
+
+
     public function buscarPorPeriodo(
         int $escalaBaseId,
         int $pacienteId,
@@ -178,6 +273,227 @@ class EscalaAprovacao extends BaseModel
                 ':periodo_fim' => $periodoFim,
             ]
         ) ?: null;
+    }
+
+
+    /**
+     * Procura aprovação ainda válida para o paciente/escala base.
+     * Usado para bloquear alteração silenciosa da escala base já confirmada.
+     */
+    public function buscarAprovacaoAtivaPaciente(int $pacienteId, ?int $escalaBaseId = null): ?array
+    {
+        $tabela = $this->resolverTabela();
+        if (!$tabela) {
+            return null;
+        }
+
+        $colunas = $this->colunasTabela($tabela);
+        if (!isset($colunas['paciente_id'], $colunas['status'])) {
+            return null;
+        }
+
+        $campoInicio = isset($colunas['data_inicio']) ? 'data_inicio' : (isset($colunas['periodo_inicio']) ? 'periodo_inicio' : null);
+        $campoFim = isset($colunas['data_fim']) ? 'data_fim' : (isset($colunas['periodo_fim']) ? 'periodo_fim' : null);
+        $statusAprovados = $this->valoresEnumExistentes($tabela, 'status', [
+            'aprovada',
+            'aprovado',
+            'confirmado',
+            'confirmada',
+            'OK',
+            'ok',
+        ]);
+
+        if ($statusAprovados === []) {
+            return null;
+        }
+
+        $where = ['paciente_id = :paciente_id'];
+        $params = [':paciente_id' => $pacienteId];
+
+        if ($escalaBaseId && isset($colunas['escala_base_id'])) {
+            $where[] = 'escala_base_id = :escala_base_id';
+            $params[':escala_base_id'] = $escalaBaseId;
+        }
+
+        $statusPlaceholders = [];
+        foreach ($statusAprovados as $idx => $status) {
+            $ph = ':status_' . $idx;
+            $statusPlaceholders[] = $ph;
+            $params[$ph] = $status;
+        }
+        $where[] = 'status IN (' . implode(', ', $statusPlaceholders) . ')';
+
+        // Não trava mudanças por causa de aprovação antiga encerrada há muito tempo.
+        if ($campoFim) {
+            $where[] = "{$campoFim} >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)";
+        }
+
+        $order = $campoInicio ? "{$campoInicio} DESC," : '';
+
+        return $this->rawFirst(
+            "SELECT *
+             FROM {$tabela}
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY {$order} id DESC
+             LIMIT 1",
+            $params
+        ) ?: null;
+    }
+
+    /**
+     * Reabre aprovações vigentes para permitir ajuste controlado da escala base.
+     */
+    public function reabrirPorPaciente(int $pacienteId, int $escalaBaseId, string $observacao = ''): int
+    {
+        $tabela = $this->resolverTabela();
+        if (!$tabela) {
+            return 0;
+        }
+
+        $colunas = $this->colunasTabela($tabela);
+        if (!isset($colunas['paciente_id'], $colunas['escala_base_id'], $colunas['status'])) {
+            return 0;
+        }
+
+        $statusAprovados = $this->valoresEnumExistentes($tabela, 'status', [
+            'aprovada',
+            'aprovado',
+            'confirmado',
+            'confirmada',
+            'OK',
+            'ok',
+        ]);
+        $statusReaberta = $this->valorEnumSeguro($tabela, 'status', [
+            'reaberta',
+            'em_edicao',
+            'cancelada',
+        ]);
+
+        if ($statusAprovados === [] || !$statusReaberta) {
+            return 0;
+        }
+
+        $agora = date('Y-m-d H:i:s');
+        $usuarioId = $this->usuarioLogadoId();
+        $observacao = trim($observacao) ?: 'Escala reaberta para ajuste da escala base.';
+        $linhaHistorico = "\n[{$agora}] {$observacao}";
+
+        $sets = ['status = :status_reaberta'];
+        $params = [
+            ':status_reaberta' => $statusReaberta,
+            ':paciente_id' => $pacienteId,
+            ':escala_base_id' => $escalaBaseId,
+        ];
+
+        if (isset($colunas['reaberto_por']) && $usuarioId) {
+            $sets[] = 'reaberto_por = :reaberto_por';
+            $params[':reaberto_por'] = $usuarioId;
+        }
+
+        if (isset($colunas['reaberto_em'])) {
+            $sets[] = 'reaberto_em = :reaberto_em';
+            $params[':reaberto_em'] = $agora;
+        }
+
+        if (isset($colunas['atualizado_em'])) {
+            $sets[] = 'atualizado_em = :atualizado_em';
+            $params[':atualizado_em'] = $agora;
+        }
+
+        if (isset($colunas['updated_at'])) {
+            $sets[] = 'updated_at = :updated_at';
+            $params[':updated_at'] = $agora;
+        }
+
+        if (isset($colunas['observacoes'])) {
+            $sets[] = "observacoes = TRIM(CONCAT(COALESCE(observacoes, ''), :historico))";
+            $params[':historico'] = $linhaHistorico;
+        }
+
+        $statusPlaceholders = [];
+        foreach ($statusAprovados as $idx => $status) {
+            $ph = ':status_aprovado_' . $idx;
+            $statusPlaceholders[] = $ph;
+            $params[$ph] = $status;
+        }
+
+        $campoFim = isset($colunas['data_fim']) ? 'data_fim' : (isset($colunas['periodo_fim']) ? 'periodo_fim' : null);
+        $where = "paciente_id = :paciente_id
+                  AND escala_base_id = :escala_base_id
+                  AND status IN (" . implode(', ', $statusPlaceholders) . ")";
+
+        if ($campoFim) {
+            $where .= " AND {$campoFim} >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)";
+        }
+
+        $stmt = $this->query(
+            "UPDATE {$tabela}
+             SET " . implode(', ', $sets) . "
+             WHERE {$where}",
+            $params
+        );
+
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Acrescenta uma linha de histórico operacional na aprovação mais próxima do período.
+     */
+    public function anotarOperacaoPeriodo(
+        int $pacienteId,
+        int $escalaBaseId,
+        string $periodoInicio,
+        string $periodoFim,
+        string $observacao
+    ): bool {
+        $tabela = $this->resolverTabela();
+        if (!$tabela) {
+            return false;
+        }
+
+        $colunas = $this->colunasTabela($tabela);
+        if (!isset($colunas['paciente_id'], $colunas['escala_base_id'], $colunas['observacoes'])) {
+            return false;
+        }
+
+        $campoInicio = isset($colunas['data_inicio']) ? 'data_inicio' : (isset($colunas['periodo_inicio']) ? 'periodo_inicio' : null);
+        $campoFim = isset($colunas['data_fim']) ? 'data_fim' : (isset($colunas['periodo_fim']) ? 'periodo_fim' : null);
+        $agora = date('Y-m-d H:i:s');
+        $linhaHistorico = "\n[{$agora}] " . trim($observacao);
+
+        $params = [
+            ':paciente_id' => $pacienteId,
+            ':escala_base_id' => $escalaBaseId,
+            ':historico' => $linhaHistorico,
+        ];
+
+        $sets = ["observacoes = TRIM(CONCAT(COALESCE(observacoes, ''), :historico))"];
+        if (isset($colunas['atualizado_em'])) {
+            $sets[] = 'atualizado_em = :atualizado_em';
+            $params[':atualizado_em'] = $agora;
+        }
+        if (isset($colunas['updated_at'])) {
+            $sets[] = 'updated_at = :updated_at';
+            $params[':updated_at'] = $agora;
+        }
+
+        $where = 'paciente_id = :paciente_id AND escala_base_id = :escala_base_id';
+        if ($campoInicio && $campoFim) {
+            $where .= " AND {$campoInicio} <= :periodo_fim AND {$campoFim} >= :periodo_inicio";
+            $params[':periodo_inicio'] = $periodoInicio;
+            $params[':periodo_fim'] = $periodoFim;
+        }
+
+        $stmt = $this->query(
+            "UPDATE {$tabela}
+             SET " . implode(', ', $sets) . "
+             WHERE {$where}
+             ORDER BY id DESC
+             LIMIT 1",
+            $params
+        );
+
+        return $stmt->rowCount() > 0;
     }
 
     private function resolverTabela(): ?string
@@ -246,6 +562,28 @@ class EscalaAprovacao extends BaseModel
         }
 
         return $permitidos[0] ?? null;
+    }
+
+
+    private function valoresEnumExistentes(string $tabela, string $coluna, array $preferidos): array
+    {
+        $colunas = $this->colunasTabela($tabela);
+        $tipo = (string)($colunas[$coluna]['COLUMN_TYPE'] ?? '');
+
+        if (!str_starts_with(strtolower($tipo), 'enum(')) {
+            return array_values(array_filter($preferidos, static fn($valor) => $valor !== null && $valor !== ''));
+        }
+
+        preg_match_all("/'((?:[^'\\\\]|\\\\.)*)'/", $tipo, $matches);
+        $permitidos = array_map(
+            static fn ($valor) => stripcslashes($valor),
+            $matches[1] ?? []
+        );
+
+        return array_values(array_filter(
+            $preferidos,
+            static fn ($valor) => in_array($valor, $permitidos, true)
+        ));
     }
 
     private function usuarioLogadoId(): ?int

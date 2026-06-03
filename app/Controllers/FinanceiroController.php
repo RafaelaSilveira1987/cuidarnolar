@@ -161,6 +161,72 @@ class FinanceiroController extends ResourceController
         ]);
     }
 
+
+    public function receber(string $id): void
+    {
+        $model = new Financeiro();
+        $record = $model->findForShow((int)$id);
+
+        if (!$record) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Conta a receber não encontrada.'], 'layouts/blank');
+            return;
+        }
+
+        if (($record['tipo_transacao'] ?? '') !== 'Entrada') {
+            $this->flash('error', 'Este lançamento não é uma conta a receber.');
+            $this->redirect('/financeiro/contas-receber');
+            return;
+        }
+
+        $this->view('financeiro/receber', [
+            'pageTitle' => 'Receber conta',
+            'title' => 'Receber conta',
+            'record' => $record,
+            'errors' => [],
+            'old' => [],
+            'formasPagamento' => $model->formasPagamentoBaixa(),
+            'finSubnav' => 'receber',
+        ]);
+    }
+
+    public function registrarRecebimento(string $id): void
+    {
+        $model = new Financeiro();
+        $record = $model->findForShow((int)$id);
+
+        if (!$record) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Conta a receber não encontrada.'], 'layouts/blank');
+            return;
+        }
+
+        $old = [
+            'data_pagamento' => trim((string)$this->input('data_pagamento', '')),
+            'moeda' => trim((string)$this->input('moeda', '')),
+            'valor_recebido' => trim((string)$this->input('valor_recebido', '')),
+            'observacao_baixa' => trim((string)$this->input('observacao_baixa', '')),
+        ];
+
+        $resultado = $model->registrarRecebimento((int)$id, $old);
+
+        if (!($resultado['ok'] ?? false)) {
+            $this->view('financeiro/receber', [
+                'pageTitle' => 'Receber conta',
+                'title' => 'Receber conta',
+                'record' => $record,
+                'errors' => $resultado['errors'] ?? ['geral' => 'Não foi possível registrar o recebimento.'],
+                'old' => $old,
+                'formasPagamento' => $model->formasPagamentoBaixa(),
+                'finSubnav' => 'receber',
+            ]);
+            return;
+        }
+
+        $this->flash('success', 'Recebimento registrado com sucesso.');
+        $this->redirect('/financeiro/contas-receber');
+    }
+
     public function contasPagar(): void
     {
         $page = (int) $this->input('page', 1);
@@ -175,6 +241,64 @@ class FinanceiroController extends ResourceController
             'pagination' => $result,
             'finSubnav' => 'pagar',
         ]);
+    }
+
+
+
+    public function gerarContasPagar(): void
+    {
+        $dataInicio = trim((string)$this->input('data_inicio', date('Y-m-01')));
+        $dataFim = trim((string)$this->input('data_fim', date('Y-m-t')));
+        $dataVencimento = trim((string)$this->input('data_vencimento', date('Y-m-d')));
+
+        $model = new Financeiro();
+        $rows = $model->previewContasPagarPlantao($dataInicio, $dataFim);
+
+        $this->view('financeiro/gerar_pagar', [
+            'pageTitle' => 'Gerar contas a pagar',
+            'title' => 'Gerar contas a pagar dos cuidadores',
+            'rows' => $rows,
+            'dataInicio' => $dataInicio,
+            'dataFim' => $dataFim,
+            'dataVencimento' => $dataVencimento,
+            'finSubnav' => 'pagar',
+        ]);
+    }
+
+    public function storeContasPagar(): void
+    {
+        $dataInicio = trim((string)$this->input('data_inicio', date('Y-m-01')));
+        $dataFim = trim((string)$this->input('data_fim', date('Y-m-t')));
+        $dataVencimento = trim((string)$this->input('data_vencimento', date('Y-m-d')));
+        $observacao = trim((string)$this->input('observacao_fechamento', ''));
+
+        $ocorrencias = $_POST['ocorrencias'] ?? [];
+        $valores = $_POST['valores'] ?? [];
+
+        if (!is_array($ocorrencias)) {
+            $ocorrencias = [];
+        }
+        if (!is_array($valores)) {
+            $valores = [];
+        }
+
+        $resultado = (new Financeiro())->gerarContasPagarPlantao(
+            $dataInicio,
+            $dataFim,
+            $ocorrencias,
+            $valores,
+            $dataVencimento,
+            $observacao
+        );
+
+        if (($resultado['errors'] ?? []) !== []) {
+            $this->flash('error', implode(' ', $resultado['errors']));
+            $this->redirect('/financeiro/contas-pagar/gerar?data_inicio=' . rawurlencode($dataInicio) . '&data_fim=' . rawurlencode($dataFim) . '&data_vencimento=' . rawurlencode($dataVencimento));
+            return;
+        }
+
+        $this->flash('success', $resultado['mensagem'] ?? 'Contas a pagar geradas com sucesso.');
+        $this->redirect('/financeiro/contas-pagar');
     }
 
     public function contratos(): void

@@ -14,26 +14,36 @@
     <p class="empty-state">Nenhuma conta a receber pendente.</p>
     <?php else: ?>
     <div class="table-wrap">
-        <table class="data-table">
+        <table class="data-table finance-table">
             <thead>
                 <tr>
                     <?php foreach ($columns as $label): ?>
                     <th><?= e($label) ?></th>
                     <?php endforeach; ?>
                     <th>Venc.</th>
+                    <th>Mês ref.</th>
+                    <th>Origem</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($rows as $row): ?>
-                <tr>
+                <tr class="<?= !empty($row['atrasado']) ? 'is-overdue' : '' ?>">
                     <?php foreach ($columns as $field => $label): ?>
-                    <td><?= e($row[$field] ?? '-') ?></td>
+                    <?php
+                        $valorCampo = $row[$field] ?? '-';
+                        if ($field === 'data') {
+                            $valorCampo = $row['data_exibicao'] ?? '-';
+                        }
+                    ?>
+                    <td><?= e($valorCampo) ?></td>
                     <?php endforeach; ?>
                     <td><?= e($row['vencimento_exibicao'] ?? '-') ?></td>
-                    <td class="actions">
-                        <a href="<?= url('/financeiro/' . (int) $row['id']) ?>">Ver</a>
-                        <a href="<?= url('/financeiro/' . (int) $row['id'] . '/editar') ?>">Baixar / editar</a>
+                    <td><?= e($row['mes_referencia'] ?? '-') ?></td>
+                    <td><?= e($row['origem'] ?? 'manual') ?></td>
+                    <td class="actions finance-actions">
+                        <a class="btn-table btn-table--ghost" href="<?= url('/financeiro/' . (int) $row['id']) ?>">Ver</a>
+                        <a class="btn-table btn-table--primary" href="<?= url('/financeiro/' . (int) $row['id'] . '/receber') ?>">Receber</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

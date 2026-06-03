@@ -1,12 +1,35 @@
 <section class="page-header">
     <div>
         <h1><?= e($title) ?></h1>
-        <p class="page-subtitle">Camada 1 — valor mensal e vigência (parcelas automáticas: próxima implementação).</p>
+        <p class="page-subtitle">Camada 1 — valor mensal, vigência e geração das contas a receber.</p>
     </div>
     <a class="btn btn-primary" href="<?= url('/financeiro/contratos/novo') ?>">Novo contrato</a>
 </section>
 
 <?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>
+
+<section class="panel">
+    <h2 style="margin-top:0;">Gerar contas a receber dos contratos</h2>
+    <p class="page-subtitle">Cria mensalidades pendentes para contratos ativos, respeitando vigência e dia de vencimento. Se já existir cobrança daquele contrato/mês, o sistema ignora para não duplicar.</p>
+
+    <form class="form-grid" method="POST" action="<?= url('/financeiro/contratos/gerar-receber') ?>" onsubmit="return confirm('Gerar contas a receber dos contratos ativos neste período?');">
+        <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
+
+        <label>
+            Início
+            <input type="date" name="data_inicio" value="<?= e($gerarInicio ?? date('Y-m-01')) ?>" required>
+        </label>
+
+        <label>
+            Fim
+            <input type="date" name="data_fim" value="<?= e($gerarFim ?? date('Y-m-t')) ?>" required>
+        </label>
+
+        <div style="align-self:end;">
+            <button class="btn btn-primary" type="submit">Gerar contas a receber</button>
+        </div>
+    </form>
+</section>
 
 <section class="panel">
     <form class="search-form" method="GET" action="<?= url('/financeiro/contratos') ?>">

@@ -79,9 +79,8 @@ $corPadraoCuidador = static function (int $cid) use ($paletaCuidadores): string 
 <section class="panel contrato-escala-panel">
     <div class="panel-header contrato-escala-head">
         <div>
-            <h2>Contrato e escala</h2>
-            <p class="page-subtitle">Base operacional para saber qual cobertura foi contratada e como o plantão deve ser
-                montado.</p>
+            <h2>Escala operacional</h2>
+            <p class="page-subtitle">A escala usa o contrato ativo apenas como referência. O contrato financeiro fica na aba Contratos.</p>
         </div>
     </div>
 
@@ -153,55 +152,11 @@ $corPadraoCuidador = static function (int $cid) use ($paletaCuidadores): string 
         class="ce-form">
         <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
 
-        <div class="ce-subsection">
+        <div class="ce-subsection ce-contract-notice">
             <h3>Contrato do paciente</h3>
-            <p class="page-subtitle">É daqui que o sistema entende se a cobertura fechada é 6h, 8h, 12h ou 24h.</p>
+            <p class="page-subtitle">A parte financeira foi separada para a aba Contratos. Aqui fica só a régua operacional da escala.</p>
+            <a class="btn btn-secondary" href="<?= url('/pacientes/' . rawurlencode((string)$resourceKey) . '?aba=contratos') ?>">Abrir contratos do paciente</a>
         </div>
-
-        <div class="form-grid">
-            <label>
-                Tipo de contrato / serviço
-                <select name="contrato_tipo_servico">
-                    <?php $contratoTipo = $contratoAtivo['tipo_servico'] ?? ''; ?>
-                    <?php foreach (['Home care 6h', 'Home care 8h', 'Home care 12h', 'Home care 24h'] as $tipoContrato): ?>
-                    <option value="<?= e($tipoContrato) ?>" <?= $contratoTipo === $tipoContrato ? 'selected' : '' ?>>
-                        <?= e($tipoContrato) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-
-            <label>
-                Valor mensal
-                <input type="text" name="contrato_valor_mensal" value="<?= e($contratoAtivo['valor_mensal'] ?? '') ?>"
-                    placeholder="Ex.: 3500,00">
-            </label>
-
-            <label>
-                Dia de vencimento
-                <input type="number" name="contrato_dia_vencimento" min="1" max="31"
-                    value="<?= e($contratoAtivo['dia_vencimento'] ?? '10') ?>">
-            </label>
-
-            <label>
-                Forma de pagamento
-                <input type="text" name="contrato_forma_pagamento"
-                    value="<?= e($contratoAtivo['forma_pagamento'] ?? '') ?>"
-                    placeholder="Pix, boleto, transferência...">
-            </label>
-
-            <label>
-                Vigência início
-                <input type="date" name="contrato_vigencia_inicio"
-                    value="<?= e($contratoAtivo['vigencia_inicio'] ?? date('Y-m-d')) ?>">
-            </label>
-
-            <label>
-                Vigência fim
-                <input type="date" name="contrato_vigencia_fim" value="<?= e($contratoAtivo['vigencia_fim'] ?? '') ?>">
-            </label>
-        </div>
-
-        <input type="hidden" name="contrato_status" value="Ativo">
 
         <div class="ce-subsection">
             <h3>Escala base</h3>

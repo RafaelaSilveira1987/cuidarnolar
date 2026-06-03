@@ -33,7 +33,7 @@ function fmt(float $v): string
             <div class="hub-title">Financeiro</div>
             <div class="hub-sub"><?= htmlspecialchars($mes_ref) ?></div>
         </div>
-        <a href="/financeiro/lancamentos/novo" class="btn-primary">
+        <a href="<?= url('/financeiro/novo') ?>" class="btn-primary">
             <i class="ti ti-plus" aria-hidden="true"></i> Novo lançamento
         </a>
     </div>
@@ -94,7 +94,7 @@ function fmt(float $v): string
         <div>
             <?php if(count($alertas) > 0): ?>
 
-            <a href="financeiro/lancamentos?status=pendente&atrasado=1" class="alert-strip__text">
+            <a href="<?= url('/financeiro/lancamentos?status=pendente&atrasado=1') ?>" class="alert-strip__text">
 
                 <?= count($alertas) ?> pagamento(s) em atraso
 
@@ -111,7 +111,7 @@ function fmt(float $v): string
     <div class="grid-2">
 
         <!-- Lançamentos -->
-        <a href="/financeiro/lancamentos" class="card">
+        <a href="<?= url('/financeiro/lancamentos') ?>" class="card">
             <div class="card__top">
                 <div class="card__icon icon--brand">
                     <i class="ti ti-arrows-exchange" aria-hidden="true"></i>
@@ -130,7 +130,7 @@ function fmt(float $v): string
         </a>
 
         <!-- Contas a receber -->
-        <a href="/financeiro/contas-receber" class="card">
+        <a href="<?= url('/financeiro/contas-receber') ?>" class="card">
             <div class="card__top">
                 <div class="card__icon icon--green">
                     <i class="ti ti-arrow-down-circle" aria-hidden="true"></i>
@@ -153,7 +153,7 @@ function fmt(float $v): string
         </a>
 
         <!-- Contas a pagar -->
-        <a href="/financeiro/contas-pagar" class="card">
+        <a href="<?= url('/financeiro/contas-pagar') ?>" class="card">
             <div class="card__top">
                 <div class="card__icon icon--red">
                     <i class="ti ti-arrow-up-circle" aria-hidden="true"></i>
@@ -172,7 +172,7 @@ function fmt(float $v): string
         </a>
 
         <!-- Contratos -->
-        <a href="/financeiro/contratos" class="card">
+        <a href="<?= url('/financeiro/contratos') ?>" class="card">
             <div class="card__top">
                 <div class="card__icon icon--teal">
                     <i class="ti ti-file-text" aria-hidden="true"></i>
@@ -196,7 +196,7 @@ function fmt(float $v): string
     <div class="section-label" style="margin-top:24px">Relatórios</div>
     <div class="relatorios-row">
 
-        <a href="/financeiro/relatorio-extrato" class="rel-card">
+        <a href="<?= url('/financeiro/relatorios/extrato') ?>" class="rel-card">
             <div class="rel-card__icon">
                 <i class="ti ti-user" style="color:#6366f1" aria-hidden="true"></i>
             </div>
@@ -204,7 +204,7 @@ function fmt(float $v): string
             <div class="rel-card__desc">Demonstrativo para família</div>
         </a>
 
-        <a href="/financeiro/relatorio-fluxo" class="rel-card">
+        <a href="<?= url('/financeiro/relatorios/fluxo-caixa') ?>" class="rel-card">
             <div class="rel-card__icon">
                 <i class="ti ti-chart-line" style="color:#e255d0" aria-hidden="true"></i>
             </div>
@@ -212,7 +212,7 @@ function fmt(float $v): string
             <div class="rel-card__desc">Entradas vs saídas por mês</div>
         </a>
 
-        <a href="/financeiro/relatorio-inadimplencia" class="rel-card">
+        <a href="<?= url('/financeiro/relatorios/inadimplencia') ?>" class="rel-card">
             <div class="rel-card__icon">
                 <i class="ti ti-alert-circle" style="color:#f59e00" aria-hidden="true"></i>
             </div>
@@ -220,7 +220,7 @@ function fmt(float $v): string
             <div class="rel-card__desc">Receitas vencidas e em atraso</div>
         </a>
 
-        <a href="/financeiro/relatorio-dre" class="rel-card">
+        <a href="<?= url('/financeiro/relatorios/dre') ?>" class="rel-card">
             <div class="rel-card__icon">
                 <i class="ti ti-chart-bar" style="color:#a78bfa" aria-hidden="true"></i>
             </div>
@@ -232,4 +232,4 @@ function fmt(float $v): string
 
 </div><!-- /.hub -->
 
-<script src="/assets/js/financeiro.js"></script>
+<script src="<?= url('/assets/js/financeiro.js') ?>"></script>

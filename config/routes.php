@@ -18,6 +18,14 @@ $router->get('/pacientes/{uuid}/editar', 'PacienteController@edit', ['auth']);
 $router->post('/pacientes/{uuid}', 'PacienteController@update', ['auth', 'csrf']);
 $router->post('/pacientes/{uuid}/inativar', 'PacienteController@inativar', ['auth', 'csrf']);
 $router->post('/pacientes/{uuid}/escala-base', 'PacienteController@salvarEscalaBase', ['auth', 'csrf']);
+$router->post('/pacientes/{uuid}/escala-base/reaplicar', 'PacienteController@reaplicarEscalaBase', ['auth', 'csrf']);
+
+$router->get('/pacientes/{uuid}/contratos/novo', 'PacienteController@contratoNovo', ['auth']);
+$router->post('/pacientes/{uuid}/contratos', 'PacienteController@contratoStore', ['auth', 'csrf']);
+$router->get('/pacientes/{uuid}/contratos/{contratoId}/editar', 'PacienteController@contratoEditar', ['auth']);
+$router->post('/pacientes/{uuid}/contratos/{contratoId}', 'PacienteController@contratoUpdate', ['auth', 'csrf']);
+$router->post('/pacientes/{uuid}/contratos/{contratoId}/gerar-financeiro', 'PacienteController@contratoGerarFinanceiro', ['auth', 'csrf']);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +90,8 @@ $router->get('/financeiro', 'FinanceiroController@hub', ['auth']);
 $router->get('/financeiro/lancamentos', 'FinanceiroController@lancamentos', ['auth']);
 $router->get('/financeiro/contas-receber', 'FinanceiroController@contasReceber', ['auth']);
 $router->get('/financeiro/contas-pagar', 'FinanceiroController@contasPagar', ['auth']);
+$router->get('/financeiro/contas-pagar/gerar', 'FinanceiroController@gerarContasPagar', ['auth']);
+$router->post('/financeiro/contas-pagar/gerar', 'FinanceiroController@storeContasPagar', ['auth', 'csrf']);
 $router->get('/financeiro/contratos', 'FinanceiroController@contratos', ['auth']);
 $router->get('/financeiro/contratos/novo', 'FinanceiroController@contratoNovo', ['auth']);
 $router->post('/financeiro/contratos', 'FinanceiroController@contratoStore', ['auth', 'csrf']);
@@ -89,11 +99,22 @@ $router->get('/financeiro/relatorios/extrato', 'FinanceiroController@relatorioEx
 $router->get('/financeiro/relatorios/fluxo-caixa', 'FinanceiroController@relatorioFluxoCaixa', ['auth']);
 $router->get('/financeiro/relatorios/inadimplencia', 'FinanceiroController@relatorioInadimplencia', ['auth']);
 $router->get('/financeiro/relatorios/dre', 'FinanceiroController@relatorioDre', ['auth']);
+$router->get('/financeiro/{id}/receber', 'FinanceiroController@receber', ['auth']);
+$router->post('/financeiro/{id}/receber', 'FinanceiroController@registrarRecebimento', ['auth', 'csrf']);
 $router->get('/financeiro/novo', 'FinanceiroController@create', ['auth']);
 $router->post('/financeiro', 'FinanceiroController@store', ['auth', 'csrf']);
 $router->get('/financeiro/{uuid}', 'FinanceiroController@show', ['auth']);
 $router->get('/financeiro/{uuid}/editar', 'FinanceiroController@edit', ['auth']);
 $router->post('/financeiro/{uuid}', 'FinanceiroController@update', ['auth', 'csrf']);
+
+
+$router->get('/configuracoes', 'ConfiguracaoController@index', ['auth']);
+$router->get('/configuracoes/empresa', 'ConfiguracaoController@empresa', ['auth']);
+$router->post('/configuracoes/empresa', 'ConfiguracaoController@empresaSalvar', ['auth', 'csrf']);
+$router->get('/configuracoes/plantoes', 'ConfiguracaoController@plantoes', ['auth']);
+$router->post('/configuracoes/plantoes', 'ConfiguracaoController@plantaoSalvar', ['auth', 'csrf']);
+$router->post('/configuracoes/plantoes/{id}/alternar', 'ConfiguracaoController@plantaoAlternar', ['auth', 'csrf']);
+$router->get('/configuracoes/permissoes', 'ConfiguracaoController@permissoes', ['auth']);
 
 $router->get('/relatorio-plantao', 'RelatorioPlantaoController@index', ['auth']);
 
@@ -122,6 +143,7 @@ $router->get('/escala/colaborador/{uuid}', 'EscalaController@colaborador', ['aut
 $router->post('/escala/excluir', 'EscalaController@excluir', ['auth', 'csrf']);
 $router->post('/escala/trocar', 'EscalaController@trocar', ['auth', 'csrf']);
 $router->post('/escala/aprovar', 'EscalaController@aprovar', ['auth', 'csrf']);
+$router->post('/escala/fechar', 'EscalaController@fechar', ['auth', 'csrf']);
 
 
 return $router;

@@ -55,6 +55,7 @@ function escala_tipo_historico_label(?string $tipo): string
 {
     return match ($tipo) {
         'aprovacao' => 'Aprovação',
+        'fechamento' => 'Fechamento',
         'substituicao' => 'Substituição',
         'ajuste' => 'Ajuste',
         default => 'Registro',
@@ -65,6 +66,7 @@ function escala_tipo_historico_icone(?string $tipo): string
 {
     return match ($tipo) {
         'aprovacao' => '✓',
+        'fechamento' => '✔',
         'substituicao' => '⇄',
         'ajuste' => '✎',
         default => '•',
@@ -201,7 +203,17 @@ $queryBase = function (array $extra = []) use ($filtros): string {
         <p>Cadastre a escala base dentro do paciente para liberar a visualização operacional aqui.</p>
     </section>
     <?php else: ?>
-    <?php $pac = $pacienteGrade['paciente'] ?? []; ?>
+    <?php
+    $pac = $pacienteGrade['paciente'] ?? [];
+    $statusAprovacao = strtolower((string)($aprovacaoPeriodo['status'] ?? ''));
+    $periodoFechado = in_array($statusAprovacao, ['fechada', 'finalizada'], true);
+    $periodoAprovado = in_array($statusAprovacao, ['aprovada', 'aprovado', 'confirmado', 'confirmada', 'ok'], true);
+    $financeiroQuery = http_build_query([
+        'data_inicio' => $periodoInicio ?? date('Y-m-01'),
+        'data_fim' => $periodoFim ?? date('Y-m-t'),
+        'data_vencimento' => date('Y-m-d'),
+    ]);
+    ?>
 
     <section class="escala-paciente-header">
         <div class="escala-paciente-identidade">
@@ -228,16 +240,56 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                 <?= !empty($aprovacaoPeriodo['aprovado_em']) ? 'em ' . e(date('d/m/Y H:i', strtotime((string)$aprovacaoPeriodo['aprovado_em']))) : '' ?>
             </small>
             <?php endif; ?>
-            <form method="POST" action="<?= url('/escala/aprovar') ?>">
-                <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
-                <input type="hidden" name="paciente_uuid" value="<?= e($pac['uuid'] ?? '') ?>">
-                <input type="hidden" name="modo" value="<?= e($modo) ?>">
-                <input type="hidden" name="periodo" value="<?= e($filtros['periodo'] ?? date('Y-m-d')) ?>">
-                <button type="submit"
-                    class="btn btn-primary"><?= !empty($aprovacaoPeriodo) ? 'Reconfirmar período' : 'Confirmar escala do período' ?></button>
-            </form>
+            <div class="escala-paciente-actions">
+                <?php if (!$periodoFechado): ?>
+                <form method="POST" action="<?= url('/escala/aprovar') ?>">
+                    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                    <input type="hidden" name="paciente_uuid" value="<?= e($pac['uuid'] ?? '') ?>">
+                    <input type="hidden" name="modo" value="<?= e($modo) ?>">
+                    <input type="hidden" name="periodo" value="<?= e($filtros['periodo'] ?? date('Y-m-d')) ?>">
+                    <button type="submit"
+                        class="btn btn-primary"><?= !empty($aprovacaoPeriodo) ? 'Reconfirmar período' : 'Confirmar escala do período' ?></button>
+                </form>
+                <?php endif; ?>
+
+                <?php if ($periodoAprovado && !$periodoFechado): ?>
+                <form method="POST" action="<?= url('/escala/fechar') ?>"
+                    onsubmit="return confirm('Fechar a escala deste período? Os plantões confirmados serão finalizados e liberados para geração do financeiro dos cuidadores.');">
+                    <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
+                    <input type="hidden" name="paciente_uuid" value="<?= e($pac['uuid'] ?? '') ?>">
+                    <input type="hidden" name="modo" value="<?= e($modo) ?>">
+                    <input type="hidden" name="periodo" value="<?= e($filtros['periodo'] ?? date('Y-m-d')) ?>">
+                    <button type="submit" class="btn btn-secondary">Fechar escala</button>
+                </form>
+                <?php endif; ?>
+
+                <?php if ($periodoFechado): ?>
+                <a class="btn btn-primary" href="<?= url('/financeiro/contas-pagar/gerar') . '?' . e($financeiroQuery) ?>">
+                    Gerar financeiro
+                </a>
+                <?php endif; ?>
+            </div>
         </div>
     </section>
+
+    <?php if ($periodoFechado): ?>
+    <section class="escala-fechamento-card escala-fechamento-card--ok">
+        <div>
+            <span>Período fechado</span>
+            <strong>Plantões finalizados e prontos para gerar contas a pagar.</strong>
+            <p>Agora o financeiro dos cuidadores usa somente os plantões finalizados deste período. Bonito, seguro e sem pagar antes da hora.</p>
+        </div>
+        <a class="btn btn-primary" href="<?= url('/financeiro/contas-pagar/gerar') . '?' . e($financeiroQuery) ?>">Gerar financeiro dos cuidadores</a>
+    </section>
+    <?php elseif ($periodoAprovado): ?>
+    <section class="escala-fechamento-card">
+        <div>
+            <span>Próximo passo</span>
+            <strong>Fechar escala / finalizar plantões</strong>
+            <p>Faça este fechamento no fim do período para liberar a geração do contas a pagar dos cuidadores.</p>
+        </div>
+    </section>
+    <?php endif; ?>
 
     <section class="escala-calendar escala-calendar--<?= e($modo) ?>">
         <?php foreach ($dias as $dia): ?>

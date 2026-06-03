@@ -150,6 +150,78 @@ class EscalaOcorrencia extends BaseModuleModel
         return true;
     }
 
+
+    /**
+     * Fecha o período operacional: plantões confirmados viram finalizados.
+     * O contas a pagar dos cuidadores passa a considerar somente estes registros.
+     */
+    public function finalizarPeriodo(int $escalaBaseId, int $pacienteId, string $periodoInicio, string $periodoFim): int
+    {
+        if ($escalaBaseId <= 0 || $pacienteId <= 0) {
+            return 0;
+        }
+
+        $inicio = preg_match('/^\d{4}-\d{2}-\d{2}$/', $periodoInicio)
+            ? $periodoInicio
+            : date('Y-m-d', strtotime($periodoInicio) ?: time());
+
+        $fim = preg_match('/^\d{4}-\d{2}-\d{2}$/', $periodoFim)
+            ? $periodoFim
+            : date('Y-m-d', strtotime($periodoFim) ?: time());
+
+        if (strtotime($inicio) > strtotime($fim)) {
+            [$inicio, $fim] = [$fim, $inicio];
+        }
+
+        $agora = date('Y-m-d H:i:s');
+        $linhaHistorico = "\n[" . date('Y-m-d H:i:s') . "] Plantão finalizado pelo fechamento da escala.";
+
+        $stmt = $this->query(
+            "UPDATE {$this->table}
+                SET status = 'finalizado',
+                    observacoes = TRIM(CONCAT(COALESCE(observacoes, ''), :historico)),
+                    atualizado_em = :atualizado_em
+              WHERE escala_base_id = :escala_base_id
+                AND paciente_id = :paciente_id
+                AND data_plantao BETWEEN :inicio AND :fim
+                AND status IN ('confirmado', 'em_andamento')",
+            [
+                ':historico' => $linhaHistorico,
+                ':atualizado_em' => $agora,
+                ':escala_base_id' => $escalaBaseId,
+                ':paciente_id' => $pacienteId,
+                ':inicio' => $inicio,
+                ':fim' => $fim,
+            ]
+        );
+
+        return $stmt->rowCount();
+    }
+
+    public function contarFinalizadosPeriodo(int $escalaBaseId, int $pacienteId, string $periodoInicio, string $periodoFim): int
+    {
+        if ($escalaBaseId <= 0 || $pacienteId <= 0) {
+            return 0;
+        }
+
+        $row = $this->rawFirst(
+            "SELECT COUNT(*) AS total
+               FROM {$this->table}
+              WHERE escala_base_id = :escala_base_id
+                AND paciente_id = :paciente_id
+                AND data_plantao BETWEEN :inicio AND :fim
+                AND status = 'finalizado'",
+            [
+                ':escala_base_id' => $escalaBaseId,
+                ':paciente_id' => $pacienteId,
+                ':inicio' => $periodoInicio,
+                ':fim' => $periodoFim,
+            ]
+        );
+
+        return (int)($row['total'] ?? 0);
+    }
+
     public function conflito(int $cuidadorId, string $dataPlantao, string $horaInicio, ?string $horaFim = null, ?int $ignorarId = null): bool
     {
         if ($cuidadorId <= 0) {

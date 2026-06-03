@@ -3,7 +3,10 @@
         <h1><?= e($title) ?></h1>
         <p class="page-subtitle">Saídas pendentes — cuidador, insumos, transporte etc.</p>
     </div>
-    <a class="btn btn-primary" href="<?= url('/financeiro/novo') ?>">Novo lançamento</a>
+    <div class="page-actions">
+        <a class="btn btn-secondary" href="<?= url('/financeiro/contas-pagar/gerar') ?>">Gerar pagamento de cuidadores</a>
+        <a class="btn btn-primary" href="<?= url('/financeiro/novo') ?>">Novo lançamento</a>
+    </div>
 </section>
 
 <?php include BASE_PATH . '/app/Views/financeiro/_subnav.php'; ?>

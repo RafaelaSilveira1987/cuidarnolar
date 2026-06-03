@@ -80,7 +80,8 @@ $abas = [
     'historico' => 'Histórico clínico',
     'plano' => 'Plano de cuidados',
     'plantao' => 'Relatórios de plantão',
-    'contrato_escala' => 'Contrato e escala',
+    'contratos' => 'Contratos',
+    'contrato_escala' => 'Escala',
 ];
 
 $abaAtiva = (string)($_GET['aba'] ?? 'cadastro');
@@ -394,6 +395,7 @@ if ($alimentacaoVia !== 'Não informado') {
         'historico' => 'aba-historico.php',
         'plano' => 'aba-plano.php',
         'plantao' => 'aba-plantao.php',
+        'contratos' => 'aba-contratos.php',
         'contrato_escala' => 'aba-contrato-escala.php',
     ];
 

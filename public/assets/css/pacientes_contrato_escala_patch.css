@@ -258,3 +258,278 @@
     right: -4px;
   }
 }
+
+/* Contratos do paciente */
+.contrato-paciente-head {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.contrato-active-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .8fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.contrato-active-main,
+.contrato-finance-card,
+.contrato-fieldset,
+.contrato-empty {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  padding: 16px;
+}
+
+.contrato-active-main h3 {
+  margin: 6px 0 10px;
+  color: var(--text);
+}
+
+.contrato-badges,
+.contrato-service-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.contrato-badges span,
+.contrato-service-list span {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #f8fafc;
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.contrato-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.contrato-mini-grid div {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px;
+}
+
+.contrato-mini-grid dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.contrato-mini-grid dd {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.contrato-finance-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contrato-finance-card strong {
+  color: var(--text);
+  font-size: 20px;
+}
+
+.contrato-finance-card small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.contrato-generate-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.contrato-generate-form label,
+.contrato-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.contrato-generate-form button {
+  grid-column: 1 / -1;
+}
+
+.contrato-form-panel {
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+.contrato-form-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.contrato-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contrato-fieldset-title {
+  margin-bottom: 12px;
+}
+
+.contrato-fieldset-title h2 {
+  margin: 0;
+  color: var(--text);
+}
+
+.contrato-form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.contrato-form-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.contrato-form-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contrato-form-grid.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.contrato-form-grid .wide {
+  grid-column: 1 / -1;
+}
+
+.contrato-check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.contrato-check-grid label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px 12px;
+  font-weight: 800;
+}
+
+.contrato-check-grid input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.contrato-form input,
+.contrato-form select,
+.contrato-form textarea,
+.contrato-generate-form input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  background: #fff;
+  color: var(--text);
+}
+
+.contrato-form textarea {
+  resize: vertical;
+}
+
+.contrato-form-actions {
+  justify-content: flex-end;
+}
+
+.contrato-table .btn-sm {
+  padding: 7px 10px;
+  min-height: auto;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.status-ativo { background: #dcfce7; color: #166534; }
+.status-suspenso { background: #fef3c7; color: #92400e; }
+.status-encerrado { background: #e2e8f0; color: #334155; }
+.status-cancelado { background: #fee2e2; color: #991b1b; }
+
+.ce-contract-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ce-contract-notice h3,
+.ce-contract-notice p {
+  margin: 0;
+}
+
+@media (max-width: 1000px) {
+  .contrato-active-card,
+  .contrato-form-summary-grid,
+  .contrato-form-grid.two,
+  .contrato-form-grid.three,
+  .contrato-form-grid.four,
+  .contrato-check-grid,
+  .contrato-mini-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ajuste v12: contrato sem valor fechado e cálculo assistido por plantão */
+.contrato-financeiro-grid small {
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.contrato-calc-note {
+  margin: 2px 0 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: #f8fafc;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.contrato-financeiro-grid input[name="valor_mensal"],
+.contrato-financeiro-grid input[name="valor_semanal"],
+.contrato-financeiro-grid input[name="valor_plantao"] {
+  font-variant-numeric: tabular-nums;
+}

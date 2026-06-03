@@ -397,4 +397,182 @@ class Escala extends BaseModuleModel
 
         return $this->rawAll($sql, $params);
     }
+
+    /**
+     * Recria os plantões do período usando a escala base atual.
+     * Mantém plantões finalizados/substituídos para não apagar histórico sensível.
+     */
+    public function reaplicarBasePaciente(int $pacienteId, string $periodoInicio, string $periodoFim): array
+    {
+        $base = $this->escalaBaseAtivaPorPaciente($pacienteId);
+        if (!$base) {
+            return [
+                'ok' => false,
+                'mensagem' => 'Paciente sem escala base ativa.',
+                'escala_base_id' => null,
+                'removidos' => 0,
+                'gerados' => 0,
+            ];
+        }
+
+        $escalaBaseId = (int)$base['id'];
+        $profissionais = $this->profissionaisDaEscala($escalaBaseId);
+        $cuidadorIds = array_values(array_filter(array_map(
+            static fn(array $item): int => (int)($item['cuidador_id'] ?? 0),
+            $profissionais
+        )));
+
+        $removidos = $this->removerOcorrenciasReaplicaveis($pacienteId, $escalaBaseId, $periodoInicio, $periodoFim);
+        $gerados = $this->gerarOcorrenciasDaBase($base, $cuidadorIds, $periodoInicio, $periodoFim);
+
+        return [
+            'ok' => true,
+            'mensagem' => 'Escala base reaplicada no período informado.',
+            'escala_base_id' => $escalaBaseId,
+            'removidos' => $removidos,
+            'gerados' => $gerados,
+        ];
+    }
+
+    private function removerOcorrenciasReaplicaveis(int $pacienteId, int $escalaBaseId, string $periodoInicio, string $periodoFim): int
+    {
+        $stmt = $this->query(
+            "DELETE FROM tb_escala_ocorrencias
+             WHERE paciente_id = :paciente_id
+               AND escala_base_id = :escala_base_id
+               AND data_plantao BETWEEN :periodo_inicio AND :periodo_fim
+               AND status NOT IN ('finalizado', 'substituido')",
+            [
+                ':paciente_id' => $pacienteId,
+                ':escala_base_id' => $escalaBaseId,
+                ':periodo_inicio' => $periodoInicio,
+                ':periodo_fim' => $periodoFim,
+            ]
+        );
+
+        return $stmt->rowCount();
+    }
+
+    private function gerarOcorrenciasDaBase(array $base, array $cuidadorIds, string $periodoInicio, string $periodoFim): int
+    {
+        $inicio = new \DateTime($periodoInicio);
+        $fim = new \DateTime($periodoFim);
+        $fimInclusivo = (clone $fim)->modify('+1 day');
+        $periodo = new \DatePeriod($inicio, new \DateInterval('P1D'), $fimInclusivo);
+
+        $turnos = $this->turnosDaBase($base);
+        $gerados = 0;
+        $slot = 0;
+        $agora = date('d/m/Y H:i');
+
+        foreach ($periodo as $dia) {
+            $data = $dia->format('Y-m-d');
+            if (!$this->diaCobertoPelaBase($base, $dia)) {
+                continue;
+            }
+
+            foreach ($turnos as $turno) {
+                $cuidadorId = $this->cuidadorDoSlot($cuidadorIds, $slot, !empty($base['revezamento_automatico']));
+                $slot++;
+
+                $inicioPlantao = $data . ' ' . $turno['inicio'] . ':00';
+                $fimPlantao = $this->fimPlantao($data, $turno['inicio'], $turno['fim']);
+                $coberturaIncompleta = $cuidadorId ? 0 : 1;
+
+                $this->query(
+                    "INSERT INTO tb_escala_ocorrencias
+                        (escala_base_id, paciente_id, cuidador_id, data_plantao, inicio, fim, tipo_plantao, status, conflito, cobertura_incompleta, observacoes, origem)
+                     VALUES
+                        (:escala_base_id, :paciente_id, :cuidador_id, :data_plantao, :inicio, :fim, :tipo_plantao, 'previsto', 0, :cobertura_incompleta, :observacoes, 'Automatica')
+                     ON DUPLICATE KEY UPDATE
+                        cuidador_id = VALUES(cuidador_id),
+                        tipo_plantao = VALUES(tipo_plantao),
+                        status = 'previsto',
+                        conflito = 0,
+                        cobertura_incompleta = VALUES(cobertura_incompleta),
+                        observacoes = VALUES(observacoes),
+                        origem = 'Automatica'",
+                    [
+                        ':escala_base_id' => (int)$base['id'],
+                        ':paciente_id' => (int)$base['paciente_id'],
+                        ':cuidador_id' => $cuidadorId ?: null,
+                        ':data_plantao' => $data,
+                        ':inicio' => $inicioPlantao,
+                        ':fim' => $fimPlantao,
+                        ':tipo_plantao' => $turno['tipo_plantao'],
+                        ':cobertura_incompleta' => $coberturaIncompleta,
+                        ':observacoes' => 'Reaplicado da escala base em ' . $agora . '.',
+                    ]
+                );
+
+                $gerados++;
+            }
+        }
+
+        return $gerados;
+    }
+
+    private function diaCobertoPelaBase(array $base, \DateTimeInterface $dia): bool
+    {
+        $mapa = [
+            0 => 'domingo',
+            1 => 'segunda',
+            2 => 'terca',
+            3 => 'quarta',
+            4 => 'quinta',
+            5 => 'sexta',
+            6 => 'sabado',
+        ];
+
+        $campo = $mapa[(int)$dia->format('w')] ?? 'domingo';
+        return !empty($base[$campo]);
+    }
+
+    private function turnosDaBase(array $base): array
+    {
+        $tipo = (string)($base['tipo_cobertura'] ?? '12h');
+        $inicio = substr((string)($base['hora_inicio'] ?? '07:00'), 0, 5) ?: '07:00';
+        $fim = substr((string)($base['hora_fim'] ?? ''), 0, 5);
+
+        if ($tipo === '24h') {
+            $primeiroFim = $fim ?: '19:00';
+            return [
+                ['inicio' => $inicio, 'fim' => $primeiroFim, 'tipo_plantao' => '12h'],
+                ['inicio' => $primeiroFim, 'fim' => $inicio, 'tipo_plantao' => '12h'],
+            ];
+        }
+
+        $tipoValido = in_array($tipo, ['12h', '8h', '6h'], true) ? $tipo : '12h';
+        $fim = $fim ?: $this->horaFimPadrao($tipoValido, $inicio);
+
+        return [
+            ['inicio' => $inicio, 'fim' => $fim, 'tipo_plantao' => $tipoValido],
+        ];
+    }
+
+    private function fimPlantao(string $data, string $horaInicio, string $horaFim): string
+    {
+        $inicio = new \DateTime($data . ' ' . $horaInicio . ':00');
+        $fim = new \DateTime($data . ' ' . $horaFim . ':00');
+
+        if ($fim <= $inicio) {
+            $fim->modify('+1 day');
+        }
+
+        return $fim->format('Y-m-d H:i:s');
+    }
+
+    private function cuidadorDoSlot(array $cuidadorIds, int $slot, bool $revezamentoAutomatico): ?int
+    {
+        if ($cuidadorIds === []) {
+            return null;
+        }
+
+        if (!$revezamentoAutomatico) {
+            return (int)$cuidadorIds[0];
+        }
+
+        return (int)$cuidadorIds[$slot % count($cuidadorIds)];
+    }
+
 }

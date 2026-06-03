@@ -48,7 +48,6 @@
 
 
                 <tr class="<?= !empty($row['atrasado']) ? 'linha-atrasada' : '' ?>">
-                <tr>
                     <?php foreach ($columns as $field => $label): ?>
                     <?php $cell = $row[$field] ?? '-'; ?>
                     <td>
