@@ -4,21 +4,22 @@ namespace App\Controllers;
 
 use App\Models\Dashboard;
 use App\Models\Evento;
-use App\Models\Financeiro;
 
 class DashboardController extends BaseController
 {
     public function index(): void
     {
         $dashboard = new Dashboard();
-        $financeiro = new Financeiro();
         $eventos = new Evento();
 
         $this->view('dashboard/index', [
             'pageTitle' => 'Dashboard',
+            'title' => 'Dashboard',
             'resumo' => $dashboard->resumo(),
-            'notificacoes' => $dashboard->notificacoes(),
-            'financeiro' => $financeiro->resumo(),
+            'alertasOperacionais' => $dashboard->alertasOperacionais(),
+            'alertasFinanceiros' => $dashboard->alertasFinanceiros(),
+            'operacaoHoje' => $dashboard->operacaoHoje(),
+            'notificacoes' => $dashboard->notificacoes(), // compatibilidade com telas antigas
             'proximosEventos' => $eventos->proximos(),
         ]);
     }

@@ -8,16 +8,14 @@ class EmpresaConfig extends BaseModel
 
     public function atual(): array
     {
-        try {
-            $row = $this->rawFirst("SELECT * FROM {$this->table} ORDER BY id ASC LIMIT 1");
-            if ($row) {
-                return $row;
-            }
-        } catch (\Throwable) {
-            return $this->padrao();
-        }
+        $row = $this->rawFirst(
+            "SELECT *
+         FROM tb_empresa_config
+         ORDER BY id ASC
+         LIMIT 1"
+        );
 
-        return $this->padrao();
+        return $row ?: [];
     }
 
     public function salvar(array $data): bool

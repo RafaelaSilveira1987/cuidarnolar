@@ -380,8 +380,25 @@ class Escala extends BaseModuleModel
         }
 
         if ($cuidadorId) {
-            $sql .= ' AND (p.cuidador_id = :cuidador_id OR ep.cuidador_id = :cuidador_id)';
-            $params[':cuidador_id'] = $cuidadorId;
+            // Escopo do cuidador:
+            // 1) cuidador referência do cadastro do paciente;
+            // 2) cuidador na equipe da escala base;
+            // 3) cuidador em plantões/ocorrências já geradas.
+            // Placeholders distintos evitam SQLSTATE[HY093] em ambientes PDO que
+            // não aceitam reutilizar o mesmo parâmetro nomeado na mesma query.
+            $sql .= " AND (
+                p.cuidador_id = :cuidador_referencia_id
+                OR ep.cuidador_id = :cuidador_equipe_id
+                OR EXISTS (
+                    SELECT 1
+                    FROM tb_escala_ocorrencias eo_scope
+                    WHERE eo_scope.paciente_id = p.id
+                      AND eo_scope.cuidador_id = :cuidador_ocorrencia_id
+                )
+            )";
+            $params[':cuidador_referencia_id'] = $cuidadorId;
+            $params[':cuidador_equipe_id'] = $cuidadorId;
+            $params[':cuidador_ocorrencia_id'] = $cuidadorId;
         }
 
         $sql .= "

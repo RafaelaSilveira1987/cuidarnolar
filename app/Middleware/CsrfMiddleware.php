@@ -3,6 +3,7 @@
 namespace App\Middleware;
 
 use App\Core\Session;
+use App\Core\View;
 
 class CsrfMiddleware
 {
@@ -18,7 +19,10 @@ class CsrfMiddleware
         $tokenFromRequest = $_POST['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
         if (!hash_equals(Session::getCsrfToken(), (string) $tokenFromRequest)) {
             http_response_code(419);
-            die('CSRF token invalido. Recarregue a pagina e tente novamente.');
+            View::render('errors/403', [
+                'message' => 'Sessão expirada ou token inválido. Recarregue a página e tente novamente.',
+            ], 'layouts/blank');
+            exit;
         }
     }
 }

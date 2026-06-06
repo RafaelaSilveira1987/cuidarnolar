@@ -36,10 +36,10 @@ $fmtHora = static fn(mixed $hora): string => $hora ? substr((string)$hora, 0, 5)
     <div class="cfg-layout-two cfg-layout-stack">
         <form method="POST" action="<?= url('/configuracoes/plantoes') ?>" class="cfg-card cfg-form cfg-sticky-form">
             <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
-            <input type="hidden" name="id" value="<?= e($value('id')) ?>">
+            <input type="hidden" name="uuid" value="<?= e($value('uuid')) ?>">
 
             <div class="cfg-section-title compact">
-                <h2><?= !empty($registro['id']) ? 'Editar regra' : 'Nova regra' ?></h2>
+                <h2><?= !empty($registro['uuid']) ? 'Editar regra' : 'Nova regra' ?></h2>
                 <p>Use nomes claros. O financeiro agradece e o futuro eu também.</p>
             </div>
 
@@ -109,7 +109,7 @@ $fmtHora = static fn(mixed $hora): string => $hora ? substr((string)$hora, 0, 5)
 
             <div class="cfg-actions split">
                 <a class="btn btn-secondary" href="<?= url('/configuracoes/plantoes') ?>">Limpar</a>
-                <button type="submit" class="btn btn-primary"><?= !empty($registro['id']) ? 'Salvar regra' : 'Adicionar regra' ?></button>
+                <button type="submit" class="btn btn-primary"><?= !empty($registro['uuid']) ? 'Salvar regra' : 'Adicionar regra' ?></button>
             </div>
         </form>
 
@@ -159,8 +159,8 @@ $fmtHora = static fn(mixed $hora): string => $hora ? substr((string)$hora, 0, 5)
                                     </span>
                                 </td>
                                 <td class="cfg-actions-cell">
-                                    <a class="btn-icon" title="Editar" href="<?= url('/configuracoes/plantoes?editar=' . (int)$plantao['id']) ?>"><i class="ti ti-pencil"></i></a>
-                                    <form method="POST" action="<?= url('/configuracoes/plantoes/' . (int)$plantao['id'] . '/alternar') ?>">
+                                    <a class="btn-icon" title="Editar" href="<?= url('/configuracoes/plantoes?editar=' . rawurlencode((string)($plantao['uuid'] ?? $plantao['id']))) ?>"><i class="ti ti-pencil"></i></a>
+                                    <form method="POST" action="<?= url('/configuracoes/plantoes/' . rawurlencode((string)($plantao['uuid'] ?? $plantao['id'])) . '/alternar') ?>">
                                         <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
                                         <button class="btn-icon" type="submit" title="Ativar/Inativar"><i class="ti ti-power"></i></button>
                                     </form>

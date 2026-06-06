@@ -34,6 +34,24 @@ function e(mixed $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 }
 
+
+function current_user(): array
+{
+    return \App\Core\Session::user();
+}
+
+function can(string $permission): bool
+{
+    $user = \App\Core\Session::user();
+    if (($user['perfil'] ?? '') === 'admin') {
+        return true;
+    }
+
+    $permissions = $user['permissions'] ?? [];
+    return is_array($permissions)
+        && (in_array('*', $permissions, true) || in_array($permission, $permissions, true));
+}
+
 function url(string $path = ''): string
 {
     $base = rtrim((string) env('APP_URL', ''), '/');
@@ -81,4 +99,22 @@ function view(string $path, array $data = [])
     extract($data);
 
     require __DIR__ . '/../Views/' . $path . '.php';
+}
+function current_cuidador_id(): ?int
+{
+    $user = \App\Core\Session::user();
+    $id = (int)($user['cuidador_id'] ?? 0);
+    return $id > 0 ? $id : null;
+}
+
+function is_cuidador_scope(): bool
+{
+    $user = \App\Core\Session::user();
+    return (($user['perfil'] ?? '') === 'cuidador') && current_cuidador_id() !== null;
+}
+
+function user_has_full_scope(): bool
+{
+    $user = \App\Core\Session::user();
+    return ($user['perfil'] ?? '') === 'admin' || !is_cuidador_scope();
 }

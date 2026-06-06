@@ -129,6 +129,21 @@ class ContratoPaciente extends BaseModuleModel
         return $row ? $this->formatContrato($row) : false;
     }
 
+    public function findByPacienteUuid(int $pacienteId, string $contratoUuid): array|false
+    {
+        $contratoUuid = trim($contratoUuid);
+        if ($contratoUuid === '') {
+            return false;
+        }
+
+        $row = $this->rawFirst(
+            $this->baseSelect() . ' WHERE c.paciente_id = :paciente_id AND c.uuid = :uuid LIMIT 1',
+            [':paciente_id' => $pacienteId, ':uuid' => $contratoUuid]
+        );
+
+        return $row ? $this->formatContrato($row) : false;
+    }
+
     /** Compatibilidade com a tela antiga de contrato + escala. */
     public function salvarAtivoPaciente(int $pacienteId, array $data): int
     {

@@ -1,6 +1,17 @@
 Options -Indexes
 RewriteEngine On
 
+# Bloqueia arquivos sensíveis caso sejam colocados acidentalmente dentro de /public.
+<FilesMatch "(^\.env|\.sql$|\.log$|\.bak$|\.backup$|\.zip$|composer\.(json|lock)$|package(-lock)?\.json$|README|RELATORIO_.*\.md$)">
+    Require all denied
+</FilesMatch>
+
+# Nunca executar scripts PHP dentro de uploads/assets por acidente.
+RewriteRule ^(storage|uploads|assets/uploads)/.*\.(php|phtml|phar|php[0-9])$ - [F,L,NC]
+
+# Impede acesso a arquivos internos por rota direta.
+RewriteRule ^(app|config|database|data|legacy|storage|vendor|\.git)(/|$) - [F,L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]

@@ -86,7 +86,7 @@ $fmtDateLocal = $fmtDate ?? static function (?string $date, string $fallback = '
                 </small>
 
                 <form method="POST"
-                      action="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/contratos/' . (int)$contratoAtivo['id'] . '/gerar-financeiro') ?>"
+                      action="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/contratos/' . rawurlencode((string)($contratoAtivo['uuid'] ?? $contratoAtivo['id'])) . '/gerar-financeiro') ?>"
                       class="contrato-generate-form"
                       onsubmit="return confirm('Gerar financeiro deste contrato no período informado? Lançamentos já existentes do mesmo mês serão ignorados.');">
                     <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
@@ -147,7 +147,7 @@ $fmtDateLocal = $fmtDate ?? static function (?string $date, string $fallback = '
                             <td><?= e($contrato['valor_cobranca_fmt'] ?? $formatMoneyContrato($contrato['valor_mensal'] ?? 0)) ?></td>
                             <td>Dia <?= e((string)($contrato['dia_vencimento'] ?? '10')) ?></td>
                             <td>
-                                <a class="btn btn-secondary btn-sm" href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/contratos/' . (int)$contrato['id'] . '/editar') ?>">
+                                <a class="btn btn-secondary btn-sm" href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/contratos/' . rawurlencode((string)($contrato['uuid'] ?? $contrato['id'])) . '/editar') ?>">
                                     Editar
                                 </a>
                             </td>

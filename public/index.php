@@ -43,20 +43,8 @@ if (!file_exists($envFile) && file_exists(BASE_PATH . '/.env.example')) {
 
 load_env_file($envFile);
 
-$debug = env('APP_DEBUG', 'false') === 'true';
-if ($debug) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', '1');
-} else {
-    error_reporting(0);
-    ini_set('display_errors', '0');
-    set_exception_handler(static function (Throwable $e): void {
-        error_log('[APP ERROR] ' . $e->getMessage());
-        \App\Core\View::render('errors/500', ['message' => 'Erro interno do servidor.'], 'layouts/blank');
-        exit;
-    });
-}
-
+\App\Core\AppErrorHandler::register();
+\App\Core\SecurityHeaders::send();
 \App\Core\Session::start();
 
 $router = require BASE_PATH . '/config/routes.php';

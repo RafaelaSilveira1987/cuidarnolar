@@ -19,12 +19,12 @@
             <img src="<?= BASE_URL ?>/assets/images/logo.png" alt="Logo Cuidar no Lar">
 
             <div class="image-content">
-                <h2>Cuidado com excelência.</h2>
+                <h2>"Cuidadamos com amor e profissionalismo<br>de quem é importante para você."</h2>
 
-                <p>
+                <!-- <p>
                     Gestão inteligente para equipes,
                     cuidadores e pacientes.
-                </p>
+                </p> -->
             </div>
 
         </div>
@@ -63,14 +63,6 @@
                 <button type="submit" class="btn btn-primary">
                     Entrar
                 </button>
-
-                <div class="register-link">
-                    Não possui conta?
-                    <a href="<?= url('/cadastro') ?>">
-                        Cadastre-se aqui
-                    </a>
-                </div>
-
             </form>
         </div>
 

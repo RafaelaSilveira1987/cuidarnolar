@@ -89,6 +89,23 @@ class PlanoCuidado extends BaseModuleModel
         );
     }
 
+    public function findByPacienteUuid(int $pacienteId, string $planoUuid): array|false
+    {
+        $planoUuid = trim($planoUuid);
+        if ($planoUuid === '') {
+            return false;
+        }
+
+        return $this->rawFirst(
+            "SELECT *
+             FROM {$this->table}
+             WHERE uuid = :uuid
+               AND paciente_id = :paciente_id
+             LIMIT 1",
+            [':uuid' => $planoUuid, ':paciente_id' => $pacienteId]
+        );
+    }
+
     public function listarModelos(): array
     {
         if ($this->tabelaExiste('tb_planos_cuidado_modelos')) {

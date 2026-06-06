@@ -27,6 +27,47 @@
             <?= $content ?>
         </main>
     </div>
+
+    <?php
+    $empresaFooter = $empresaFooter ?? [];
+
+    if (empty($empresaFooter)) {
+        try {
+            $empresaFooter = (new \App\Models\EmpresaConfig())->atual();
+        } catch (\Throwable $e) {
+            $empresaFooter = [];
+        }
+    }
+
+    $empresaNome = trim((string)(
+        $empresaFooter['nome_fantasia']
+        ?? $empresaFooter['razao_social']
+        ?? ''
+    ));
+
+    $empresaDescricao = trim((string)(
+        $empresaFooter['descricao_sistema']
+        ?? 'Gestão Home Care'
+    ));
+
+    if ($empresaNome === '') {
+        $empresaNome = 'Cuidar no Lar';
+    }
+    ?>
+
+    <footer class="app-footer">
+        <div>
+            <strong><?= e($empresaNome) ?></strong>
+            <span><?= e($empresaDescricao) ?></span>
+        </div>
+
+        <div>
+            <span>© <?= date('Y') ?> • Uso interno</span>
+            <span class="app-footer-dot">•</span>
+            <span>Versão 1.0</span>
+        </div>
+    </footer>
+
     <script src="<?= BASE_URL ?>/assets/js/app.js"></script>
 </body>
 

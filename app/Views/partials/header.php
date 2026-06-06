@@ -9,10 +9,11 @@
 
     <div class="topbar-right">
         <?php if (!empty($_user)): ?>
-        <form method="POST" action="<?= url('/logout') ?>">
-            <input type="hidden" name="_csrf" value="<?= e($_csrf) ?>">
-            <button type="submit" class="btn btn-secondary">Sair</button>
-        </form>
+            <a class="topbar-link" href="<?= url('/minha-senha') ?>">Minha senha</a>
+            <form method="POST" action="<?= url('/logout') ?>">
+                <input type="hidden" name="_csrf" value="<?= e($_csrf) ?>">
+                <button type="submit" class="btn btn-secondary">Sair</button>
+            </form>
         <?php endif; ?>
     </div>
 </header>

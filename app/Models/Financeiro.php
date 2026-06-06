@@ -133,6 +133,17 @@ class Financeiro extends BaseModuleModel
         return $record ? $this->formatRecord($record) : false;
     }
 
+    public function findForShowByUuid(string $uuid): array|false
+    {
+        $uuid = trim($uuid);
+        if ($uuid === '') {
+            return false;
+        }
+
+        $record = $this->rawFirst($this->baseSelect() . ' WHERE f.uuid = :uuid LIMIT 1', [':uuid' => $uuid]);
+        return $record ? $this->formatRecord($record) : false;
+    }
+
 
     public function formasPagamentoBaixa(): array
     {

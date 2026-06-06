@@ -46,8 +46,26 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <?php foreach ($columns as $label): ?>
-                    <th><?= e($label) ?></th>
+                    <?php foreach ($columns as $field => $label): ?>
+                    <?php if ($field === 'id') {
+                                continue;
+                            } ?>
+
+                    <?php
+                            $isPacientesList = (($routeBase ?? '') === '/pacientes');
+                            $isResponsavelField = in_array($field, [
+                                'responsavel_nome',
+                                'responsavel_nome_texto',
+                                'responsavel',
+                                'responsavel_legal',
+                                'responsavel_financeiro',
+                            ], true);
+
+                            $thClass = ($isPacientesList && $isResponsavelField) ? 'col-responsavel' : '';
+                            ?>
+
+                    <th class="<?= e($thClass) ?>"><?= e($label) ?></th>
+
                     <?php endforeach; ?>
 
                     <th>Ações</th>
@@ -64,20 +82,41 @@
                 <tr class="<?= !empty($row['atrasado']) ? 'row-danger' : '' ?>">
 
                     <?php foreach ($columns as $field => $label): ?>
-                    <td>
-                        <?= e($row[$field] ?? '-') ?>
+                    <?php if ($field === 'id') {
+                                    continue;
+                                } ?>
 
-                        <?php if (
-                                        $field === 'status'
-                                        && !empty($row['atrasado'])
-                                    ): ?>
+                    <?php
+                                $isPacientesList = (($routeBase ?? '') === '/pacientes');
+                                $isResponsavelField = in_array($field, [
+                                    'responsavel_nome',
+                                    'responsavel_nome_texto',
+                                    'responsavel',
+                                    'responsavel_legal',
+                                    'responsavel_financeiro',
+                                ], true);
+
+                                $cellClass = ($isPacientesList && $isResponsavelField) ? 'col-responsavel' : '';
+                                $cellValue = (string)($row[$field] ?? '-');
+                                ?>
+
+                    <td class="<?= e($cellClass) ?>">
+                        <?php if ($isPacientesList && $isResponsavelField): ?>
+                        <span class="cell-ellipsis" title="<?= e($cellValue) ?>" data-full="<?= e($cellValue) ?>">
+                            <?= e($cellValue) ?>
+                        </span>
+                        <?php else: ?>
+                        <?= e($cellValue) ?>
+                        <?php endif; ?>
+
+                        <?php if ($field === 'status' && !empty($row['atrasado'])): ?>
                         <span class="badge-danger">
                             ● Em atraso
                         </span>
                         <?php endif; ?>
                     </td>
-                    <?php endforeach; ?>
 
+                    <?php endforeach; ?>
                     <td class="actions">
                         <a href="<?= url($routeBase . '/' . rawurlencode((string) $resourceKey)) ?>">
                             Ver

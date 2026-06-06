@@ -57,6 +57,11 @@ class DiarioIdoso extends BaseModuleModel
         return $this->rawFirst($this->baseSelect() . ' WHERE d.id = :id', [':id' => $id]);
     }
 
+    public function findForShowByUuid(string $uuid): array|false
+    {
+        return $this->rawFirst($this->baseSelect() . ' WHERE d.uuid = :uuid LIMIT 1', [':uuid' => $uuid]);
+    }
+
     public function formOptions(): array
     {
         return ['paciente_id' => $this->activePatients()];

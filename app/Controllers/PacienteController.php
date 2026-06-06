@@ -53,6 +53,28 @@ class PacienteController extends ResourceController
         'status'              => 'Status',
     ];
 
+
+    public function index(): void
+    {
+        $page = (int) $this->input('page', 1);
+        $search = trim((string) $this->input('busca', ''));
+        $cuidadorId = \is_cuidador_scope() ? \current_cuidador_id() : null;
+
+        $result = $cuidadorId
+            ? $this->pacienteModel()->listForIndexPorCuidador($cuidadorId, $page, 15, $search)
+            : $this->pacienteModel()->listForIndex($page, 15, $search);
+
+        $this->view('resources/index', [
+            'pageTitle' => $this->viewTitle,
+            'title' => $this->viewTitle,
+            'routeBase' => $this->routeBase,
+            'columns' => $this->columns,
+            'rows' => $result['data'],
+            'pagination' => $result,
+            'search' => $search,
+        ]);
+    }
+
     public function show(string $id): void
     {
         $model = $this->pacienteModel();
@@ -61,6 +83,13 @@ class PacienteController extends ResourceController
         if (!$record) {
             http_response_code(404);
             $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        if (!$this->usuarioPodeAcessarPaciente((int)($record['id'] ?? 0))) {
+            $this->registrarAcessoNegadoEscopo('pacientes.show', (int)($record['id'] ?? 0));
+            http_response_code(403);
+            $this->view('errors/403', ['message' => 'Você não tem acesso a este paciente.'], 'layouts/blank');
             return;
         }
 
@@ -142,6 +171,13 @@ class PacienteController extends ResourceController
             return;
         }
 
+        if (!$this->usuarioPodeAcessarPaciente((int)($paciente['id'] ?? 0))) {
+            $this->registrarAcessoNegadoEscopo('pacientes.edit', (int)($paciente['id'] ?? 0));
+            http_response_code(403);
+            $this->view('errors/403', ['message' => 'Você não tem acesso a este paciente.'], 'layouts/blank');
+            return;
+        }
+
         $this->renderPacienteForm($paciente, [], 'Editar Paciente', (int) $paciente['id']);
     }
 
@@ -153,6 +189,13 @@ class PacienteController extends ResourceController
         if (!$paciente) {
             http_response_code(404);
             $this->view('errors/404', ['message' => 'Paciente não encontrado.'], 'layouts/blank');
+            return;
+        }
+
+        if (!$this->usuarioPodeAcessarPaciente((int)($paciente['id'] ?? 0))) {
+            $this->registrarAcessoNegadoEscopo('pacientes.update', (int)($paciente['id'] ?? 0));
+            http_response_code(403);
+            $this->view('errors/403', ['message' => 'Você não tem acesso a este paciente.'], 'layouts/blank');
             return;
         }
 
@@ -183,6 +226,13 @@ class PacienteController extends ResourceController
             return;
         }
 
+        if (!$this->usuarioPodeAcessarPaciente((int)($paciente['id'] ?? 0))) {
+            $this->registrarAcessoNegadoEscopo('pacientes.inativar', (int)($paciente['id'] ?? 0));
+            http_response_code(403);
+            $this->view('errors/403', ['message' => 'Você não tem acesso a este paciente.'], 'layouts/blank');
+            return;
+        }
+
         $model->inativar((int) $paciente['id'], (string) $this->input('motivo_inativacao', ''));
         $this->flash('success', 'Paciente inativado com sucesso.');
         $this->redirect('/pacientes');
@@ -192,7 +242,7 @@ class PacienteController extends ResourceController
         array $paciente,
         array $errors,
         string $title,
-        ?int $id = null
+        string|int|null $id = null
     ): void {
         $model = $this->pacienteModel();
 
@@ -398,7 +448,7 @@ class PacienteController extends ResourceController
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
     }
 
-    public function planoEditar(string $id, string $planoId): void
+    public function planoEditar(string $id, string $planoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -408,17 +458,17 @@ class PacienteController extends ResourceController
             return;
         }
 
-        $plano = (new PlanoCuidado())->findByPaciente((int)$paciente['id'], (int)$planoId);
+        $plano = (new PlanoCuidado())->findByPacienteUuid((int)$paciente['id'], $planoUuid);
         if (!$plano) {
             http_response_code(404);
             $this->view('errors/404', ['message' => 'Plano de cuidados não encontrado para este paciente.'], 'layouts/blank');
             return;
         }
 
-        $this->renderPlanoCuidadoForm($paciente, $plano, [], 'Editar plano de cuidados', (int)$planoId);
+        $this->renderPlanoCuidadoForm($paciente, $plano, [], 'Editar plano de cuidados', (string)($plano['uuid'] ?? $planoUuid));
     }
 
-    public function planoUpdate(string $id, string $planoId): void
+    public function planoUpdate(string $id, string $planoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -429,7 +479,7 @@ class PacienteController extends ResourceController
         }
 
         $model = new PlanoCuidado();
-        $plano = $model->findByPaciente((int)$paciente['id'], (int)$planoId);
+        $plano = $model->findByPacienteUuid((int)$paciente['id'], $planoUuid);
         if (!$plano) {
             http_response_code(404);
             $this->view('errors/404', ['message' => 'Plano de cuidados não encontrado para este paciente.'], 'layouts/blank');
@@ -440,21 +490,21 @@ class PacienteController extends ResourceController
         $errors = $this->validatePlanoCuidado($data);
 
         if ($errors !== []) {
-            $this->renderPlanoCuidadoForm($paciente, array_merge($plano, $data), $errors, 'Editar plano de cuidados', (int)$planoId);
+            $this->renderPlanoCuidadoForm($paciente, array_merge($plano, $data), $errors, 'Editar plano de cuidados', (string)($plano['uuid'] ?? $planoUuid));
             return;
         }
 
-        $model->salvarPlano((int)$paciente['id'], $data, (int)$planoId);
+        $model->salvarPlano((int)$paciente['id'], $data, (int)($plano['id'] ?? 0));
 
         if (($data['status'] ?? '') === 'Ativo') {
-            $model->ativarPlano((int)$paciente['id'], (int)$planoId);
+            $model->ativarPlano((int)$paciente['id'], (int)($plano['id'] ?? 0));
         }
 
         $this->flash('success', 'Plano de cuidados atualizado com sucesso.');
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
     }
 
-    public function planoAtivar(string $id, string $planoId): void
+    public function planoAtivar(string $id, string $planoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -464,12 +514,19 @@ class PacienteController extends ResourceController
             return;
         }
 
-        (new PlanoCuidado())->ativarPlano((int)$paciente['id'], (int)$planoId);
+        $planoModel = new PlanoCuidado();
+        $plano = $planoModel->findByPacienteUuid((int)$paciente['id'], $planoUuid);
+        if (!$plano) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Plano de cuidados não encontrado para este paciente.'], 'layouts/blank');
+            return;
+        }
+        $planoModel->ativarPlano((int)$paciente['id'], (int)$plano['id']);
         $this->flash('success', 'Plano de cuidados ativado.');
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
     }
 
-    public function planoArquivar(string $id, string $planoId): void
+    public function planoArquivar(string $id, string $planoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -479,13 +536,20 @@ class PacienteController extends ResourceController
             return;
         }
 
-        (new PlanoCuidado())->arquivarPlano((int)$paciente['id'], (int)$planoId);
+        $planoModel = new PlanoCuidado();
+        $plano = $planoModel->findByPacienteUuid((int)$paciente['id'], $planoUuid);
+        if (!$plano) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => 'Plano de cuidados não encontrado para este paciente.'], 'layouts/blank');
+            return;
+        }
+        $planoModel->arquivarPlano((int)$paciente['id'], (int)$plano['id']);
         $this->flash('success', 'Plano de cuidados arquivado.');
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=plano');
     }
 
 
-    public function planoPdf(string $id, string $planoId): void
+    public function planoPdf(string $id, string $planoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -496,7 +560,7 @@ class PacienteController extends ResourceController
         }
 
         $model = new PlanoCuidado();
-        $plano = $model->findByPaciente((int)$paciente['id'], (int)$planoId);
+        $plano = $model->findByPacienteUuid((int)$paciente['id'], $planoUuid);
 
         if (!$plano) {
             http_response_code(404);
@@ -533,7 +597,7 @@ class PacienteController extends ResourceController
         ]);
     }
 
-    private function renderPlanoCuidadoForm(array $paciente, array $record, array $errors, string $title, ?int $planoId = null): void
+    private function renderPlanoCuidadoForm(array $paciente, array $record, array $errors, string $title, string|int|null $planoId = null): void
     {
         $model = new PlanoCuidado();
 
@@ -546,7 +610,7 @@ class PacienteController extends ResourceController
             'errors' => $errors,
             'modelosPlano' => $model->listarModelos(),
             'action' => $planoId
-                ? '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/planos/' . $planoId
+                ? '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/planos/' . rawurlencode((string)$planoId)
                 : '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/planos',
             'isEdit' => $planoId !== null,
         ]);
@@ -634,7 +698,7 @@ class PacienteController extends ResourceController
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=contratos');
     }
 
-    public function contratoEditar(string $id, string $contratoId): void
+    public function contratoEditar(string $id, string $contratoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -644,17 +708,17 @@ class PacienteController extends ResourceController
             return;
         }
 
-        $contrato = (new ContratoPaciente())->findByPaciente((int)$paciente['id'], (int)$contratoId);
+        $contrato = (new ContratoPaciente())->findByPacienteUuid((int)$paciente['id'], $contratoUuid);
         if (!$contrato) {
             http_response_code(404);
             $this->view('errors/404', ['message' => 'Contrato não encontrado para este paciente.'], 'layouts/blank');
             return;
         }
 
-        $this->renderContratoPacienteForm($paciente, $contrato, [], 'Editar contrato do paciente', (int)$contratoId);
+        $this->renderContratoPacienteForm($paciente, $contrato, [], 'Editar contrato do paciente', (string)($contrato['uuid'] ?? $contratoUuid));
     }
 
-    public function contratoUpdate(string $id, string $contratoId): void
+    public function contratoUpdate(string $id, string $contratoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -665,7 +729,7 @@ class PacienteController extends ResourceController
         }
 
         $contratoModel = new ContratoPaciente();
-        $contrato = $contratoModel->findByPaciente((int)$paciente['id'], (int)$contratoId);
+        $contrato = $contratoModel->findByPacienteUuid((int)$paciente['id'], $contratoUuid);
         if (!$contrato) {
             http_response_code(404);
             $this->view('errors/404', ['message' => 'Contrato não encontrado para este paciente.'], 'layouts/blank');
@@ -676,17 +740,17 @@ class PacienteController extends ResourceController
         $errors = $this->validateContratoPaciente($data);
 
         if ($errors !== []) {
-            $this->renderContratoPacienteForm($paciente, array_merge($contrato, $data), $errors, 'Editar contrato do paciente', (int)$contratoId);
+            $this->renderContratoPacienteForm($paciente, array_merge($contrato, $data), $errors, 'Editar contrato do paciente', (string)($contrato['uuid'] ?? $contratoUuid));
             return;
         }
 
-        $contratoModel->salvarContratoCompleto((int)$paciente['id'], $data, $paciente, (int)$contratoId);
+        $contratoModel->salvarContratoCompleto((int)$paciente['id'], $data, $paciente, (int)($contrato['id'] ?? 0));
 
         $this->flash('success', 'Contrato atualizado com sucesso.');
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=contratos');
     }
 
-    public function contratoGerarFinanceiro(string $id, string $contratoId): void
+    public function contratoGerarFinanceiro(string $id, string $contratoUuid): void
     {
         $paciente = $this->resolvePaciente($id);
 
@@ -696,7 +760,7 @@ class PacienteController extends ResourceController
             return;
         }
 
-        $contrato = (new ContratoPaciente())->findByPaciente((int)$paciente['id'], (int)$contratoId);
+        $contrato = (new ContratoPaciente())->findByPacienteUuid((int)$paciente['id'], $contratoUuid);
         if (!$contrato) {
             http_response_code(404);
             $this->view('errors/404', ['message' => 'Contrato não encontrado para este paciente.'], 'layouts/blank');
@@ -713,7 +777,7 @@ class PacienteController extends ResourceController
         $this->redirect('/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $id)) . '?aba=contratos');
     }
 
-    private function renderContratoPacienteForm(array $paciente, array $record, array $errors, string $title, ?int $contratoId = null): void
+    private function renderContratoPacienteForm(array $paciente, array $record, array $errors, string $title, string|int|null $contratoId = null): void
     {
         $contratoModel = new ContratoPaciente();
         $empresaPadrao = $contratoModel->empresaPadrao();
@@ -741,7 +805,7 @@ class PacienteController extends ResourceController
             'errors' => $errors,
             'responsaveisOptions' => $this->pacienteModel()->responsaveisOptions(),
             'action' => $contratoId
-                ? '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/contratos/' . $contratoId
+                ? '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/contratos/' . rawurlencode((string)$contratoId)
                 : '/pacientes/' . rawurlencode((string)($paciente['uuid'] ?? $paciente['id'])) . '/contratos',
             'isEdit' => $contratoId !== null,
         ]);
@@ -881,6 +945,30 @@ class PacienteController extends ResourceController
         }
 
         return false;
+    }
+
+
+    private function usuarioPodeAcessarPaciente(int $pacienteId): bool
+    {
+        $cuidadorId = \is_cuidador_scope() ? \current_cuidador_id() : null;
+
+        if (!$cuidadorId || $pacienteId <= 0) {
+            return true;
+        }
+
+        return $this->pacienteModel()->pacienteVinculadoAoCuidador($pacienteId, $cuidadorId);
+    }
+
+    private function registrarAcessoNegadoEscopo(string $acao, int $pacienteId): void
+    {
+        try {
+            (new \App\Models\AuditLog())->registrar($acao, 'seguranca', [
+                'paciente_id' => $pacienteId,
+                'cuidador_id' => \current_cuidador_id(),
+                'motivo' => 'fora_do_escopo_do_cuidador',
+            ]);
+        } catch (\Throwable) {
+        }
     }
 
     private function pacienteModel(): Paciente

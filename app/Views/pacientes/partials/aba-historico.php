@@ -1,5 +1,5 @@
 <?php
-$pid = (int) ($record['id'] ?? 0);
+$pacienteUuid = (string)($record['uuid'] ?? $paciente['uuid'] ?? '');
 $lista = $historicos ?? [];
 ?>
 <section class="panel pac-panel-help">
@@ -10,7 +10,7 @@ $lista = $historicos ?? [];
         <li>Mudanças de diagnóstico ou conduta médica; visitas e condutas.</li>
         <li>Troca de cuidador com motivo; eventos familiares relevantes ao cuidado.</li>
     </ul>
-    <p><a class="btn btn-primary" href="<?= url('/historicos/novo?paciente_id=' . $pid) ?>">Novo histórico</a>
+    <p><a class="btn btn-primary" href="<?= url('/historicos/novo?paciente_uuid=' . rawurlencode($pacienteUuid)) ?>">Novo histórico</a>
         <a class="btn btn-secondary" href="<?= url('/historicos') ?>">Listagem global (admin)</a></p>
 </section>
 
@@ -23,8 +23,7 @@ $lista = $historicos ?? [];
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Necessidades</th>
+                                        <th>Necessidades</th>
                     <th>Limitações</th>
                     <th>Status</th>
                     <th></th>
@@ -33,11 +32,10 @@ $lista = $historicos ?? [];
             <tbody>
                 <?php foreach ($lista as $row): ?>
                 <tr>
-                    <td><?= (int) ($row['id'] ?? 0) ?></td>
-                    <td><?= e(strlen((string) ($row['necessidades'] ?? '')) > 80 ? substr((string) ($row['necessidades'] ?? ''), 0, 80) . '…' : (string) ($row['necessidades'] ?? '')) ?></td>
+                                        <td><?= e(strlen((string) ($row['necessidades'] ?? '')) > 80 ? substr((string) ($row['necessidades'] ?? ''), 0, 80) . '…' : (string) ($row['necessidades'] ?? '')) ?></td>
                     <td><?= e(strlen((string) ($row['limitacoes'] ?? '')) > 80 ? substr((string) ($row['limitacoes'] ?? ''), 0, 80) . '…' : (string) ($row['limitacoes'] ?? '')) ?></td>
                     <td><?= e($row['status'] ?? '—') ?></td>
-                    <td><a href="<?= url('/historicos/' . (int) ($row['id'] ?? 0)) ?>">Abrir</a></td>
+                    <td><a href="<?= url('/historicos/' . rawurlencode((string)($row['uuid'] ?? $row['id'] ?? ''))) ?>">Abrir</a></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>

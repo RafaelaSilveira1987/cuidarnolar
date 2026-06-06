@@ -63,7 +63,66 @@ class RelatorioPlantao extends BaseModel
 
     public function buscarPorPaciente(int $pacienteId): array
     {
+        $sql = $this->sqlBaseRelatoriosPaciente() . "
+            WHERE rp.paciente_id = :paciente_id
+            ORDER BY rp.data_inicio DESC, rp.id DESC
+        ";
+
+        return $this->query($sql, [
+            ':paciente_id' => $pacienteId,
+        ])->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function buscarPorPacienteCuidador(int $pacienteId, int $cuidadorId): array
+    {
+        if ($pacienteId <= 0 || $cuidadorId <= 0) {
+            return [];
+        }
+
+        $sql = $this->sqlBaseRelatoriosPaciente() . "
+            WHERE rp.paciente_id = :paciente_id
+              AND rp.cuidador_id = :cuidador_id
+            ORDER BY rp.data_inicio DESC, rp.id DESC
+        ";
+
+        return $this->query($sql, [
+            ':paciente_id' => $pacienteId,
+            ':cuidador_id' => $cuidadorId,
+        ])->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function pacientesComRelatorioPorCuidador(int $cuidadorId): array
+    {
+        if ($cuidadorId <= 0) {
+            return [];
+        }
+
         $sql = "
+            SELECT
+                p.id,
+                p.uuid,
+                p.nome_completo,
+                p.prontuario,
+                COUNT(rp.id) AS total_relatorios,
+                MAX(rp.data_inicio) AS ultimo_relatorio_data
+            FROM tb_pacientes p
+            INNER JOIN tb_relatorio_plantao rp
+                ON rp.paciente_id = p.id
+               AND rp.cuidador_id = :cuidador_id
+            GROUP BY
+                p.id,
+                p.uuid,
+                p.nome_completo,
+                p.prontuario
+            ORDER BY p.nome_completo ASC
+        ";
+
+        return $this->query($sql, [':cuidador_id' => $cuidadorId])->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function sqlBaseRelatoriosPaciente(): string
+    {
+        return "
             SELECT
                 rp.*,
                 COALESCE(rp.pa, sv.pa) AS pa,
@@ -76,13 +135,7 @@ class RelatorioPlantao extends BaseModel
             FROM tb_relatorio_plantao rp
             LEFT JOIN tb_sinais_vitais sv
                 ON sv.relatorio_id = rp.id
-            WHERE rp.paciente_id = :paciente_id
-            ORDER BY rp.data_inicio DESC, rp.id DESC
         ";
-
-        return $this->query($sql, [
-            ':paciente_id' => $pacienteId,
-        ])->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function buscarPorUuid(string $uuid): ?array

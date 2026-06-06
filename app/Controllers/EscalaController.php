@@ -38,10 +38,15 @@ class EscalaController extends BaseController
         $cuidadorFiltroUuid = $this->sanitizarUuid($_GET['cuidador'] ?? null);
 
         $cuidadorFiltro = null;
-        if ($cuidadorFiltroUuid) {
+        $cuidadorId = null;
+
+        if (\is_cuidador_scope()) {
+            $cuidadorId = \current_cuidador_id();
+            $cuidadorFiltroUuid = null;
+        } elseif ($cuidadorFiltroUuid) {
             $cuidadorFiltro = $this->escala->buscarCuidadorPorUuid($cuidadorFiltroUuid);
+            $cuidadorId = $cuidadorFiltro['id'] ?? null;
         }
-        $cuidadorId = $cuidadorFiltro['id'] ?? null;
 
         $todosPacientesOperacionais = $this->escala->listarPacientesOperacionais(null, $cuidadorId);
         $pacienteSelecionado = null;
@@ -105,9 +110,9 @@ class EscalaController extends BaseController
             'periodoFim' => $fimPeriodo,
             'periodoAnterior' => $periodoAnterior,
             'periodoProximo' => $periodoProximo,
-            'pacientes' => $this->escala->listarPacientesOperacionais(null, null),
+            'pacientes' => \is_cuidador_scope() ? $todosPacientesOperacionais : $this->escala->listarPacientesOperacionais(null, null),
             'pacienteSelecionado' => $pacientesOperacionais[0] ?? $pacienteSelecionado,
-            'colaboradores' => $this->escala->listaCuidadores(),
+            'colaboradores' => \is_cuidador_scope() ? $this->filtrarColaboradorAtual($this->escala->listaCuidadores()) : $this->escala->listaCuidadores(),
             'cobertura' => $cobertura,
             'resumo' => $resumo,
             'alertas' => $alertas,
@@ -119,6 +124,10 @@ class EscalaController extends BaseController
 
     public function excluir(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/escala');
             return;
@@ -138,6 +147,10 @@ class EscalaController extends BaseController
 
     public function aprovar(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/escala');
             return;
@@ -240,6 +253,10 @@ class EscalaController extends BaseController
 
     public function fechar(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/escala');
             return;
@@ -340,6 +357,10 @@ class EscalaController extends BaseController
 
     public function cancelarFechamento(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/escala');
             return;
@@ -423,6 +444,10 @@ class EscalaController extends BaseController
 
     public function mover(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         $this->trocar();
     }
 
@@ -436,6 +461,28 @@ class EscalaController extends BaseController
     {
         $uuid = $this->sanitizarUuid($uuid);
         $this->redirect('/escala' . ($uuid ? '?cuidador=' . rawurlencode($uuid) : ''));
+    }
+
+
+    private function bloquearCuidadorEmEdicaoEscala(): bool
+    {
+        if (!\is_cuidador_scope()) {
+            return false;
+        }
+
+        $this->flash('error', 'Seu perfil de cuidador permite visualizar a própria escala, mas não alterar a escala operacional.');
+        $this->redirect($_SERVER['HTTP_REFERER'] ?? '/escala');
+        return true;
+    }
+
+    private function filtrarColaboradorAtual(array $colaboradores): array
+    {
+        $cuidadorId = \current_cuidador_id();
+        if (!$cuidadorId) {
+            return [];
+        }
+
+        return array_values(array_filter($colaboradores, static fn(array $c): bool => (int)($c['id'] ?? 0) === $cuidadorId));
     }
 
     // =========================================================
@@ -1252,6 +1299,10 @@ class EscalaController extends BaseController
     // =========================================================
     public function salvar(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         $pacienteUuid = $this->sanitizarUuid($_POST['paciente_uuid'] ?? null);
         $cuidadorUuid = $this->sanitizarUuid($_POST['cuidador_uuid'] ?? null);
         $dataPlantao  = $this->sanitizarData($_POST['data_plantao']  ?? null);
@@ -1334,6 +1385,10 @@ class EscalaController extends BaseController
     // =========================================================
     public function trocar(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         $origemId = (int)($_POST['origem_id'] ?? 0);
         $destinoId = (int)($_POST['destino_id'] ?? 0);
         $periodo = $this->sanitizarData($_POST['periodo'] ?? ($_POST['semana'] ?? null)) ?: date('Y-m-d');
@@ -1368,6 +1423,10 @@ class EscalaController extends BaseController
     // =========================================================
     public function substituir(): void
     {
+        if ($this->bloquearCuidadorEmEdicaoEscala()) {
+            return;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/escala');
             return;

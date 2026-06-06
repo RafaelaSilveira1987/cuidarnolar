@@ -112,13 +112,13 @@ $secoesPlano = [
 
         <div class="button-row plano-active-buttons">
             <a class="btn btn-primary btn-plano"
-                href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . (int)$planoAtivo['id'] . '/editar') ?>">Editar
+                href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . rawurlencode((string)($planoAtivo['uuid'] ?? $planoAtivo['id'])) . '/editar') ?>">Editar
                 plano ativo</a>
             <a class="btn btn-secondary btn-plano" target="_blank"
-                href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . (int)$planoAtivo['id'] . '/pdf') ?>">Gerar
+                href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . rawurlencode((string)($planoAtivo['uuid'] ?? $planoAtivo['id'])) . '/pdf') ?>">Gerar
                 PDF</a>
             <form class="btn-plano" method="POST"
-                action="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . (int)$planoAtivo['id'] . '/arquivar') ?>"
+                action="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . rawurlencode((string)($planoAtivo['uuid'] ?? $planoAtivo['id'])) . '/arquivar') ?>"
                 onsubmit="return confirm('Arquivar este plano ativo?')">
                 <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
                 <button class="btn btn-secondary btn-plano" type="submit">Arquivar</button>
@@ -166,13 +166,13 @@ $secoesPlano = [
                     </td>
                     <td class="actions plano-history-actions">
                         <a
-                            href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . (int)$plano['id'] . '/editar') ?>">Editar</a>
+                            href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . rawurlencode((string)($plano['uuid'] ?? $plano['id'])) . '/editar') ?>">Editar</a>
                         <a target="_blank"
-                            href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . (int)$plano['id'] . '/pdf') ?>">PDF</a>
+                            href="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . rawurlencode((string)($plano['uuid'] ?? $plano['id'])) . '/pdf') ?>">PDF</a>
 
                         <?php if (($plano['status'] ?? '') !== 'Ativo'): ?>
                         <form method="POST"
-                            action="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . (int)$plano['id'] . '/ativar') ?>"
+                            action="<?= url('/pacientes/' . rawurlencode($resourceKey) . '/planos/' . rawurlencode((string)($plano['uuid'] ?? $plano['id'])) . '/ativar') ?>"
                             onsubmit="return confirm('Ativar este plano de cuidados?')">
                             <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
                             <button type="submit">Ativar</button>

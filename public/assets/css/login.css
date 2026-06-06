@@ -35,7 +35,7 @@ body.auth-page {
 
 .auth-header h1 {
   font-size: 2.2rem;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   color: #0f766e;
   margin-bottom: 0.75rem;
 }
@@ -61,9 +61,10 @@ body.auth-page {
   flex: 1;
   background: linear-gradient(
     135deg,
-    var(--color-primary) 0%,
-    var(--color-primary-hover) 100%
-  );
+    var(--primary),
+    var(--primary-dark)
+  ) !important;
+
   border-radius: var(--radius-xl);
   display: flex;
   flex-direction: column;
@@ -87,9 +88,10 @@ body.auth-page {
 }
 
 .image-content h2 {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: var(--weight-semibold);
   margin-bottom: 1rem;
+  color: #fff;
 }
 
 .image-content p {
@@ -177,7 +179,7 @@ body.auth-page {
 .form-header h2 {
   margin: 0 0 0.5rem;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   color: #0f172a;
 }
 
@@ -260,3 +262,4 @@ body.auth-page {
     font-size: 2rem;
   }
 }
+

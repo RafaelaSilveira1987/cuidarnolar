@@ -34,7 +34,7 @@ abstract class ResourceController extends BaseController
 
     public function show(string $id): void
     {
-        $record = $this->model()->findForShow((int) $id);
+        $record = $this->resolveResourceRecord($id);
 
         if (!$record) {
             http_response_code(404);
@@ -67,14 +67,22 @@ abstract class ResourceController extends BaseController
         }
 
         $id = $this->model()->createRecord($data);
+        $created = $this->model()->findForShow((int)$id) ?: ['id' => $id];
+
+        $this->audit('registro_criado', $this->auditModulo(), [
+            'entidade' => $this->singularTitle,
+            'entidade_id' => (string)$id,
+            'uuid' => $created['uuid'] ?? null,
+            'rota_base' => $this->routeBase,
+        ]);
 
         $this->flash('success', "{$this->singularTitle} cadastrado com sucesso.");
-        $this->redirect($this->routeBase . '/' . $id);
+        $this->redirect($this->routeBase . '/' . $this->resourcePublicKey($created));
     }
 
     public function edit(string $id): void
     {
-        $record = $this->model()->findForShow((int) $id);
+        $record = $this->resolveResourceRecord($id);
 
         if (!$record) {
             http_response_code(404);
@@ -82,13 +90,13 @@ abstract class ResourceController extends BaseController
             return;
         }
 
-        $this->renderForm($record, [], 'Editar ' . $this->singularTitle, (int) $id);
+        $this->renderForm($record, [], 'Editar ' . $this->singularTitle, $this->resourcePublicKey($record));
     }
 
     public function update(string $id): void
     {
         $model = $this->model();
-        $record = $model->findForShow((int) $id);
+        $record = $this->resolveResourceRecord($id);
 
         if (!$record) {
             http_response_code(404);
@@ -100,24 +108,50 @@ abstract class ResourceController extends BaseController
         $errors = $this->validateResource($data);
 
         if ($errors !== []) {
-            $this->renderForm(array_merge($record, $data), $errors, 'Editar ' . $this->singularTitle, (int) $id);
+            $this->renderForm(array_merge($record, $data), $errors, 'Editar ' . $this->singularTitle, $this->resourcePublicKey($record));
             return;
         }
 
-        $model->updateRecord((int) $id, $data);
+        $model->updateRecord((int)($record['id'] ?? 0), $data);
+
+        $this->audit('registro_atualizado', $this->auditModulo(), [
+            'entidade' => $this->singularTitle,
+            'entidade_id' => (string)($record['id'] ?? ''),
+            'uuid' => $record['uuid'] ?? null,
+            'rota_base' => $this->routeBase,
+            'alteracoes' => $this->auditChanges($record, $data),
+        ]);
 
         $this->flash('success', "{$this->singularTitle} atualizado com sucesso.");
-        $this->redirect($this->routeBase . '/' . $id);
+        $this->redirect($this->routeBase . '/' . $this->resourcePublicKey($record));
     }
 
     public function inativar(string $id): void
     {
-        $this->model()->inativar((int) $id, (string) $this->input('motivo_inativacao', ''));
+        $record = $this->resolveResourceRecord($id);
+
+        if (!$record) {
+            http_response_code(404);
+            $this->view('errors/404', ['message' => "{$this->singularTitle} nao encontrado."], 'layouts/blank');
+            return;
+        }
+
+        $motivo = (string) $this->input('motivo_inativacao', '');
+        $this->model()->inativar((int)($record['id'] ?? 0), $motivo);
+
+        $this->audit('registro_inativado', $this->auditModulo(), [
+            'entidade' => $this->singularTitle,
+            'entidade_id' => (string)($record['id'] ?? ''),
+            'uuid' => $record['uuid'] ?? null,
+            'rota_base' => $this->routeBase,
+            'motivo' => $motivo,
+        ]);
+
         $this->flash('success', "{$this->singularTitle} inativado com sucesso.");
         $this->redirect($this->routeBase);
     }
 
-    protected function renderForm(array $record, array $errors, string $title, ?int $id = null): void
+    protected function renderForm(array $record, array $errors, string $title, string|int|null $id = null): void
     {
         $this->view('resources/form', [
             'pageTitle' => $title,
@@ -152,6 +186,23 @@ abstract class ResourceController extends BaseController
         }
 
         return $errors;
+    }
+
+    protected function resolveResourceRecord(string|int $identifier): array|false
+    {
+        return $this->model()->findForIdentifier($identifier);
+    }
+
+    protected function resourcePublicKey(array $record): string
+    {
+        return $this->model()->publicKey($record);
+    }
+
+
+    protected function auditModulo(): string
+    {
+        $base = trim($this->routeBase, '/');
+        return $base !== '' ? $base : 'cadastro';
     }
 
     protected function model(): BaseModuleModel

@@ -11,10 +11,14 @@ class RelatorioPlantaoController extends BaseController
     public function index(): void
     {
         $pacienteModel = new Paciente();
+        $relatorioModel = new RelatorioPlantao();
+        $cuidadorId = $this->cuidadorIdEscopo();
 
         $this->view('relatorio_plantao/index', [
             'pageTitle' => 'Relatórios de Plantão',
-            'pacientes' => $pacienteModel->pacientesComRelatorio(),
+            'pacientes' => $cuidadorId
+                ? $relatorioModel->pacientesComRelatorioPorCuidador($cuidadorId)
+                : $pacienteModel->pacientesComRelatorio(),
         ]);
     }
 
@@ -34,6 +38,11 @@ class RelatorioPlantaoController extends BaseController
 
         $id = (int)$paciente['id'];
 
+        if (!$this->pacientePermitidoParaCuidador($id)) {
+            $this->negarEscopoRelatorio();
+            return;
+        }
+
         $cuidadorModel   = new Cuidador();
         $cuidadoresLista = $cuidadorModel->all();
 
@@ -45,7 +54,10 @@ class RelatorioPlantaoController extends BaseController
             ];
         }
 
-        $plantoes = $relatorioModel->buscarPorPaciente($id);
+        $cuidadorId = $this->cuidadorIdEscopo();
+        $plantoes = $cuidadorId
+            ? $relatorioModel->buscarPorPacienteCuidador($id, $cuidadorId)
+            : $relatorioModel->buscarPorPaciente($id);
 
         $this->view('relatorio_plantao/paciente', [
             'pageTitle'     => 'Plantões — ' . ($paciente['nome_completo'] ?? $paciente['nome'] ?? ''),
@@ -67,6 +79,12 @@ class RelatorioPlantaoController extends BaseController
             : null;
 
         $pacienteId = (int)($pacSelecionado['id'] ?? 0);
+
+        if ($pacienteId > 0 && !$this->pacientePermitidoParaCuidador($pacienteId)) {
+            $this->negarEscopoRelatorio();
+            return;
+        }
+
         $paciente   = $this->normalizarPaciente($pacSelecionado, $pacienteModel, $pacienteId);
 
         $contexto = [];
@@ -78,8 +96,12 @@ class RelatorioPlantaoController extends BaseController
             'pageTitle'         => 'Novo Relatório de Plantão',
             'paciente'          => $paciente,
             'pacienteSelecionado' => $pacSelecionado,
-            'pacientes'         => $pacienteModel->all(),
-            'cuidadores'        => $cuidadorModel->all(),
+            'pacientes'         => $this->cuidadorIdEscopo()
+                ? $this->pacientesDoCuidadorParaSelect($pacienteModel)
+                : $pacienteModel->all(),
+            'cuidadores'        => $this->cuidadorIdEscopo()
+                ? $this->cuidadorAtualParaSelect($cuidadorModel)
+                : $cuidadorModel->all(),
             'medicacoes'        => $contexto['medicamentos'] ?? [],
             'relatorio'         => null,
             'turno_atual'       => 'plantao_24h',
@@ -108,8 +130,16 @@ class RelatorioPlantaoController extends BaseController
             throw new \RuntimeException('Paciente não encontrado.');
         }
 
+        if (!$this->pacientePermitidoParaCuidador((int)$paciente['id'])) {
+            $this->negarEscopoRelatorio();
+            return;
+        }
+
         $dados = $this->normalizarPayload($_POST);
         $dados['paciente_id'] = (int)$paciente['id'];
+        if ($this->cuidadorIdEscopo()) {
+            $dados['cuidador_id'] = $this->cuidadorIdEscopo();
+        }
         $dados['status'] = ($_POST['acao'] ?? '') === 'assinar' ? 'finalizado' : 'rascunho';
         $dados['assinado'] = ($_POST['acao'] ?? '') === 'assinar' ? 1 : 0;
 
@@ -118,6 +148,15 @@ class RelatorioPlantaoController extends BaseController
 
             $medicacoes = $this->extrairMedicacoesPost($_POST['medicacoes'] ?? []);
             $relatorioModel->salvarMedicacoesPlantao($relatorioId, $medicacoes);
+
+            $this->audit('relatorio_plantao_criado', 'relatorios', [
+                'entidade' => 'relatorio_plantao',
+                'entidade_id' => (string)$relatorioId,
+                'paciente_id' => (int)$paciente['id'],
+                'paciente_uuid' => $pacienteUuid,
+                'status' => $dados['status'] ?? null,
+                'assinado' => $dados['assinado'] ?? null,
+            ]);
 
             $this->redirect(
                 BASE_URL . '/relatorio-plantao/paciente/' . rawurlencode($pacienteUuid)
@@ -176,6 +215,11 @@ class RelatorioPlantaoController extends BaseController
             exit;
         }
 
+        if (!$this->relatorioPermitidoParaCuidador($relatorio)) {
+            $this->negarEscopoRelatorio();
+            return;
+        }
+
         // Buscar paciente vinculado
         $pacienteId     = (int)($relatorio['paciente_id'] ?? 0);
         $pacSelecionado = $pacienteId > 0
@@ -196,8 +240,12 @@ class RelatorioPlantaoController extends BaseController
             'pageTitle'           => 'Editar Relatório de Plantão',
             'paciente'            => $paciente,
             'pacienteSelecionado' => $pacSelecionado,
-            'pacientes'           => $pacienteModel->all(),
-            'cuidadores'          => $cuidadorModel->all(),
+            'pacientes'           => $this->cuidadorIdEscopo()
+                ? $this->pacientesDoCuidadorParaSelect($pacienteModel)
+                : $pacienteModel->all(),
+            'cuidadores'          => $this->cuidadorIdEscopo()
+                ? $this->cuidadorAtualParaSelect($cuidadorModel)
+                : $cuidadorModel->all(),
             'medicacoes'          => $contexto['medicamentos'] ?? [],
             'relatorio'           => $relatorio,
             'turno_atual'         => 'plantao_24h',
@@ -226,6 +274,11 @@ class RelatorioPlantaoController extends BaseController
 
         if (!$relatorio) {
             throw new \RuntimeException('Relatório não encontrado.');
+        }
+
+        if (!$this->relatorioPermitidoParaCuidador($relatorio)) {
+            $this->negarEscopoRelatorio();
+            return;
         }
 
         /**
@@ -264,7 +317,8 @@ class RelatorioPlantaoController extends BaseController
         $dados = [
             // Mantém vínculo com paciente
             'paciente_id' => (int)($relatorio['paciente_id'] ?? 0),
-            'cuidador_id' => (int)($_POST['cuidador_id'] ?? ($relatorio['cuidador_id'] ?? 0)),
+            'cuidador_id' => $this->cuidadorIdEscopo()
+                ?: (int)($_POST['cuidador_id'] ?? ($relatorio['cuidador_id'] ?? 0)),
             'assinado' => ($_POST['acao'] ?? '') === 'assinar' ? 1 : (int)($relatorio['assinado'] ?? 0),
 
             // Datas
@@ -388,6 +442,16 @@ class RelatorioPlantaoController extends BaseController
                 (int)$relatorio['id'],
                 $dados
             );
+
+            $this->audit('relatorio_plantao_atualizado', 'relatorios', [
+                'entidade' => 'relatorio_plantao',
+                'entidade_id' => (string)($relatorio['id'] ?? ''),
+                'uuid' => $relatorio['uuid'] ?? $uuid,
+                'paciente_id' => (int)($relatorio['paciente_id'] ?? 0),
+                'status' => $dados['status'] ?? null,
+                'assinado' => $dados['assinado'] ?? null,
+                'alteracoes' => $this->auditChanges($relatorio, $dados),
+            ]);
 
             // Sucesso
             $_SESSION['success'] = 'Relatório atualizado com sucesso.';
@@ -691,6 +755,11 @@ class RelatorioPlantaoController extends BaseController
             exit;
         }
 
+        if (!$this->relatorioPermitidoParaCuidador($relatorio)) {
+            $this->negarEscopoRelatorio();
+            return;
+        }
+
         $pacienteModel = new Paciente();
         $paciente = $pacienteModel->buscarPorId((int)$relatorio['paciente_id']);
 
@@ -715,6 +784,11 @@ class RelatorioPlantaoController extends BaseController
             $_SESSION['error'] = 'Relatório não encontrado.';
             header('Location: ' . BASE_URL . '/relatorio-plantao');
             exit;
+        }
+
+        if (!$this->relatorioPermitidoParaCuidador($relatorio)) {
+            $this->negarEscopoRelatorio();
+            return;
         }
 
         $pacienteId = (int)($relatorio['paciente_id'] ?? 0);
@@ -747,8 +821,8 @@ class RelatorioPlantaoController extends BaseController
             ?? 'paciente';
 
         $dataRelatorio = !empty($relatorio['data_inicio'])
-            ? date('d-m-Y', strtotime((string)$relatorio['data_inicio']))
-            : date('d-m-Y');
+            ? date('Y-m-d', strtotime((string)$relatorio['data_inicio']))
+            : date('Y-m-d');
 
         $filename = 'relatorio-plantao-' . preg_replace('/[^a-zA-Z0-9_-]/', '-', strtolower($nomePaciente)) . '-' . $dataRelatorio . '.pdf';
 
@@ -756,4 +830,65 @@ class RelatorioPlantaoController extends BaseController
             'Attachment' => false,
         ]);
     }
+
+    private function cuidadorIdEscopo(): ?int
+    {
+        return function_exists('is_cuidador_scope') && \is_cuidador_scope()
+            ? \current_cuidador_id()
+            : null;
+    }
+
+    private function pacientePermitidoParaCuidador(int $pacienteId): bool
+    {
+        $cuidadorId = $this->cuidadorIdEscopo();
+        if (!$cuidadorId || $pacienteId <= 0) {
+            return true;
+        }
+
+        return (new Paciente())->pacienteVinculadoAoCuidador($pacienteId, $cuidadorId);
+    }
+
+    private function relatorioPermitidoParaCuidador(array $relatorio): bool
+    {
+        $cuidadorId = $this->cuidadorIdEscopo();
+        if (!$cuidadorId) {
+            return true;
+        }
+
+        return (int)($relatorio['cuidador_id'] ?? 0) === $cuidadorId;
+    }
+
+    private function negarEscopoRelatorio(): void
+    {
+        $this->audit('acesso_negado_escopo', 'relatorios', [
+            'motivo' => 'cuidador_fora_do_escopo',
+            'cuidador_id' => $this->cuidadorIdEscopo(),
+            'url' => $_SERVER['REQUEST_URI'] ?? '',
+        ]);
+
+        http_response_code(403);
+        $this->view('errors/403', ['message' => 'Você não tem acesso a este relatório/paciente.'], 'layouts/blank');
+    }
+
+    private function pacientesDoCuidadorParaSelect(Paciente $pacienteModel): array
+    {
+        $cuidadorId = $this->cuidadorIdEscopo();
+        if (!$cuidadorId) {
+            return [];
+        }
+
+        return $pacienteModel->listForIndexPorCuidador($cuidadorId, 1, 500, '')['data'] ?? [];
+    }
+
+    private function cuidadorAtualParaSelect(Cuidador $cuidadorModel): array
+    {
+        $cuidadorId = $this->cuidadorIdEscopo();
+        if (!$cuidadorId) {
+            return [];
+        }
+
+        $cuidador = $cuidadorModel->find($cuidadorId);
+        return $cuidador ? [$cuidador] : [];
+    }
+
 }

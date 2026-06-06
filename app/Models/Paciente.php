@@ -30,6 +30,97 @@ class Paciente extends BaseModuleModel
         return $this->listWithJoins($page, $perPage, $search);
     }
 
+
+    public function listForIndexPorCuidador(int $cuidadorId, int $page = 1, int $perPage = 15, string $search = ''): array
+    {
+        $page = max(1, $page);
+        $offset = ($page - 1) * $perPage;
+        $where = ' WHERE ' . $this->whereEscopoCuidador();
+        $params = $this->paramsEscopoCuidador($cuidadorId);
+
+        if ($search !== '') {
+            $where .= ' AND (p.nome_completo LIKE :search_nome OR p.cpf LIKE :search_cpf)';
+            $params[':search_nome'] = "%{$search}%";
+            $params[':search_cpf'] = "%{$search}%";
+        }
+
+        $total = (int) $this->query(
+            'SELECT COUNT(DISTINCT p.id)
+             FROM tb_pacientes p
+             LEFT JOIN tb_responsavel r ON r.id = p.responsavel_id
+             LEFT JOIN tb_cuidador c ON c.id = p.cuidador_id'
+                . $where,
+            $params
+        )->fetchColumn();
+
+        $data = $this->query(
+            $this->baseSelect()
+                . $where
+                . ' GROUP BY p.id ORDER BY p.nome_completo ASC LIMIT :limit OFFSET :offset',
+            $params + [':limit' => $perPage, ':offset' => $offset]
+        )->fetchAll();
+
+        return [
+            'data' => $data,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => (int) max(1, ceil($total / $perPage)),
+        ];
+    }
+
+    public function pacienteVinculadoAoCuidador(int $pacienteId, int $cuidadorId): bool
+    {
+        if ($pacienteId <= 0 || $cuidadorId <= 0) {
+            return false;
+        }
+
+        $count = (int)$this->query(
+            'SELECT COUNT(DISTINCT p.id)
+             FROM tb_pacientes p
+             WHERE p.id = :paciente_id
+               AND ' . $this->whereEscopoCuidador(),
+            $this->paramsEscopoCuidador($cuidadorId) + [
+                ':paciente_id' => $pacienteId,
+            ]
+        )->fetchColumn();
+
+        return $count > 0;
+    }
+
+    private function whereEscopoCuidador(): string
+    {
+        // Não reutilize o mesmo placeholder várias vezes.
+        // Em alguns ambientes PDO isso gera SQLSTATE[HY093].
+        return "(
+            p.cuidador_id = :cuidador_referencia_id
+            OR EXISTS (
+                SELECT 1
+                FROM tb_escala_base eb
+                INNER JOIN tb_escala_profissionais ep ON ep.escala_base_id = eb.id
+                WHERE eb.paciente_id = p.id
+                  AND ep.cuidador_id = :cuidador_escala_base_id
+                  AND COALESCE(ep.ativo, 1) = 1
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM tb_escala_ocorrencias eo
+                WHERE eo.paciente_id = p.id
+                  AND eo.cuidador_id = :cuidador_ocorrencia_id
+                  AND eo.status NOT IN ('cancelado')
+            )
+        )";
+    }
+
+    private function paramsEscopoCuidador(int $cuidadorId): array
+    {
+        return [
+            ':cuidador_referencia_id' => $cuidadorId,
+            ':cuidador_escala_base_id' => $cuidadorId,
+            ':cuidador_ocorrencia_id' => $cuidadorId,
+        ];
+    }
+
     public function findForShow(int $id): array|false
     {
         return $this->rawFirst($this->baseSelect() . ' WHERE p.id = :id', [':id' => $id]);

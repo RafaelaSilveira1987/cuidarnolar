@@ -129,7 +129,7 @@
   color: #334155;
   border-radius: var(--radius-full);
   padding: 0.55rem 0.9rem;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   transition:
     background 0.18s ease,
@@ -196,7 +196,7 @@
 .sinal-field__label {
   color: #334155;
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .sinais-grid-form {
@@ -239,7 +239,7 @@
   transform: translateY(-50%);
   color: var(--rpf-muted);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   pointer-events: none;
 }
 
@@ -295,7 +295,7 @@
   background: #fff;
   color: #334155;
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   transition:
     background 0.18s ease,
@@ -482,7 +482,7 @@
   width: auto;
   margin: 0.25rem 0 0.75rem;
   color: #334155;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .sem-inter-label input {
@@ -616,3 +616,4 @@
     border-radius: 8px;
   }
 }
+

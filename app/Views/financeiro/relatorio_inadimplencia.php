@@ -34,7 +34,7 @@
                     <td><?= formatMoney((float) ($r['valor'] ?? 0)) ?></td>
                     <td><?= e(strlen((string) ($r['observacoes'] ?? '')) > 60 ? substr((string) ($r['observacoes'] ?? ''), 0, 60) . '…' : (string) ($r['observacoes'] ?? '')) ?>
                     </td>
-                    <td><a href="<?= url('/financeiro/' . (int) ($r['id'] ?? 0) . '/editar') ?>">Registrar pagamento</a>
+                    <td><a href="<?= url('/financeiro/' . rawurlencode((string)($r['uuid'] ?? $r['id'] ?? '')) . '/editar') ?>">Registrar pagamento</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

@@ -42,8 +42,8 @@
                     <td><?= e($row['mes_referencia'] ?? '-') ?></td>
                     <td><?= e($row['origem'] ?? 'manual') ?></td>
                     <td class="actions finance-actions">
-                        <a class="btn-table btn-table--ghost" href="<?= url('/financeiro/' . (int) $row['id']) ?>">Ver</a>
-                        <a class="btn-table btn-table--primary" href="<?= url('/financeiro/' . (int) $row['id'] . '/receber') ?>">Receber</a>
+                        <a class="btn-table btn-table--ghost" href="<?= url('/financeiro/' . rawurlencode((string)($row['uuid'] ?? $row['id']))) ?>">Ver</a>
+                        <a class="btn-table btn-table--primary" href="<?= url('/financeiro/' . rawurlencode((string)($row['uuid'] ?? $row['id'])) . '/receber') ?>">Receber</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

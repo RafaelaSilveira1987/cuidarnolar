@@ -48,6 +48,11 @@ class Historico extends BaseModuleModel
         return $this->rawFirst($this->baseSelect() . ' WHERE h.id = :id', [':id' => $id]);
     }
 
+    public function findForShowByUuid(string $uuid): array|false
+    {
+        return $this->rawFirst($this->baseSelect() . ' WHERE h.uuid = :uuid LIMIT 1', [':uuid' => $uuid]);
+    }
+
     /** Listagem para aba na ficha do paciente */
     public function listByPacienteId(int $pacienteId, int $limit = 50): array
     {

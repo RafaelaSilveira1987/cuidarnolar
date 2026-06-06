@@ -10,20 +10,20 @@
 
 <section class="panel">
     <?php if (!empty($tabs)): ?>
-    <nav class="tabs" aria-label="Filtros">
-        <?php foreach ($tabs as $tabValue => $tabLabel): ?>
-        <?php $isActive = (($activeTab ?? '') === (string)$tabValue); ?>
-        <a class="<?= $isActive ? 'active' : '' ?>"
-            href="<?= url('/financeiro/lancamentos' . ($tabValue !== '' ? '?tipo=' . urlencode((string) $tabValue) : '')) ?>">
-            <?= e($tabLabel) ?>
-        </a>
-        <?php endforeach; ?>
-    </nav>
+        <nav class="tabs" aria-label="Filtros">
+            <?php foreach ($tabs as $tabValue => $tabLabel): ?>
+                <?php $isActive = (($activeTab ?? '') === (string)$tabValue); ?>
+                <a class="<?= $isActive ? 'active' : '' ?>"
+                    href="<?= url('/financeiro/lancamentos' . ($tabValue !== '' ? '?tipo=' . urlencode((string) $tabValue) : '')) ?>">
+                    <?= e($tabLabel) ?>
+                </a>
+            <?php endforeach; ?>
+        </nav>
     <?php endif; ?>
 
     <form class="search-form" method="GET" action="<?= url('/financeiro/lancamentos') ?>">
         <?php if (isset($activeTab) && $activeTab !== ''): ?>
-        <input type="hidden" name="tipo" value="<?= e($activeTab) ?>">
+            <input type="hidden" name="tipo" value="<?= e($activeTab) ?>">
         <?php endif; ?>
         <input type="search" name="busca" <?php $searchValue = $search ?? ''; ?> value="<?= e($searchValue) ?>"
             placeholder="Paciente, responsável ou cuidador...">
@@ -31,57 +31,62 @@
     </form>
 
     <?php if (empty($rows)): ?>
-    <p class="empty-state">Nenhum registro encontrado.</p>
+        <p class="empty-state">Nenhum registro encontrado.</p>
     <?php else: ?>
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <?php foreach ($columns as $label): ?>
-                    <th><?= e($label) ?></th>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <?php foreach ($columns as $label): ?>
+                            <th><?= e($label) ?></th>
+                        <?php endforeach; ?>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $row): ?>
+
+
+                        <tr class="<?= !empty($row['atrasado']) ? 'linha-atrasada' : '' ?>">
+                            <?php foreach ($columns as $field => $label): ?>
+                                <?php
+                                $cell = $row[$field] ?? '-';
+                                if ($field === 'data') {
+                                    $cell = $row['data_exibicao'] ?? '-';
+                                }
+                                ?>
+                                <td>
+
+                                    <?php if ($field === 'status' && !empty($row['atrasado'])): ?>
+
+                                        <span class="badge-atrasado">
+                                            <?= e($cell) ?>
+                                        </span>
+
+                                    <?php else: ?>
+
+                                        <?= e($cell) ?>
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                            <?php endforeach; ?>
+                            <td class="actions">
+                                <a href="<?= url('/financeiro/' . rawurlencode((string)($row['uuid'] ?? $row['id']))) ?>">Ver</a>
+                                <a href="<?= url('/financeiro/' . rawurlencode((string)($row['uuid'] ?? $row['id'])) . '/editar') ?>">Editar</a>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($rows as $row): ?>
+                </tbody>
+            </table>
+        </div>
 
+        <?php if (($pagination['last_page'] ?? 1) > 1): ?>
+            <nav class="pagination" aria-label="Paginacao">
+                <?php for ($page = 1; $page <= $pagination['last_page']; $page++): ?>
 
-                <tr class="<?= !empty($row['atrasado']) ? 'linha-atrasada' : '' ?>">
-                    <?php foreach ($columns as $field => $label): ?>
-                    <?php $cell = $row[$field] ?? '-'; ?>
-                    <td>
-
-                        <?php if ($field === 'status' && !empty($row['atrasado'])): ?>
-
-                        <span class="badge-atrasado">
-                            <?= e($cell) ?>
-                        </span>
-
-                        <?php else: ?>
-
-                        <?= e($cell) ?>
-
-                        <?php endif; ?>
-
-                    </td>
-
-                    <?php endforeach; ?>
-                    <td class="actions">
-                        <a href="<?= url('/financeiro/' . (int) $row['id']) ?>">Ver</a>
-                        <a href="<?= url('/financeiro/' . (int) $row['id'] . '/editar') ?>">Editar</a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-
-    <?php if (($pagination['last_page'] ?? 1) > 1): ?>
-    <nav class="pagination" aria-label="Paginacao">
-        <?php for ($page = 1; $page <= $pagination['last_page']; $page++): ?>
-
-        <?php
+                    <?php
                     $query = '/financeiro/lancamentos?page=' . $page;
 
                     if (!empty($search)) {
@@ -93,12 +98,12 @@
                     }
                     ?>
 
-        <a class="<?= $page === ($pagination['current_page'] ?? 1) ? 'active' : '' ?>" href="<?= url($query) ?>">
-            <?= $page ?>
-        </a>
+                    <a class="<?= $page === ($pagination['current_page'] ?? 1) ? 'active' : '' ?>" href="<?= url($query) ?>">
+                        <?= $page ?>
+                    </a>
 
-        <?php endfor; ?>
-    </nav>
-    <?php endif; ?>
+                <?php endfor; ?>
+            </nav>
+        <?php endif; ?>
     <?php endif; ?>
 </section>

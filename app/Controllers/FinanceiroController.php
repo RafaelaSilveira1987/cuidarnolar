@@ -12,7 +12,6 @@ class FinanceiroController extends ResourceController
     protected string $viewTitle = 'Financeiro';
     protected string $singularTitle = 'Lançamento financeiro';
     protected array $columns = [
-        'id' => '#',
         'data' => 'Data',
         'tipo_transacao' => 'Tipo',
         'categoria_nome' => 'Categoria',
@@ -21,15 +20,14 @@ class FinanceiroController extends ResourceController
         'status' => 'Status',
     ];
     protected array $detailFields = [
-        'id' => '#',
-        'data' => 'Data',
+        'data_exibicao' => 'Data',
         'tipo_transacao' => 'Tipo',
         'categoria_nome' => 'Categoria',
         'moeda' => 'Forma',
         'valor_formatado' => 'Valor',
         'status' => 'Status',
-        'data_vencimento' => 'Vencimento',
-        'data_pagamento' => 'Pagamento',
+        'vencimento_exibicao' => 'Vencimento',
+        'pagamento_exibicao' => 'Pagamento',
         'paciente_nome' => 'Paciente',
         'responsavel_nome' => 'Responsavel',
         'cuidador_nome' => 'Cuidador',
@@ -162,10 +160,10 @@ class FinanceiroController extends ResourceController
     }
 
 
-    public function receber(string $id): void
+    public function receber(string $uuid): void
     {
         $model = new Financeiro();
-        $record = $model->findForShow((int)$id);
+        $record = $model->findForIdentifier($uuid);
 
         if (!$record) {
             http_response_code(404);
@@ -190,10 +188,10 @@ class FinanceiroController extends ResourceController
         ]);
     }
 
-    public function registrarRecebimento(string $id): void
+    public function registrarRecebimento(string $uuid): void
     {
         $model = new Financeiro();
-        $record = $model->findForShow((int)$id);
+        $record = $model->findForIdentifier($uuid);
 
         if (!$record) {
             http_response_code(404);
@@ -208,7 +206,7 @@ class FinanceiroController extends ResourceController
             'observacao_baixa' => trim((string)$this->input('observacao_baixa', '')),
         ];
 
-        $resultado = $model->registrarRecebimento((int)$id, $old);
+        $resultado = $model->registrarRecebimento((int)($record['id'] ?? 0), $old);
 
         if (!($resultado['ok'] ?? false)) {
             $this->view('financeiro/receber', [
@@ -222,6 +220,16 @@ class FinanceiroController extends ResourceController
             ]);
             return;
         }
+
+        $this->audit('conta_receber_baixada', 'financeiro', [
+            'entidade' => 'financeiro',
+            'entidade_id' => (string)($record['id'] ?? ''),
+            'uuid' => $record['uuid'] ?? $uuid,
+            'paciente_id' => $record['paciente_id'] ?? null,
+            'valor_recebido' => $old['valor_recebido'] ?? null,
+            'data_pagamento' => $old['data_pagamento'] ?? null,
+            'forma_pagamento' => $old['moeda'] ?? null,
+        ]);
 
         $this->flash('success', 'Recebimento registrado com sucesso.');
         $this->redirect('/financeiro/contas-receber');
@@ -296,6 +304,15 @@ class FinanceiroController extends ResourceController
             $this->redirect('/financeiro/contas-pagar/gerar?data_inicio=' . rawurlencode($dataInicio) . '&data_fim=' . rawurlencode($dataFim) . '&data_vencimento=' . rawurlencode($dataVencimento));
             return;
         }
+
+        $this->audit('contas_pagar_cuidadores_geradas', 'financeiro', [
+            'entidade' => 'financeiro',
+            'periodo_inicio' => $dataInicio,
+            'periodo_fim' => $dataFim,
+            'data_vencimento' => $dataVencimento,
+            'selecionadas' => count($ocorrencias),
+            'resultado' => $resultado,
+        ]);
 
         $this->flash('success', $resultado['mensagem'] ?? 'Contas a pagar geradas com sucesso.');
         $this->redirect('/financeiro/contas-pagar');
@@ -374,7 +391,15 @@ class FinanceiroController extends ResourceController
         }
 
         $model = new ContratoPaciente();
-        $model->createRecord($data);
+        $contratoId = $model->createRecord($data);
+
+        $this->audit('contrato_financeiro_criado', 'financeiro', [
+            'entidade' => 'contrato_paciente',
+            'entidade_id' => (string)$contratoId,
+            'paciente_id' => $data['paciente_id'] ?? null,
+            'tipo_servico' => $data['tipo_servico'] ?? null,
+            'valor_mensal' => $data['valor_mensal'] ?? null,
+        ]);
 
         $this->flash('success', 'Contrato cadastrado. Geração automática de parcelas em contas a receber virá na próxima etapa.');
         $this->redirect('/financeiro/contratos');

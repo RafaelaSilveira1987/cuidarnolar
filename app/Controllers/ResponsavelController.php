@@ -107,7 +107,7 @@ class ResponsavelController extends ResourceController
         $this->redirect('/responsaveis/' . rawurlencode((string)($record['uuid'] ?? $record['id'])));
     }
 
-    protected function renderForm(array $record, array $errors, string $title, ?int $id = null): void
+    protected function renderForm(array $record, array $errors, string $title, string|int|null $id = null): void
     {
         $resourceKey = $record['uuid'] ?? $id;
 

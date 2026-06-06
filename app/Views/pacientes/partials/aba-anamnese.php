@@ -1,5 +1,5 @@
 <?php
-$pid = (int) ($record['id'] ?? 0);
+$pacienteUuid = (string)($record['uuid'] ?? $paciente['uuid'] ?? '');
 $lista = $anamneses ?? [];
 ?>
 <section class="panel pac-panel-help">
@@ -11,7 +11,7 @@ $lista = $anamneses ?? [];
         <li>Funcional: dependência, mobilidade, dieta, esfíncteres, dispositivos (O₂, sonda, etc.).</li>
         <li>Familiar: com quem reside, responsável pelos cuidados, observações.</li>
     </ul>
-    <p><a class="btn btn-primary" href="<?= url('/anamneses/novo?paciente_id=' . $pid) ?>">Nova anamnese</a>
+    <p><a class="btn btn-primary" href="<?= url('/anamneses/novo?paciente_uuid=' . rawurlencode($pacienteUuid)) ?>">Nova anamnese</a>
         <a class="btn btn-secondary" href="<?= url('/anamneses') ?>">Listagem global (admin)</a></p>
 </section>
 
@@ -24,8 +24,7 @@ $lista = $anamneses ?? [];
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Data</th>
+                                        <th>Data</th>
                     <th>Patologia</th>
                     <th>Status</th>
                     <th></th>
@@ -34,11 +33,10 @@ $lista = $anamneses ?? [];
             <tbody>
                 <?php foreach ($lista as $row): ?>
                 <tr>
-                    <td><?= (int) ($row['id'] ?? 0) ?></td>
-                    <td><?= e(formatDate($row['data_anamnese'] ?? '')) ?></td>
+                                        <td><?= e(formatDate($row['data_anamnese'] ?? '')) ?></td>
                     <td><?= e($row['patologia'] ?? '—') ?></td>
                     <td><?= e($row['status'] ?? '—') ?></td>
-                    <td><a href="<?= url('/anamneses/' . (int) ($row['id'] ?? 0)) ?>">Abrir</a></td>
+                    <td><a href="<?= url('/anamneses/' . rawurlencode((string)($row['uuid'] ?? $row['id'] ?? ''))) ?>">Abrir</a></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>

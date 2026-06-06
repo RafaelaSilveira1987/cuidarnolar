@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Anamnese;
+use App\Models\Paciente;
 
 class AnamneseController extends ResourceController
 {
@@ -61,10 +62,15 @@ class AnamneseController extends ResourceController
     public function create(): void
     {
         $prefill = [];
-        $pid = (int) $this->input('paciente_id', 0);
-        if ($pid > 0) {
-            $prefill['paciente_id'] = (string) $pid;
+        $pacienteUuid = trim((string)$this->input('paciente_uuid', ''));
+
+        if ($pacienteUuid !== '') {
+            $paciente = (new Paciente())->buscarPorUuid($pacienteUuid);
+            if ($paciente) {
+                $prefill['paciente_id'] = (string)($paciente['id'] ?? '');
+            }
         }
+
         $this->renderForm($prefill, [], 'Novo ' . $this->singularTitle);
     }
 }

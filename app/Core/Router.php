@@ -106,16 +106,25 @@ class Router
             'auth' => \App\Middleware\AuthMiddleware::class,
             'admin' => \App\Middleware\AdminMiddleware::class,
             'csrf' => \App\Middleware\CsrfMiddleware::class,
+            'can' => \App\Middleware\AuthorizationMiddleware::class,
             'api' => \App\Api\Middleware\ApiAuthMiddleware::class,
         ];
 
         foreach ($middlewares as $alias) {
-            $class = $map[$alias] ?? $alias;
+            $argument = null;
+            $name = $alias;
+
+            if (is_string($alias) && str_contains($alias, ':')) {
+                [$name, $argument] = explode(':', $alias, 2);
+            }
+
+            $class = $map[$name] ?? $name;
             if (!class_exists($class)) {
                 $this->abort(500, "Middleware {$class} nao encontrado.");
             }
 
-            (new $class())->handle();
+            $middleware = new $class();
+            $argument !== null ? $middleware->handle($argument) : $middleware->handle();
         }
     }
 

@@ -51,13 +51,13 @@
   background: #fff;
   text-decoration: none;
   color: inherit;
-  transition: .18s ease;
+  transition: 0.18s ease;
 }
 
 .plano-modelo-card:hover {
   transform: translateY(-1px);
-  border-color: rgba(1, 148, 142, .35);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, .08);
+  border-color: rgba(1, 148, 142, 0.35);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
 }
 
 .plano-modelo-card strong {
@@ -71,7 +71,7 @@
 }
 
 .plano-active-card {
-  border: 1px solid rgba(1, 148, 142, .18);
+  border: 1px solid rgba(1, 148, 142, 0.18);
   border-radius: 20px;
   background: linear-gradient(180deg, #ffffff, #f8fafc);
   padding: 18px;
@@ -100,16 +100,16 @@
 .plano-status {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 4px 10px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: var(--weight-bold);
   background: #e2e8f0;
   color: #334155;
 }
 
 .plano-status-ativo {
-  background: rgba(1, 148, 142, .12);
+  background: rgba(1, 148, 142, 0.12);
   color: #02756c;
 }
 
@@ -176,7 +176,7 @@
   border: 0;
   background: transparent;
   color: var(--primary);
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   padding: 0;
 }
@@ -206,7 +206,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-weight: 800;
+  font-weight: var(--weight-bold);
   color: var(--text);
 }
 
@@ -234,7 +234,7 @@
 }
 
 .plano-form-note {
-  border: 1px solid rgba(202, 138, 4, .25);
+  border: 1px solid rgba(202, 138, 4, 0.25);
   border-radius: 14px;
   background: #fffbeb;
   color: #78350f;

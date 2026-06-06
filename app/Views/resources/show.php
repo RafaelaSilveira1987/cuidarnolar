@@ -40,8 +40,8 @@ $canInativar = in_array($routeBase, ['/responsaveis', '/cuidadores'], true) && $
             <?php endif; ?>
         </div>
 
-        <?php if (!empty($record['id'])): ?>
-            <strong>#<?= e((string)$record['id']) ?></strong>
+        <?php if (!empty($record['uuid'])): ?>
+            <strong class="record-public-key">UUID <?= e((string)$record['uuid']) ?></strong>
         <?php endif; ?>
     </div>
 </section>
@@ -49,6 +49,7 @@ $canInativar = in_array($routeBase, ['/responsaveis', '/cuidadores'], true) && $
 <section class="panel">
     <dl class="detail-list">
         <?php foreach ($fields as $field => $label): ?>
+            <?php if ($field === 'id') { continue; } ?>
             <div>
                 <dt><?= e($label) ?></dt>
                 <dd><?= e($record[$field] ?? '-') ?></dd>

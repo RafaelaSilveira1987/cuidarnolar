@@ -47,7 +47,7 @@
         </div>
     </div>
 
-    <form method="POST" action="<?= url('/financeiro/' . (int)($record['id'] ?? 0) . '/receber') ?>" class="resource-form finance-receive-form">
+    <form method="POST" action="<?= url('/financeiro/' . rawurlencode((string)($record['uuid'] ?? $record['id'] ?? '')) . '/receber') ?>" class="resource-form finance-receive-form">
         <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
 
         <div class="form-section-title">Dados do recebimento</div>

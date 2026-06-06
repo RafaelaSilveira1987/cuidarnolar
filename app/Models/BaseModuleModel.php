@@ -42,6 +42,49 @@ abstract class BaseModuleModel extends BaseModel
         return $this->find($id);
     }
 
+    public function findForShowByUuid(string $uuid): array|false
+    {
+        $uuid = trim($uuid);
+
+        if ($uuid === '') {
+            return false;
+        }
+
+        return $this->rawFirst(
+            "SELECT * FROM {$this->table} WHERE uuid = :uuid LIMIT 1",
+            [':uuid' => $uuid]
+        );
+    }
+
+    public function findForIdentifier(string|int $identifier): array|false
+    {
+        $identifier = trim((string)$identifier);
+
+        if ($identifier === '') {
+            return false;
+        }
+
+        if (ctype_digit($identifier)) {
+            return $this->findForShow((int)$identifier);
+        }
+
+        return $this->findForShowByUuid($identifier);
+    }
+
+    public function idFromIdentifier(string|int $identifier): ?int
+    {
+        $record = $this->findForIdentifier($identifier);
+
+        return $record ? (int)($record['id'] ?? 0) : null;
+    }
+
+    public function publicKey(array $record): string
+    {
+        $uuid = trim((string)($record['uuid'] ?? ''));
+
+        return $uuid !== '' ? $uuid : (string)($record[$this->primaryKey] ?? '');
+    }
+
     public function createRecord(array $data): int
     {
         return $this->insert($this->filterData($data));

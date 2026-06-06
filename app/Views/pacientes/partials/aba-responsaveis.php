@@ -122,11 +122,6 @@ function resp_paciente_idade(?string $dataNascimento): string
                     href="<?= url('/responsaveis/' . rawurlencode((string)$resp['uuid']) . '/editar') ?>">
                     Editar responsável
                 </a>
-                <?php elseif (!empty($resp['id'])): ?>
-                <a class="btn btn-secondary"
-                    href="<?= url('/responsaveis/' . rawurlencode((string)$resp['id']) . '/editar') ?>">
-                    Editar responsável
-                </a>
                 <?php endif; ?>
             </div>
         </article>

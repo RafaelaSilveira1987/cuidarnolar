@@ -4,7 +4,8 @@
         <p class="page-subtitle">Saídas pendentes — cuidador, insumos, transporte etc.</p>
     </div>
     <div class="page-actions">
-        <a class="btn btn-secondary" href="<?= url('/financeiro/contas-pagar/gerar') ?>">Gerar pagamento de cuidadores</a>
+        <a class="btn btn-secondary" href="<?= url('/financeiro/contas-pagar/gerar') ?>">Gerar pagamento de
+            cuidadores</a>
         <a class="btn btn-primary" href="<?= url('/financeiro/novo') ?>">Novo lançamento</a>
     </div>
 </section>
@@ -30,12 +31,18 @@
                 <?php foreach ($rows as $row): ?>
                 <tr>
                     <?php foreach ($columns as $field => $label): ?>
-                    <td><?= e($row[$field] ?? '-') ?></td>
+                    <?php
+                                $valorCampo = $row[$field] ?? '-';
+                                if ($field === 'data') {
+                                    $valorCampo = $row['data_exibicao'] ?? '-';
+                                }
+                                ?>
+                    <td><?= e($valorCampo) ?></td>
                     <?php endforeach; ?>
                     <td><?= e($row['vencimento_exibicao'] ?? '-') ?></td>
                     <td class="actions">
-                        <a href="<?= url('/financeiro/' . (int) $row['id']) ?>">Ver</a>
-                        <a href="<?= url('/financeiro/' . (int) $row['id'] . '/editar') ?>">Pagar / editar</a>
+                        <a href="<?= url('/financeiro/' . rawurlencode((string)($row['uuid'] ?? $row['id']))) ?>">Ver</a>
+                        <a href="<?= url('/financeiro/' . rawurlencode((string)($row['uuid'] ?? $row['id'])) . '/editar') ?>">Pagar / editar</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

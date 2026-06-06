@@ -21,6 +21,19 @@ class TabelaPlantao extends BaseModel
         return $this->find($id);
     }
 
+    public function buscarPorUuid(string $uuid): array|false
+    {
+        $uuid = trim($uuid);
+        if ($uuid === '') {
+            return false;
+        }
+
+        return $this->rawFirst(
+            "SELECT * FROM {$this->table} WHERE uuid = :uuid LIMIT 1",
+            [':uuid' => $uuid]
+        );
+    }
+
     public function salvar(array $data, ?int $id = null): int
     {
         $payload = [
@@ -52,6 +65,16 @@ class TabelaPlantao extends BaseModel
         }
 
         return $this->update($id, ['ativo' => empty($row['ativo']) ? 1 : 0]);
+    }
+
+    public function alternarAtivoPorUuid(string $uuid): bool
+    {
+        $row = $this->buscarPorUuid($uuid);
+        if (!$row) {
+            return false;
+        }
+
+        return $this->update((int)$row['id'], ['ativo' => empty($row['ativo']) ? 1 : 0]);
     }
 
     public function sugestaoPorTipo(?string $tipoPlantao, ?string $periodo = null): array|false

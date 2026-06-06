@@ -63,7 +63,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .contrato-escala-form-panel .ce-check {
@@ -85,7 +85,7 @@
   width: auto !important;
   max-width: none !important;
   margin: 0 !important;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   white-space: nowrap;
   line-height: 1.2;
   cursor: pointer;
@@ -351,7 +351,7 @@
 
 .contrato-finance-card small {
   color: var(--muted);
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .contrato-generate-form {
@@ -540,7 +540,7 @@
   border-radius: 12px;
   background: #f8fafc;
   color: var(--muted);
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .contrato-financeiro-grid input[name="valor_mensal"],
@@ -548,3 +548,4 @@
 .contrato-financeiro-grid input[name="valor_plantao"] {
   font-variant-numeric: tabular-nums;
 }
+

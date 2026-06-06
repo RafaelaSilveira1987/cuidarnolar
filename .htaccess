@@ -1,2 +1,14 @@
+Options -Indexes
 RewriteEngine On
+
+# Bloqueia arquivos sensíveis na raiz do projeto.
+<FilesMatch "(^\.env|\.sql$|\.log$|\.bak$|\.backup$|\.zip$|composer\.(json|lock)$|package(-lock)?\.json$|README|RELATORIO_.*\.md$)">
+    Require all denied
+</FilesMatch>
+
+# Bloqueia acesso direto a pastas internas quando o projeto estiver exposto por engano.
+RewriteRule ^(app|config|database|data|legacy|storage|vendor|\.git)(/|$) - [F,L]
+
+# Em produção, o DocumentRoot ideal deve apontar diretamente para /public.
+# Enquanto estiver em subpasta, tudo é roteado para public.
 RewriteRule ^(.*)$ public/$1 [L]

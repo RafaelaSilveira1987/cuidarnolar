@@ -73,7 +73,7 @@ $pacienteUuid = (string)($record['uuid'] ?? $paciente['uuid'] ?? '');
 
             <?php if ($medicacaoId): ?>
             <div class="med-enumerada__actions">
-                <a href="<?= url('/medicacoes/' . rawurlencode((string)$medicacaoId) . '/editar') ?>"
+                <a href="<?= url('/medicacoes/' . rawurlencode((string)($medicacao['uuid'] ?? $medicacaoId)) . '/editar') ?>"
                     class="btn btn-secondary">
                     Editar
                 </a>

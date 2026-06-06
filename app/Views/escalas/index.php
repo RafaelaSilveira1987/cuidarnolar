@@ -16,6 +16,7 @@ $colaboradores = $colaboradores ?? [];
 $pacienteGrade = $cobertura[0] ?? null;
 $pacienteSelecionado = $pacienteSelecionado ?? ($pacienteGrade['paciente'] ?? null);
 $plantaoPorData = [];
+$escopoCuidador = function_exists('is_cuidador_scope') && is_cuidador_scope();
 
 if ($pacienteGrade) {
     foreach (($pacienteGrade['turnos'] ?? []) as $turnoCodigo => $turno) {
@@ -241,7 +242,7 @@ $queryBase = function (array $extra = []) use ($filtros): string {
             </small>
             <?php endif; ?>
             <div class="escala-paciente-actions">
-                <?php if (!$periodoFechado): ?>
+                <?php if (!$periodoFechado && !$escopoCuidador): ?>
                 <form method="POST" action="<?= url('/escala/aprovar') ?>">
                     <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
                     <input type="hidden" name="paciente_uuid" value="<?= e($pac['uuid'] ?? '') ?>">
@@ -252,7 +253,7 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                 </form>
                 <?php endif; ?>
 
-                <?php if ($periodoAprovado && !$periodoFechado): ?>
+                <?php if ($periodoAprovado && !$periodoFechado && !$escopoCuidador): ?>
                 <form method="POST" action="<?= url('/escala/fechar') ?>"
                     onsubmit="return confirm('Fechar a escala deste período? Os plantões confirmados serão finalizados e liberados para geração do financeiro dos cuidadores.');">
                     <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
@@ -263,7 +264,7 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                 </form>
                 <?php endif; ?>
 
-                <?php if ($periodoFechado): ?>
+                <?php if ($periodoFechado && !$escopoCuidador): ?>
                 <form method="POST" action="<?= url('/escala/cancelar-fechamento') ?>"
                     onsubmit="return confirm('Cancelar o fechamento deste período? Os plantões voltarão para confirmado e poderão ser ajustados. Se já houver financeiro gerado, o sistema vai bloquear.');">
                     <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
@@ -288,6 +289,7 @@ $queryBase = function (array $extra = []) use ($filtros): string {
             <p>Agora o financeiro dos cuidadores usa somente os plantões finalizados deste período. Bonito, seguro e sem pagar antes da hora.</p>
         </div>
         <div class="escala-fechamento-actions">
+            <?php if (!$escopoCuidador): ?>
             <form method="POST" action="<?= url('/escala/cancelar-fechamento') ?>"
                 onsubmit="return confirm('Cancelar o fechamento deste período? Os plantões voltarão para confirmado e poderão ser ajustados.');">
                 <input type="hidden" name="_csrf" value="<?= e($csrf) ?>">
@@ -297,6 +299,7 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                 <button type="submit" class="btn btn-secondary">Cancelar fechamento</button>
             </form>
             <a class="btn btn-primary" href="<?= url('/financeiro/contas-pagar/gerar') . '?' . e($financeiroQuery) ?>">Gerar financeiro dos cuidadores</a>
+            <?php endif; ?>
         </div>
     </section>
     <?php elseif ($periodoAprovado): ?>
@@ -359,6 +362,8 @@ $queryBase = function (array $extra = []) use ($filtros): string {
                         <div class="escala-shift__actions">
                             <?php if ($periodoFechado): ?>
                             <span class="escala-locked-badge" title="Período fechado"><i class="ti ti-lock" aria-hidden="true"></i> Fechado</span>
+                            <?php elseif ($escopoCuidador): ?>
+                            <span class="escala-locked-badge" title="Somente visualização"><i class="ti ti-eye" aria-hidden="true"></i> Visualização</span>
                             <?php elseif (!empty($plantao['escala_id'])): ?>
                             <button type="button" class="mini-btn mini-btn--icon js-escala-editar"
                                 data-id="<?= e($plantao['escala_id']) ?>" data-paciente="<?= e($pac['uuid'] ?? '') ?>"

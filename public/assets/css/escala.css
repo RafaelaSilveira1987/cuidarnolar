@@ -71,10 +71,9 @@
 
 .escala-filter-bar {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 1fr) minmax(
-      130px,
-      0.7fr
-    ) minmax(150px, 0.7fr) auto;
+  grid-template-columns:
+    minmax(220px, 1.4fr) minmax(180px, 1fr) minmax(130px, 0.7fr)
+    minmax(150px, 0.7fr) auto;
   gap: 12px;
   align-items: end;
   padding: var(--space-4);
@@ -595,7 +594,7 @@
   background: #ecfdf5;
   color: #047857;
   border: 1px solid #a7f3d0;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .escala-shift.is-dragging {
@@ -652,7 +651,7 @@
 }
 
 .modal-form-group label {
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   color: var(--text, #172033);
 }
 
@@ -796,7 +795,7 @@
   background: #f1f5f9;
   color: #475569;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
 }
 
@@ -854,15 +853,15 @@
 }
 
 .escala-shift--locked {
-  opacity: .68;
-  filter: saturate(.65);
+  opacity: 0.68;
+  filter: saturate(0.65);
   background: #f8fafc;
   cursor: not-allowed;
   box-shadow: none;
 }
 
 .escala-shift--locked .escala-shift__bar {
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .escala-shift--locked .escala-shift__name strong,
@@ -875,13 +874,13 @@
   align-items: center;
   gap: 5px;
   border: 1px solid #dbe3ef;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 5px 8px;
   background: #eef2f7;
   color: #64748b;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .02em;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
 }
 
 .escala-paciente-actions form {

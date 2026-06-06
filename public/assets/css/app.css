@@ -38,7 +38,7 @@
   --radius-full: 9999px;
 
   /* Brand */
-  --color-primary: #1a5c45;
+  --color-primary: #02756c;
   --color-primary-light: #22724f;
   --color-primary-hover: #2d8f62;
   --color-accent: #2eb87a;
@@ -1220,7 +1220,7 @@ td.actions a:active {
 }
 
 .rp-rodape__nome {
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .rp-rodape__coren {
@@ -1407,7 +1407,7 @@ td.actions a:active {
   border-radius: var(--radius-full);
 
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 
 .linha-atrasada {
@@ -1426,7 +1426,7 @@ td.actions a:active {
   border-radius: var(--radius-full);
   font-size: 16px;
   text-align: left;
-  /* font-weight: 700; */
+  /* font-weight: var(--weight-semibold); */
 }
 
 /* Paciente: ficha clinica e medicacoes continuas */
@@ -1828,7 +1828,7 @@ td.actions a:active {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   margin-bottom: 4px;
 }
 
@@ -1982,7 +1982,7 @@ td.actions a:active {
 .agenda-calendar-weekdays span {
   text-align: center;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   color: var(--muted);
   padding: 6px 0;
 }
@@ -2106,7 +2106,6 @@ td.actions a:active {
   }
 }
 
-
 /* ==========================================================
    PACIENTE - CENTRAL LIMPA V15
    Abas logo abaixo do nome e resumo clínico apenas em abas clínicas.
@@ -2151,7 +2150,11 @@ td.actions a:active {
 }
 
 .patient-tabs a.active {
-  background: linear-gradient(135deg, rgba(1, 148, 142, 0.12), rgba(2, 117, 108, 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(1, 148, 142, 0.12),
+    rgba(2, 117, 108, 0.08)
+  );
   border-color: rgba(1, 148, 142, 0.26);
   color: #02756c;
   box-shadow: none;
@@ -2179,7 +2182,7 @@ td.actions a:active {
   align-items: center;
   color: #64748b;
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -2194,12 +2197,12 @@ td.actions a:active {
   display: inline-flex;
   align-items: center;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: #ecfdf5;
   border: 1px solid #bbf7d0;
   color: #047857;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   line-height: 1;
 }
 
@@ -2220,25 +2223,79 @@ td.actions a:active {
   }
 }
 
-
-.data-table {
-  width: 100%;
-  table-layout: fixed;
+.app-footer {
+  padding: 18px 24px;
+  border-top: 1px solid var(--border, #d9e2ec);
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.72);
 }
 
-.data-table th:nth-child(4),
-.data-table td:nth-child(4) {
-  max-width: 260px;
+.app-footer div {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.data-table td:nth-child(4) {
-  overflow: hidden;
+.app-footer strong {
+  color: var(--primary, #02756c);
+  font-weight: var(--weight-bold);
+}
+
+.app-footer-dot {
+  opacity: 0.55;
+}
+
+@media (max-width: 700px) {
+  .app-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+  }
+}
+
+/* Responsável com nome muito longo */
+/* Lista de pacientes: responsável longo com ellipsis */
+.data-table th.col-responsavel,
+.data-table td.col-responsavel {
+  width: 220px;
+  max-width: 220px;
+}
+
+.data-table td.col-responsavel {
+  position: relative;
+}
+
+.data-table td.col-responsavel .cell-ellipsis {
+  display: block;
+  max-width: 220px;
+  overflow: hidden !important;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: nowrap !important;
 }
 
-.data-table td:nth-child(4):hover {
+.data-table td.col-responsavel .cell-ellipsis:hover::after {
+  content: attr(data-full);
+  position: absolute;
+  left: 8px;
+  top: calc(100% + 6px);
+  z-index: 9999;
+  max-width: 420px;
+  min-width: 220px;
+  padding: 9px 11px;
+  border: 1px solid var(--border, #d9e2ec);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text, #172033);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, .16);
+  font-size: 12px;
+  line-height: 1.35;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
-} 
+}

@@ -41,8 +41,8 @@ $pacienteUuid = (string)($paciente['uuid'] ?? '');
                             <td><?= e($medicacao['status'] ?? '') ?></td>
                             <td>
                                 <div class="button-row">
-                                    <a class="btn btn-secondary btn-sm" href="<?= url('/medicacoes/' . (int)($medicacao['id'] ?? 0) . '/editar') ?>">Editar</a>
-                                    <form method="POST" action="<?= url('/medicacoes/' . (int)($medicacao['id'] ?? 0) . '/inativar') ?>" onsubmit="return confirm('Inativar esta medicação?')">
+                                    <a class="btn btn-secondary btn-sm" href="<?= url('/medicacoes/' . rawurlencode((string)($medicacao['uuid'] ?? $medicacao['id'] ?? '')) . '/editar') ?>">Editar</a>
+                                    <form method="POST" action="<?= url('/medicacoes/' . rawurlencode((string)($medicacao['uuid'] ?? $medicacao['id'] ?? '')) . '/inativar') ?>" onsubmit="return confirm('Inativar esta medicação?')">
                                         <input type="hidden" name="_csrf" value="<?= e($_csrf ?? '') ?>">
                                         <button type="submit" class="btn btn-secondary btn-sm">Inativar</button>
                                     </form>

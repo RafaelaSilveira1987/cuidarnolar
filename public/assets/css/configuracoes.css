@@ -320,3 +320,204 @@
     min-width: 720px;
   }
 }
+
+/* Segurança / permissões */
+.cfg-permission-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cfg-permissions-table th,
+.cfg-permissions-table td {
+  vertical-align: middle;
+}
+
+.cfg-permission-module-row td {
+  background: #f1f8f7;
+  color: var(--primary-dark, #02756c);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-size: 12px;
+}
+
+.cfg-permissions-table td:first-child strong {
+  display: block;
+  color: var(--text, #172033);
+}
+
+.cfg-permissions-table td:first-child small {
+  display: block;
+  color: var(--muted, #64748b);
+  margin-top: 3px;
+  font-size: 11px;
+}
+
+.cfg-permission-check-cell {
+  text-align: center;
+  min-width: 110px;
+}
+
+.cfg-permission-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted, #64748b);
+}
+
+.cfg-permission-check input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+}
+
+/* Segurança v26 — Usuários e senha */
+.cfg-users-page .cfg-header,
+.cfg-user-form-page .cfg-header {
+  align-items: center;
+}
+
+.cfg-user-search {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cfg-user-search input[type="search"] {
+  min-height: 42px;
+  flex: 1;
+}
+
+.cfg-users-table td strong,
+.cfg-users-table td small {
+  display: block;
+}
+
+.cfg-users-table td small {
+  color: var(--muted, #64748b);
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+.cfg-actions-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cfg-actions-inline form {
+  margin: 0;
+}
+
+.link-button {
+  border: 0;
+  background: transparent;
+  color: var(--primary, #02756c);
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.link-button:hover {
+  text-decoration: underline;
+}
+
+.cfg-badge.warn {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.cfg-user-form {
+  margin-bottom: 18px;
+}
+
+.cfg-checkline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.cfg-checkline input {
+  width: 16px;
+  height: 16px;
+}
+
+.cfg-separator {
+  border: 0;
+  border-top: 1px solid var(--border, #d9e2ec);
+  margin: 22px 0;
+}
+
+.field-error {
+  display: block;
+  color: #b91c1c;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 700;
+}
+
+.auth-password-page {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.auth-password-card h1 {
+  margin-top: 0;
+}
+
+.secure-password-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.secure-password-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.password-rules {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: var(--muted, #64748b);
+  font-size: 13px;
+  border: 1px solid var(--border, #d9e2ec);
+}
+
+.topbar-link {
+  color: var(--primary, #02756c);
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.topbar-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  .cfg-user-search,
+  .cfg-actions-inline {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cfg-users-table {
+    min-width: 760px;
+  }
+}

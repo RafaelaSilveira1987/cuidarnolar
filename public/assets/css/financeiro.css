@@ -365,7 +365,7 @@
 }
 .card__stat {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
 }
 .stat-green {
   color: var(--green);
@@ -427,7 +427,7 @@
 }
 
 .rel-card__title {
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   margin-bottom: 6px;
 }
 
@@ -726,7 +726,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-weight: 700;
+  font-weight: var(--weight-semibold);
   color: var(--text);
 }
 
@@ -818,3 +818,4 @@
     width: 100%;
   }
 }
+

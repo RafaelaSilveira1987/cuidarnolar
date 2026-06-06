@@ -1,107 +1,166 @@
-<section class="page-header">
-    <h1>Dashboard</h1>
+<?php
+$resumo ??= [];
+$alertasOperacionais ??= [];
+$alertasFinanceiros ??= [];
+$operacaoHoje ??= [];
+$proximosEventos ??= [];
+$hoje = date('d/m/Y');
+?>
+
+<link rel="stylesheet" href="<?= url('/assets/css/dashboard_v22.css') ?>">
+
+<section class="dash-hero-v22">
+    <div>
+        <span class="dash-kicker">Painel de comando</span>
+        <h1>Dashboard</h1>
+        <p>Visão rápida da operação, escala, planos de cuidado e pendências importantes.</p>
+    </div>
+    <div class="dash-date-pill"><?= e($hoje) ?></div>
 </section>
 
-<section class="metric-grid">
-    <article class="metric-card">
-        <span>Pacientes</span>
-        <strong><?= (int) ($resumo['pacientes'] ?? 0) ?></strong>
-    </article>
-    <article class="metric-card">
-        <span>Responsaveis</span>
-        <strong><?= (int) ($resumo['responsaveis'] ?? 0) ?></strong>
-    </article>
-    <article class="metric-card">
-        <span>Cuidadores</span>
-        <strong><?= (int) ($resumo['cuidadores'] ?? 0) ?></strong>
-    </article>
-    <article class="metric-card">
-        <span>Financeiro pendente</span>
-        <strong><?= (int) ($resumo['financeiro_pendente'] ?? 0) ?></strong>
-    </article>
+<section class="dash-metric-grid-v22">
+    <a class="dash-metric-v22" href="<?= url('/escala') ?>">
+        <span>Plantões hoje</span>
+        <strong><?= (int)($resumo['plantoes_hoje'] ?? 0) ?></strong>
+        <small>Agenda operacional do dia</small>
+    </a>
+
+    <a class="dash-metric-v22" href="<?= url('/escala') ?>">
+        <span>Escalas pendentes</span>
+        <strong><?= (int)($resumo['escalas_pendentes'] ?? 0) ?></strong>
+        <small>Sugeridas, previstas ou pendentes</small>
+    </a>
+
+    <a class="dash-metric-v22 dash-metric-v22--warn" href="<?= url('/financeiro/contas-pagar/gerar') ?>">
+        <span>Aguardando financeiro</span>
+        <strong><?= (int)($resumo['fechadas_aguardando_financeiro'] ?? 0) ?></strong>
+        <small>Escalas fechadas sem contas a pagar</small>
+    </a>
+
+    <a class="dash-metric-v22" href="<?= url('/pacientes') ?>">
+        <span>Planos em rascunho</span>
+        <strong><?= (int)($resumo['planos_rascunho'] ?? 0) ?></strong>
+        <small>Planos de cuidado aguardando ativação</small>
+    </a>
 </section>
 
-<section class="content-grid">
-    <article class="panel">
-        <h2>Notificacoes administrativas</h2>
-        <div class="notification-list">
-            <?php foreach ($notificacoes as $item): ?>
-            <div class="notification-item">
-                <strong><?= (int) $item['valor'] ?></strong>
-                <div>
-                    <span><?= e($item['titulo']) ?></span>
-                    <small><?= e($item['descricao']) ?></small>
-                </div>
-            </div>
-            <?php endforeach; ?>
+<section class="panel dash-panel-v22">
+    <div class="dash-panel-head-v22">
+        <div>
+            <h2>Operação de hoje</h2>
+            <p>Plantões registrados para o dia atual.</p>
         </div>
-    </article>
+        <a href="<?= url('/escala') ?>">Ver escala</a>
+    </div>
 
-    <article class="panel">
-        <h2>Resumo financeiro</h2>
-        <dl class="summary-list">
-            <div>
-                <dt>Entradas</dt>
-                <dd><?= formatMoney((float) ($financeiro['entradas'] ?? 0)) ?></dd>
-            </div>
-            <div>
-                <dt>Saidas</dt>
-                <dd><?= formatMoney((float) ($financeiro['saidas'] ?? 0)) ?></dd>
-            </div>
-            <div>
-                <dt>Pendencias</dt>
-                <dd><?= (int) ($financeiro['pendentes'] ?? 0) ?></dd>
-            </div>
-        </dl>
-    </article>
+    <?php if (empty($operacaoHoje)): ?>
+    <p class="empty-state">Nenhum plantão encontrado para hoje.</p>
+    <?php else: ?>
+    <div class="table-wrap">
+        <table class="data-table dash-table-v22">
+            <thead>
+                <tr>
+                    <th>Horário</th>
+                    <th>Paciente</th>
+                    <th>Cuidador</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($operacaoHoje as $plantao): ?>
+                <tr>
+                    <td><?= e(($plantao['inicio_hora'] ?? '--:--') . ' às ' . ($plantao['fim_hora'] ?? '--:--')) ?></td>
+                    <td><?= e($plantao['paciente_nome'] ?? 'Paciente não informado') ?></td>
+                    <td><?= e($plantao['cuidador_nome'] ?? 'Sem cuidador') ?></td>
+                    <td><span class="dash-status-pill"><?= e($plantao['status'] ?? '-') ?></span></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
 </section>
 
-<section class="panel">
-    <div class="section-header">
-        <h2>Proximos agendamentos</h2>
-        <a class="dash-quick-link" href="<?= url('/agendamentos') ?>">Ver agenda</a>
+<section class="panel dash-panel-v22">
+    <div class="dash-panel-head-v22">
+        <div>
+            <h2>Próximos agendamentos</h2>
+            <p>Eventos futuros cadastrados na agenda.</p>
+        </div>
+        <a href="<?= url('/agendamentos') ?>">Ver agenda</a>
     </div>
 
     <?php if (empty($proximosEventos)): ?>
     <p class="empty-state">Nenhum agendamento futuro encontrado.</p>
     <?php else: ?>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Titulo</th>
-                <th>Paciente</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($proximosEventos as $evento): ?>
-            <tr>
-                <td><?= e(formatDate($evento['data_evento'] ?? '')) ?></td>
-                <td><?= e($evento['titulo'] ?? '') ?></td>
-                <td><?= e($evento['paciente_nome'] ?? '-') ?></td>
-                <td><?= e($evento['status'] ?? 'Pendente') ?></td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+    <div class="table-wrap">
+        <table class="data-table dash-table-v22">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Título</th>
+                    <th>Paciente</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($proximosEventos as $evento): ?>
+                <tr>
+                    <td><?= e(formatDate($evento['data_evento'] ?? '')) ?></td>
+                    <td><?= e($evento['titulo'] ?? '') ?></td>
+                    <td><?= e($evento['paciente_nome'] ?? '-') ?></td>
+                    <td><span class="dash-status-pill"><?= e($evento['status'] ?? 'Pendente') ?></span></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
     <?php endif; ?>
 </section>
 
-<section class="panel">
-    <h2 class="section-header" style="margin-top:0;">Acesso rápido</h2>
-    <p class="page-subtitle" style="margin-top:-8px;">Menus Favoritos</p>
-    <div class="dash-quick-grid">
-        <?php $menuRel = include BASE_PATH . '/app/Config/AcessoRapido.php'; ?>
-        <?php foreach ($menuRel as $key => $m): ?>
-        <article class="dash-quick-card">
-            <div style="font-size:20px;"><?= htmlspecialchars($m['icon'] ?? '') ?></div>
-            <strong><?= htmlspecialchars($m['label'] ?? $key) ?></strong>
-            <!-- <p style="color:var(--muted);font-size:14px;"><?= htmlspecialchars($m['description'] ?? '') ?></p> -->
-            <a href="<?= url($m['route'] ?? '#') ?>" class="dash-quick-link">Abrir</a>
-        </article>
+<section class="dash-grid-v22 dash-grid-v22--two">
+    <article class="panel dash-panel-v22">
+        <div class="dash-panel-head-v22">
+            <div>
+                <h2>Alertas financeiros</h2>
+                <p>Somente notificações. Valores ficam dentro do módulo Financeiro.</p>
+            </div>
+            <a href="<?= url('/financeiro') ?>">Abrir financeiro</a>
+        </div>
 
+        <div class="dash-alert-list-v22">
+            <?php foreach ($alertasFinanceiros as $item): ?>
+            <a class="dash-alert-v22 dash-alert-v22--<?= e($item['tipo'] ?? 'info') ?>"
+                href="<?= url($item['rota'] ?? '/financeiro') ?>">
+                <strong><?= (int)($item['valor'] ?? 0) ?></strong>
+                <span>
+                    <b><?= e($item['titulo'] ?? '') ?></b>
+                    <small><?= e($item['descricao'] ?? '') ?></small>
+                </span>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </article>
 
-        <?php endforeach; ?>
-    </div>
+    <article class="panel dash-panel-v22">
+        <div class="dash-panel-head-v22">
+            <div>
+                <h2>Alertas operacionais</h2>
+                <p>Itens que precisam de atenção no fluxo do home care.</p>
+            </div>
+        </div>
+
+        <div class="dash-alert-list-v22">
+            <?php foreach ($alertasOperacionais as $item): ?>
+            <a class="dash-alert-v22 dash-alert-v22--<?= e($item['tipo'] ?? 'info') ?>"
+                href="<?= url($item['rota'] ?? '#') ?>">
+                <strong><?= (int)($item['valor'] ?? 0) ?></strong>
+                <span>
+                    <b><?= e($item['titulo'] ?? '') ?></b>
+                    <small><?= e($item['descricao'] ?? '') ?></small>
+                </span>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </article>
 </section>

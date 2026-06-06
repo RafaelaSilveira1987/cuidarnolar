@@ -86,7 +86,15 @@ class MedicacaoPacienteController extends ResourceController
             return;
         }
 
-        (new MedicacaoPaciente())->createMedicacao($data);
+        $medicacaoId = (new MedicacaoPaciente())->createMedicacao($data);
+
+        $this->audit('medicacao_criada', 'medicacoes', [
+            'entidade' => 'medicacao_paciente',
+            'entidade_id' => (string)$medicacaoId,
+            'paciente_id' => $pacienteId,
+            'paciente_uuid' => $paciente['uuid'] ?? null,
+            'nome_medicamento' => $data['nome_medicamento'] ?? null,
+        ]);
 
         $this->flash('success', 'Medicação cadastrada com sucesso.');
         $this->redirect('/pacientes/' . rawurlencode((string)$paciente['uuid']) . '?aba=medicacoes');
@@ -96,10 +104,10 @@ class MedicacaoPacienteController extends ResourceController
      * Formulário de edição.
      * Rota: /medicacoes/{id}/editar
      */
-    public function edit(string $id): void
+    public function edit(string $uuid): void
     {
         $model = new MedicacaoPaciente();
-        $medicacao = $model->buscarPorId((int)$id);
+        $medicacao = $model->buscarPorUuid($uuid);
 
         if (!$medicacao) {
             http_response_code(404);
@@ -115,17 +123,17 @@ class MedicacaoPacienteController extends ResourceController
             return;
         }
 
-        $this->renderMedicacaoForm($paciente, $medicacao, [], (int)$id);
+        $this->renderMedicacaoForm($paciente, $medicacao, [], (string)($medicacao['uuid'] ?? $uuid));
     }
 
     /**
      * Atualiza medicação.
      * Rota: POST /medicacoes/{id}
      */
-    public function update(string $id): void
+    public function update(string $uuid): void
     {
         $model = new MedicacaoPaciente();
-        $medicacao = $model->buscarPorId((int)$id);
+        $medicacao = $model->buscarPorUuid($uuid);
 
         if (!$medicacao) {
             http_response_code(404);
@@ -146,11 +154,20 @@ class MedicacaoPacienteController extends ResourceController
         $errors = $this->validateData($data);
 
         if ($errors !== []) {
-            $this->renderMedicacaoForm($paciente, array_merge($medicacao, $data), $errors, (int)$id);
+            $this->renderMedicacaoForm($paciente, array_merge($medicacao, $data), $errors, (string)($medicacao['uuid'] ?? $uuid));
             return;
         }
 
-        $model->updateMedicacao((int)$id, $data);
+        $model->updateMedicacao((int)($medicacao['id'] ?? 0), $data);
+
+        $this->audit('medicacao_atualizada', 'medicacoes', [
+            'entidade' => 'medicacao_paciente',
+            'entidade_id' => (string)($medicacao['id'] ?? ''),
+            'uuid' => $medicacao['uuid'] ?? $uuid,
+            'paciente_id' => $pacienteId,
+            'paciente_uuid' => $paciente['uuid'] ?? null,
+            'alteracoes' => $this->auditChanges($medicacao, $data),
+        ]);
 
         $this->flash('success', 'Medicação atualizada com sucesso.');
         $this->redirect('/pacientes/' . rawurlencode((string)$paciente['uuid']) . '?aba=medicacoes');
@@ -160,10 +177,10 @@ class MedicacaoPacienteController extends ResourceController
      * Inativação lógica.
      * Rota: POST /medicacoes/{id}/inativar
      */
-    public function inativar(string $id): void
+    public function inativar(string $uuid): void
     {
         $model = new MedicacaoPaciente();
-        $medicacao = $model->buscarPorId((int)$id);
+        $medicacao = $model->buscarPorUuid($uuid);
 
         if (!$medicacao) {
             http_response_code(404);
@@ -172,7 +189,15 @@ class MedicacaoPacienteController extends ResourceController
         }
 
         $paciente = (new Paciente())->buscarPorId((int)$medicacao['paciente_id']);
-        $model->inativarMedicacao((int)$id);
+        $model->inativarMedicacao((int)($medicacao['id'] ?? 0));
+
+        $this->audit('medicacao_inativada', 'medicacoes', [
+            'entidade' => 'medicacao_paciente',
+            'entidade_id' => (string)($medicacao['id'] ?? ''),
+            'uuid' => $medicacao['uuid'] ?? $uuid,
+            'paciente_id' => $medicacao['paciente_id'] ?? null,
+            'paciente_uuid' => $paciente['uuid'] ?? null,
+        ]);
 
         $this->flash('success', 'Medicação inativada com sucesso.');
 
@@ -187,10 +212,10 @@ class MedicacaoPacienteController extends ResourceController
      * Exclusão definitiva/inativação.
      * Rota: POST /medicacoes/{id}/delete
      */
-    public function destroy(string $id): void
+    public function destroy(string $uuid): void
     {
         $model = new MedicacaoPaciente();
-        $medicacao = $model->buscarPorId((int)$id);
+        $medicacao = $model->buscarPorUuid($uuid);
 
         if (!$medicacao) {
             http_response_code(404);
@@ -199,7 +224,15 @@ class MedicacaoPacienteController extends ResourceController
         }
 
         $paciente = (new Paciente())->buscarPorId((int)$medicacao['paciente_id']);
-        $model->deleteMedicacao((int)$id);
+        $model->deleteMedicacao((int)($medicacao['id'] ?? 0));
+
+        $this->audit('medicacao_removida', 'medicacoes', [
+            'entidade' => 'medicacao_paciente',
+            'entidade_id' => (string)($medicacao['id'] ?? ''),
+            'uuid' => $medicacao['uuid'] ?? $uuid,
+            'paciente_id' => $medicacao['paciente_id'] ?? null,
+            'paciente_uuid' => $paciente['uuid'] ?? null,
+        ]);
 
         $this->flash('success', 'Medicação removida com sucesso.');
 
@@ -210,7 +243,7 @@ class MedicacaoPacienteController extends ResourceController
         $this->redirect($destino);
     }
 
-    private function renderMedicacaoForm(array $paciente, array $medicacao, array $errors, ?int $id): void
+    private function renderMedicacaoForm(array $paciente, array $medicacao, array $errors, string|int|null $id): void
     {
         $model = new MedicacaoPaciente();
         $pacienteUuid = (string)($paciente['uuid'] ?? '');
@@ -223,7 +256,7 @@ class MedicacaoPacienteController extends ResourceController
             'errors'    => $errors,
             'options'   => $model->formOptions(),
             'action'    => $id
-                ? '/medicacoes/' . $id
+                ? '/medicacoes/' . rawurlencode((string)$id)
                 : '/pacientes/' . rawurlencode($pacienteUuid) . '/medicacoes',
             'isEdit'    => $id !== null,
         ]);

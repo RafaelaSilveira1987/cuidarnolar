@@ -6,6 +6,7 @@
     <h2>Dados cadastrais</h2>
     <dl class="detail-list">
         <?php foreach ($fields as $field => $label): ?>
+        <?php if ($field === 'id') { continue; } ?>
         <div>
             <dt><?= e($label) ?></dt>
             <dd><?= e($record[$field] ?? '-') ?></dd>
@@ -17,7 +18,7 @@
     <h2>Inativar registro</h2>
     <p class="page-subtitle">Mantem o historico e remove o registro dos fluxos ativos.</p>
     <form class="inline-form" method="POST"
-        action="<?= url($routeBase . '/' . (int) ($record['id'] ?? 0) . '/inativar') ?>"
+        action="<?= url($routeBase . '/' . rawurlencode((string)($record['uuid'] ?? $record['id'] ?? '')) . '/inativar') ?>"
         onsubmit="return confirm('Confirma inativar este paciente?')">
         <input type="hidden" name="_csrf" value="<?= e($_csrf) ?>">
         <input type="text" name="motivo_inativacao" placeholder="Motivo da inativacao">

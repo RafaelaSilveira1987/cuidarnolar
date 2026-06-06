@@ -65,6 +65,21 @@ class MedicacaoPaciente extends BaseModuleModel
         return $registro ?: null;
     }
 
+    public function buscarPorUuid(string $uuid): ?array
+    {
+        $uuid = trim($uuid);
+        if ($uuid === '') {
+            return null;
+        }
+
+        $registro = $this->rawFirst(
+            "SELECT * FROM {$this->table} WHERE uuid = :uuid LIMIT 1",
+            [':uuid' => $uuid]
+        );
+
+        return $registro ?: null;
+    }
+
     public function createMedicacao(array $data): int
     {
         return $this->createRecord($data);
