@@ -1,0 +1,3 @@
+[2026-06-06 19:21:27] CMD: mysql -h localhost -P 3306 -u root -e DROP DATABASE IF EXISTS `cuidar_no_lar_restore_test`; CREATE DATABASE `cuidar_no_lar_restore_test` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+[2026-06-06 19:21:27] 
+ERRO: Não foi possível iniciar o processo mysql.

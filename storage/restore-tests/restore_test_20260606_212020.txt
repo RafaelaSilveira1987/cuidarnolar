@@ -1,0 +1,49 @@
+[2026-06-06 21:20:20] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root -e DROP DATABASE IF EXISTS `cuidar_no_lar_restore_test`; CREATE DATABASE `cuidar_no_lar_restore_test` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+[2026-06-06 21:20:21] EXIT: 0
+[2026-06-06 21:20:21] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root cuidar_no_lar_restore_test
+[2026-06-06 21:20:23] EXIT: 0
+[2026-06-06 21:20:23] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root -N -B -e SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'cuidar_no_lar_restore_test';
+[2026-06-06 21:20:23] EXIT: 0
+[2026-06-06 21:20:23] STDOUT:
+42
+
+[2026-06-06 21:20:23] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root cuidar_no_lar_restore_test -N -B -e SHOW TABLES LIKE 'tb_usuarios';
+[2026-06-06 21:20:23] EXIT: 0
+[2026-06-06 21:20:23] STDOUT:
+tb_usuarios
+
+[2026-06-06 21:20:23] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root cuidar_no_lar_restore_test -N -B -e SHOW TABLES LIKE 'tb_pacientes';
+[2026-06-06 21:20:23] EXIT: 0
+[2026-06-06 21:20:23] STDOUT:
+tb_pacientes
+
+[2026-06-06 21:20:23] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root cuidar_no_lar_restore_test -N -B -e SHOW TABLES LIKE 'tb_cuidador';
+[2026-06-06 21:20:24] EXIT: 0
+[2026-06-06 21:20:24] STDOUT:
+tb_cuidador
+
+[2026-06-06 21:20:24] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root cuidar_no_lar_restore_test -N -B -e SHOW TABLES LIKE 'tb_responsavel';
+[2026-06-06 21:20:24] EXIT: 0
+[2026-06-06 21:20:24] STDOUT:
+tb_responsavel
+
+[2026-06-06 21:20:24] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root cuidar_no_lar_restore_test -N -B -e SHOW TABLES LIKE 'tb_financeiro';
+[2026-06-06 21:20:24] EXIT: 0
+[2026-06-06 21:20:24] STDOUT:
+tb_financeiro
+
+[2026-06-06 21:20:24] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root cuidar_no_lar_restore_test -N -B -e SHOW TABLES LIKE 'tb_auditoria';
+[2026-06-06 21:20:24] EXIT: 0
+[2026-06-06 21:20:24] STDOUT:
+tb_auditoria
+
+[2026-06-06 21:20:24] CMD: C:\wamp64\bin\mysql\mysql8.4.7\bin\mysql.exe -h localhost -P 3306 -u root -e DROP DATABASE IF EXISTS `cuidar_no_lar_restore_test`;
+[2026-06-06 21:20:27] EXIT: 0
+[2026-06-06 21:20:27] 
+RESUMO:
+Banco de teste recriado.
+Backup importado no banco de teste.
+Tabelas restauradas: 42
+Tabelas importantes encontradas: tb_usuarios, tb_pacientes, tb_cuidador, tb_responsavel, tb_financeiro, tb_auditoria
+Duração: 3.82s
+Banco de teste removido após validação. Use --keep para manter.

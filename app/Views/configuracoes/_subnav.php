@@ -1,15 +1,55 @@
 <?php
-$activeTab = $activeTab ?? 'empresa';
+$activeTab = (string)($activeTab ?? '');
+
 $tabs = [
-    'empresa' => ['/configuracoes/empresa', 'Dados da empresa'],
-    'plantoes' => ['/configuracoes/plantoes', 'Tabela de plantões'],
-    'permissoes' => ['/configuracoes/permissoes', 'Permissões de usuários'],
-    'checklist' => ['/configuracoes/checklist-publicacao', 'Checklist de publicação'],
+    [
+        'key' => 'empresa',
+        'label' => 'Dados da empresa',
+        'url' => '/configuracoes/empresa',
+    ],
+    [
+        'key' => 'plantoes',
+        'label' => 'Tabela de plantões',
+        'url' => '/configuracoes/plantoes',
+    ],
+    [
+        'key' => 'permissoes',
+        'label' => 'Permissões de usuários',
+        'url' => '/configuracoes/permissoes',
+    ],
+    [
+        'key' => 'usuarios',
+        'label' => 'Usuários',
+        'url' => '/configuracoes/usuarios',
+    ],
+    [
+        'key' => 'backups',
+        'label' => 'Backups',
+        'url' => '/configuracoes/backups',
+    ],
+    [
+        'key' => 'checklist-publicacao',
+        'label' => 'Checklist de publicação',
+        'url' => '/configuracoes/checklist-publicacao',
+    ],
 ];
 ?>
+
 <nav class="cfg-subnav" aria-label="Configurações">
-    <?php foreach ($tabs as $key => [$href, $label]): ?>
-    <a class="cfg-subnav__link <?= $activeTab === $key ? 'is-active' : '' ?>" href="<?= url($href) ?>">
+    <?php foreach ($tabs as $tab): ?>
+    <?php
+        $key = (string)($tab['key'] ?? '');
+        $label = (string)($tab['label'] ?? '');
+        $path = (string)($tab['url'] ?? '');
+
+        if ($key === '' || $label === '' || $path === '') {
+            continue;
+        }
+
+        $isActive = $activeTab === $key;
+        ?>
+
+    <a class="cfg-subnav__link <?= $isActive ? 'is-active' : '' ?>" href="<?= url($path) ?>">
         <?= e($label) ?>
     </a>
     <?php endforeach; ?>

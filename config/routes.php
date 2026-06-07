@@ -72,13 +72,13 @@ $router->get('/agendamentos/{uuid}', 'AgendamentoController@show', ['auth', 'can
 $router->get('/agendamentos/{uuid}/editar', 'AgendamentoController@edit', ['auth', 'can:agenda.editar']);
 $router->post('/agendamentos/{uuid}', 'AgendamentoController@update', ['auth', 'csrf', 'can:agenda.editar']);
 
-$router->get('/diario-idoso', 'DiarioIdosoController@index', ['auth']);
-$router->get('/diario-paciente', 'DiarioIdosoController@index', ['auth']);
-$router->get('/diario-paciente/novo', 'DiarioIdosoController@create', ['auth']);
-$router->post('/diario-paciente', 'DiarioIdosoController@store', ['auth', 'csrf']);
-$router->get('/diario-paciente/{uuid}', 'DiarioIdosoController@show', ['auth']);
-$router->get('/diario-paciente/{uuid}/editar', 'DiarioIdosoController@edit', ['auth']);
-$router->post('/diario-paciente/{uuid}', 'DiarioIdosoController@update', ['auth', 'csrf']);
+$router->get('/diario-idoso', 'DiarioIdosoController@index', ['auth', 'can:diario.ver']);
+$router->get('/diario-paciente', 'DiarioIdosoController@index', ['auth', 'can:diario.ver']);
+$router->get('/diario-paciente/novo', 'DiarioIdosoController@create', ['auth', 'can:diario.editar']);
+$router->post('/diario-paciente', 'DiarioIdosoController@store', ['auth', 'csrf', 'can:diario.editar']);
+$router->get('/diario-paciente/{uuid}', 'DiarioIdosoController@show', ['auth', 'can:diario.ver']);
+$router->get('/diario-paciente/{uuid}/editar', 'DiarioIdosoController@edit', ['auth', 'can:diario.editar']);
+$router->post('/diario-paciente/{uuid}', 'DiarioIdosoController@update', ['auth', 'csrf', 'can:diario.editar']);
 
 $router->get('/anamneses', 'AnamneseController@index', ['auth', 'can:anamneses.ver']);
 $router->get('/anamneses/novo', 'AnamneseController@create', ['auth', 'can:anamneses.editar']);
@@ -126,6 +126,10 @@ $router->post('/configuracoes/plantoes/{uuid}/alternar', 'ConfiguracaoController
 $router->get('/configuracoes/permissoes', 'ConfiguracaoController@permissoes', ['auth', 'can:usuarios.permissoes']);
 $router->post('/configuracoes/permissoes', 'ConfiguracaoController@permissoesSalvar', ['auth', 'csrf', 'can:usuarios.permissoes']);
 $router->get('/configuracoes/checklist-publicacao', 'ConfiguracaoController@checklistPublicacao', ['auth', 'can:configuracoes.ver']);
+$router->get('/configuracoes/backups', 'ConfiguracaoController@backups', ['auth', 'can:configuracoes.ver']);
+$router->post('/configuracoes/backups/gerar', 'ConfiguracaoController@backupGerar', ['auth', 'csrf', 'can:configuracoes.editar']);
+$router->get('/configuracoes/backups/download/{filename}', 'ConfiguracaoController@backupDownload', ['auth', 'can:configuracoes.ver']);
+$router->post('/configuracoes/backups/excluir/{filename}', 'ConfiguracaoController@backupExcluir', ['auth', 'csrf', 'can:configuracoes.editar']);
 
 $router->get('/relatorio-plantao', 'RelatorioPlantaoController@index', ['auth', 'can:relatorios.ver']);
 
@@ -155,6 +159,16 @@ $router->post('/escala/excluir', 'EscalaController@excluir', ['auth', 'csrf', 'c
 $router->post('/escala/trocar', 'EscalaController@trocar', ['auth', 'csrf', 'can:escala.editar']);
 $router->post('/escala/aprovar', 'EscalaController@aprovar', ['auth', 'csrf', 'can:escala.aprovar']);
 $router->post('/escala/fechar', 'EscalaController@fechar', ['auth', 'csrf', 'can:escala.fechar']);
+
+// Usuários
+$router->get('/configuracoes/usuarios', 'ConfiguracaoController@usuarios', ['auth', 'can:usuarios.gerenciar']);
+$router->get('/configuracoes/usuarios/novo', 'ConfiguracaoController@usuarioNovo', ['auth', 'can:usuarios.gerenciar']);
+$router->post('/configuracoes/usuarios', 'ConfiguracaoController@usuarioSalvar', ['auth', 'csrf', 'can:usuarios.gerenciar']);
+$router->get('/configuracoes/usuarios/{uuid}/editar', 'ConfiguracaoController@usuarioEditar', ['auth', 'can:usuarios.gerenciar']);
+$router->post('/configuracoes/usuarios/{uuid}', 'ConfiguracaoController@usuarioUpdate', ['auth', 'csrf', 'can:usuarios.gerenciar']);
+$router->post('/configuracoes/usuarios/{uuid}/status', 'ConfiguracaoController@usuarioAlternarStatus', ['auth', 'csrf', 'can:usuarios.gerenciar']);
+$router->post('/configuracoes/usuarios/{uuid}/resetar-senha', 'ConfiguracaoController@usuarioResetarSenha', ['auth', 'csrf', 'can:usuarios.gerenciar']);
+$router->post('/configuracoes/usuarios/{uuid}/cuidador', 'ConfiguracaoController@usuarioVincularCuidador', ['auth', 'csrf', 'can:usuarios.gerenciar']);
 
 
 return $router;
